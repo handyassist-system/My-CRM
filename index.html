@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>多業者到府服務 CRM + 預約 + 收款管理系統 v8</title>
+    <title>多業者到府服務 CRM + 預約 + 收款管理系統 v9</title>
 
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -388,9 +388,12 @@
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1>🏠 多業者到府服務管理系統</h1>
-            <p>CRM + 預約 + 收款 - 完整解決方案</p>
+        <div class="header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+            <h1 style="margin:0;">🏠 客戶管理系統</h1>
+            <a href="https://mp65p.github.io/My-Schedule/" target="_blank" rel="noopener"
+               style="background:rgba(255,255,255,0.15); color:white; padding:8px 14px; border-radius:8px; text-decoration:none; font-size:13px; font-weight:bold; white-space:nowrap; display:inline-flex; align-items:center; gap:6px;">
+                📅 行事曆
+            </a>
         </div>
 
         <!-- 頂部服務切換列 -->
@@ -922,8 +925,8 @@
                     this.data = {
                         providerName: '',
                         serviceTypes: [
-                            { id: 'st_clean',  typeName: '居家清潔', fields: 'home' },
-                            { id: 'st_mite',   typeName: '除塵蟎',   fields: 'home' },
+                            { id: 'st_clean',  typeName: '除塵蟎',   fields: 'home' },
+                            { id: 'st_mite',   typeName: '居家清潔', fields: 'home' },
                             { id: 'st_repair', typeName: '維修服務', fields: 'repair' }
                         ],
                         clients: [],
@@ -957,8 +960,8 @@
                     });
 
                     const fixed = [
-                        { id: 'st_clean',  typeName: '居家清潔', fields: 'home' },
-                        { id: 'st_mite',   typeName: '除塵蟎',   fields: 'home' },
+                        { id: 'st_clean',  typeName: '除塵蟎',   fields: 'home' },
+                        { id: 'st_mite',   typeName: '居家清潔', fields: 'home' },
                         { id: 'st_repair', typeName: '維修服務', fields: 'repair' }
                     ];
                     fixed.forEach(f => {
@@ -1047,8 +1050,8 @@
                     return true;
                 });
                 const fixed = [
-                    { id: 'st_clean',  typeName: '居家清潔', fields: 'home' },
-                    { id: 'st_mite',   typeName: '除塵蟎',   fields: 'home' },
+                    { id: 'st_clean',  typeName: '除塵蟎',   fields: 'home' },
+                    { id: 'st_mite',   typeName: '居家清潔', fields: 'home' },
                     { id: 'st_repair', typeName: '維修服務', fields: 'repair' }
                 ];
                 fixed.forEach(f => {
@@ -3065,7 +3068,7 @@
     <div id="auth-overlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:linear-gradient(135deg,#2c3e50,#3498db);z-index:99998;align-items:center;justify-content:center;">
         <div style="background:white;padding:32px 24px;border-radius:16px;max-width:360px;width:90%;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,0.3);">
             <div style="font-size:48px;margin-bottom:8px;">🏠</div>
-            <h2 style="color:#2c3e50;margin-bottom:6px;">多業者到府服務管理系統</h2>
+            <h2 style="color:#2c3e50;margin-bottom:6px;">客戶管理系統</h2>
             <p style="color:#7f8c8d;font-size:13px;margin-bottom:24px;">請輸入授權碼以進入系統</p>
             <input type="password" id="auth-input" placeholder="輸入授權碼..."
                 style="width:100%;padding:12px;border:2px solid #bdc3c7;border-radius:8px;font-size:18px;text-align:center;letter-spacing:4px;box-sizing:border-box;margin-bottom:8px;"
