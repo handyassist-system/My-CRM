@@ -411,6 +411,7 @@
             <button class="nav-btn" data-tab="bookings">預約管理</button>
             <button class="nav-btn" data-tab="payments">收款管理</button>
             <button class="nav-btn" data-tab="dashboard">報表統計</button>
+            <button class="nav-btn" data-tab="tracking">客戶追蹤</button>
         </div>
 
         <div class="content">
@@ -455,6 +456,11 @@
                         <button class="btn btn-primary" onclick="saveNewAuthCode()">更新</button>
                     </div>
                     <p style="font-size: 11px; color: #95a5a6; margin-top: 6px;">⚠️ 更新後所有人需重新輸入新授權碼</p>
+                </div>
+
+                <!-- 版本資訊 -->
+                <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #ecf0f1; text-align:center;">
+                    <p style="font-size: 12px; color: #bdc3c7;">目前版本：v9</p>
                 </div>
             </div>
 
@@ -557,6 +563,21 @@
                 </div>
 
                 <div id="dashboard-content"></div>
+            </div>
+
+            <!-- 客戶追蹤 -->
+            <div id="tracking" class="tab-pane">
+                <h2>📋 客戶追蹤</h2>
+                <div style="display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap; align-items:center;">
+                    <select id="tracking-filter" onchange="renderTrackingList()" style="padding:8px 10px;border:1px solid #bdc3c7;border-radius:4px;font-size:13px;">
+                        <option value="">全部客戶</option>
+                        <option value="red">🔴 需要追蹤（90天以上）</option>
+                        <option value="yellow">🟡 注意（60-89天）</option>
+                        <option value="green">🟢 正常（30-59天）</option>
+                        <option value="new">⚪ 尚未預約</option>
+                    </select>
+                </div>
+                <div id="tracking-content"></div>
             </div>
         </div>
     </div>
@@ -2727,6 +2748,87 @@
             `;
         }
 
+        function renderTrackingList() {
+            const container = document.getElementById('tracking-content');
+            if (!container) return;
+            const filterVal = document.getElementById('tracking-filter')?.value || '';
+            const today = new Date();
+            today.setHours(0,0,0,0);
+
+            const clients = store.getClients().filter(c => (c.serviceStatus || '服務中') === '服務中');
+
+            const clientData = clients.map(client => {
+                const contracts = store.getContractsByClient(client.id);
+                const bookings = contracts.flatMap(c =>
+                    store.getBookingsByContract(c.id).filter(b => b.status === '完成')
+                ).sort((a, b) => new Date(b.bookingDate) - new Date(a.bookingDate));
+
+                const lastBooking = bookings[0] || null;
+                const lastDate = lastBooking ? new Date(lastBooking.bookingDate) : null;
+                const daysDiff = lastDate ? Math.floor((today - lastDate) / (1000 * 60 * 60 * 24)) : null;
+                const monthsDiff = daysDiff !== null ? Math.floor(daysDiff / 30) : null;
+
+                let level = 'new';
+                if (daysDiff !== null) {
+                    if (daysDiff >= 90) level = 'red';
+                    else if (daysDiff >= 60) level = 'yellow';
+                    else level = 'green';
+                }
+
+                const st = store.getServiceType(client.serviceTypeId);
+                return { client, lastBooking, lastDate, daysDiff, monthsDiff, level, stName: st?.typeName || '' };
+            });
+
+            const filtered = filterVal ? clientData.filter(d => d.level === filterVal) : clientData;
+
+            filtered.sort((a, b) => {
+                if (a.daysDiff === null) return 1;
+                if (b.daysDiff === null) return -1;
+                return b.daysDiff - a.daysDiff;
+            });
+
+            if (filtered.length === 0) {
+                container.innerHTML = '<div class="empty-state">此分類沒有客戶</div>';
+                return;
+            }
+
+            const levelConfig = {
+                red:    { icon: '🔴', label: '需要追蹤', bg: '#fce4ec', border: '#e74c3c' },
+                yellow: { icon: '🟡', label: '注意',     bg: '#fff8e1', border: '#f39c12' },
+                green:  { icon: '🟢', label: '正常',     bg: '#e8f5e9', border: '#27ae60' },
+                new:    { icon: '⚪', label: '尚未預約', bg: '#f5f5f5', border: '#bdc3c7' }
+            };
+
+            container.innerHTML = filtered.map(d => {
+                const cfg = levelConfig[d.level];
+                let timeText = '尚未有完成的預約';
+                if (d.daysDiff !== null) {
+                    if (d.monthsDiff >= 1) {
+                        timeText = `${d.monthsDiff} 個月前`;
+                    } else {
+                        timeText = `${d.daysDiff} 天前`;
+                    }
+                }
+                const dateText = d.lastDate ? d.lastDate.toISOString().split('T')[0] : '';
+                return `
+                    <div style="border-left:4px solid ${cfg.border};background:${cfg.bg};padding:12px 14px;border-radius:6px;margin-bottom:10px;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;">
+                            <div>
+                                <p style="font-weight:bold;color:#2c3e50;">${cfg.icon} ${d.client.clientName}</p>
+                                <p style="font-size:13px;color:#555;margin-top:4px;">
+                                    最後服務：${timeText}
+                                    ${dateText ? `<span style="color:#7f8c8d;">（${dateText}）</span>` : ''}
+                                </p>
+                                ${d.stName ? `<p style="font-size:12px;color:#7f8c8d;">${d.stName}</p>` : ''}
+                            </div>
+                            <span style="font-size:11px;background:white;padding:2px 8px;border-radius:10px;color:${cfg.border};border:1px solid ${cfg.border};">${cfg.label}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        window.renderTrackingList = renderTrackingList;
+
         function calculateMonthlyStats(paidPayments) {
             const stats = {};
             paidPayments.forEach(payment => {
@@ -2936,6 +3038,7 @@
             updateBookingTab();
             updatePaymentTab();
             renderDashboard();
+            renderTrackingList();
             attachSearchListeners();
         }
 
