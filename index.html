@@ -915,6 +915,17 @@
         </div>
     </div>
 
+    <!-- Modal for Client Detail -->
+    <div id="client-detail-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>客戶詳情</h3>
+            </div>
+            <div id="client-detail-content" style="padding-bottom:8px;"></div>
+            <button type="button" class="btn btn-secondary" onclick="closeClientDetailModal()" style="width:100%;margin-top:8px;">關閉</button>
+        </div>
+    </div>
+
     <script>
         // ==================== Firebase 初始化 ====================
         const firebaseConfig = {
@@ -2810,7 +2821,7 @@
                 return `
                     <div style="border-left:4px solid ${cfg.border};background:${cfg.bg};padding:12px 14px;border-radius:6px;margin-bottom:10px;">
                         <div style="display:flex;justify-content:space-between;align-items:center;">
-                            <div>
+                            <div style="flex:1;">
                                 <p style="font-weight:bold;color:#2c3e50;">${cfg.icon} ${d.client.clientName}</p>
                                 <p style="font-size:13px;color:#555;margin-top:4px;">
                                     最後服務：${timeText}
@@ -2818,13 +2829,87 @@
                                 </p>
                                 ${d.stName ? `<p style="font-size:12px;color:#7f8c8d;">${d.stName}</p>` : ''}
                             </div>
-                            <span style="font-size:11px;background:white;padding:2px 8px;border-radius:10px;color:${cfg.border};border:1px solid ${cfg.border};">${cfg.label}</span>
+                            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
+                                <span style="font-size:11px;background:white;padding:2px 8px;border-radius:10px;color:${cfg.border};border:1px solid ${cfg.border};">${cfg.label}</span>
+                                <button class="btn btn-sm btn-secondary" onclick="openClientDetailModal('${d.client.id}')">查看</button>
+                            </div>
                         </div>
                     </div>
                 `;
             }).join('');
         }
         window.renderTrackingList = renderTrackingList;
+
+        function openClientDetailModal(clientId) {
+            const client = store.getClient(clientId);
+            if (!client) return;
+
+            const contracts = store.getContractsByClient(clientId);
+            const st = store.getServiceType(client.serviceTypeId);
+
+            // 合約狀態
+            let contractHtml = '<p style="color:#95a5a6;font-size:13px;">尚無合約</p>';
+            if (contracts.length > 0) {
+                contractHtml = contracts.filter(c => (c.contractStatus || '進行中') === '進行中').map(contract => {
+                    const usedHours = store.getBookingsByContract(contract.id)
+                        .filter(b => b.status === '完成')
+                        .reduce((sum, b) => sum + b.serviceHours, 0);
+                    const bonus = contract.bonusHours || 0;
+                    const preUsed = contract.preUsedHours || 0;
+                    const remaining = contract.totalHours + bonus - preUsed - usedHours;
+                    return `
+                        <div style="background:#f8f9fa;border-radius:6px;padding:10px;margin-bottom:8px;">
+                            <p style="font-size:13px;"><strong>剩餘時數：${remaining}h</strong> / ${contract.totalHours + bonus}h</p>
+                            <p style="font-size:12px;color:#7f8c8d;">${contract.cooperationMethod} ｜ NT$${contract.paymentRate || contract.hourlyRate}/h</p>
+                        </div>`;
+                }).join('') || '<p style="color:#95a5a6;font-size:13px;">目前無進行中合約</p>';
+            }
+
+            // 預約紀錄（所有合約的所有預約，由新到舊）
+            const allBookings = contracts.flatMap(c =>
+                store.getBookingsByContract(c.id)
+            ).sort((a, b) => new Date(b.bookingDate) - new Date(a.bookingDate));
+
+            let bookingsHtml = '<p style="color:#95a5a6;font-size:13px;">尚無預約紀錄</p>';
+            if (allBookings.length > 0) {
+                const statusColor = { '完成': '#27ae60', '未開始': '#7f8c8d', '進行中': '#3498db' };
+                bookingsHtml = allBookings.map(b => `
+                    <div style="padding:10px 0;border-bottom:1px solid #ecf0f1;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;">
+                            <p style="font-size:13px;font-weight:bold;color:#2c3e50;">${b.bookingDate} ${b.bookingTime}</p>
+                            <span style="font-size:11px;color:${statusColor[b.status] || '#7f8c8d'};font-weight:bold;">${b.status}</span>
+                        </div>
+                        <p style="font-size:13px;color:#555;margin-top:2px;">${b.serviceHours}h
+                            ${b.useEssentialOil ? ' ｜ <span style="color:#8e44ad;">✓ 使用精油</span>' : ''}
+                        </p>
+                        ${b.serviceNotes ? `<p style="font-size:12px;color:#7f8c8d;margin-top:4px;">備註：${b.serviceNotes}</p>` : ''}
+                    </div>`).join('');
+            }
+
+            document.getElementById('client-detail-content').innerHTML = `
+                <div style="padding:4px 0 12px;">
+                    <p style="font-size:16px;font-weight:bold;color:#2c3e50;">${client.clientName}</p>
+                    <p style="font-size:13px;color:#7f8c8d;">📞 ${client.phone} ｜ ${st?.typeName || ''}</p>
+                </div>
+                <div style="border-top:1px solid #ecf0f1;padding-top:12px;margin-bottom:12px;">
+                    <p style="font-size:13px;font-weight:bold;color:#2c3e50;margin-bottom:8px;">📋 合約狀態</p>
+                    ${contractHtml}
+                </div>
+                <div style="border-top:1px solid #ecf0f1;padding-top:12px;">
+                    <p style="font-size:13px;font-weight:bold;color:#2c3e50;margin-bottom:8px;">📅 預約紀錄</p>
+                    ${bookingsHtml}
+                </div>
+            `;
+
+            document.getElementById('client-detail-modal').classList.add('show');
+        }
+
+        function closeClientDetailModal() {
+            document.getElementById('client-detail-modal').classList.remove('show');
+        }
+
+        window.openClientDetailModal = openClientDetailModal;
+        window.closeClientDetailModal = closeClientDetailModal;
 
         function calculateMonthlyStats(paidPayments) {
             const stats = {};
