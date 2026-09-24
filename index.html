@@ -8,6 +8,7 @@
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <style>
         * {
             margin: 0;
@@ -389,7 +390,7 @@
 <body>
     <div class="container">
         <div class="header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-            <h1 style="margin:0;">🏠 客戶管理系統 <span style="font-size:13px;font-weight:normal;opacity:0.7;">v9</span></h1>
+            <h1 style="margin:0;">🏠 客戶管理系統 <span id="crmVerTag" style="font-size:13px;font-weight:normal;opacity:0.7;">v1.0</span></h1>
             <a href="https://handyassist-system.github.io/My-Schedule/" target="_blank" rel="noopener"
                style="background:rgba(255,255,255,0.15); color:white; padding:8px 14px; border-radius:8px; text-decoration:none; font-size:13px; font-weight:bold; white-space:nowrap; display:inline-flex; align-items:center; gap:6px;">
                 📅 行事曆
@@ -448,14 +449,11 @@
                     <p style="font-size: 11px; color: #95a5a6; margin-top: 8px;">⚠️ 匯入會覆蓋現有資料，請先匯出備份</p>
                 </div>
 
-                <!-- 修改授權碼 -->
+                <!-- 帳號 -->
                 <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #ecf0f1;">
-                    <p style="font-size: 13px; color: #7f8c8d; margin-bottom: 10px;">🔑 授權碼管理</p>
-                    <div style="display:flex; gap:8px;">
-                        <input type="password" id="new-auth-input" placeholder="輸入新的授權碼..." style="flex:1; padding:8px 10px; border:1px solid #bdc3c7; border-radius:4px;">
-                        <button class="btn btn-primary" onclick="saveNewAuthCode()">更新</button>
-                    </div>
-                    <p style="font-size: 11px; color: #95a5a6; margin-top: 6px;">⚠️ 更新後所有人需重新輸入新授權碼</p>
+                    <p style="font-size: 13px; color: #7f8c8d; margin-bottom: 10px;">👤 帳號</p>
+                    <p id="crm-account-email" style="font-size:14px;font-weight:bold;color:#2c3e50;word-break:break-all;margin:0 0 10px;">—</p>
+                    <button class="btn btn-secondary" style="width:100%" onclick="crmLogout()">🚪 登出</button>
                 </div>
 
                 <!-- 版本資訊移除 -->
@@ -939,7 +937,14 @@
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-        const FB_KEY = 'servicecrm_v6';
+        var auth = null; try{ auth = firebase.auth(); }catch(e){ auth = null; }
+
+        // 資料改成「每個帳號一份」：servicecrm_v6/<email 轉成的 key>
+        // 以後要賣給其他業者時，結構不用再動
+        const FB_ROOT = 'servicecrm_v6';
+        var FB_KEY = null;                       // 登入後才會設定
+        function crmEmailKey(e){ return String(e||'').toLowerCase().replace(/[.#$\[\]]/g,'_'); }
+        function setCrmPath(email){ FB_KEY = FB_ROOT + '/' + crmEmailKey(email); }
 
         // ==================== 資料管理 ====================
         class DataStore {
@@ -1030,12 +1035,14 @@
                 if ((this.data.bookings?.length || 0) > 0) updateData.bookings = this.data.bookings;
                 if ((this.data.payments?.length || 0) > 0) updateData.payments = this.data.payments;
 
+                if (!FB_KEY) { console.warn('尚未登入，跳過雲端儲存'); return; }
                 db.ref(FB_KEY).update(updateData).catch(err => {
                     console.error('Firebase 儲存失敗:', err);
                 });
             }
 
             async loadFromFirebase() {
+                if (!FB_KEY) { this._firebaseReady = false; return; }
                 try {
                     const snapshot = await db.ref(FB_KEY).get();
                     if (snapshot.exists()) {
@@ -1263,85 +1270,137 @@
 
         const store = new DataStore();
 
-        // ==================== 授權碼系統 ====================
-        const AUTH_KEY = 'servicecrm_auth';
-        const AUTH_FB_KEY = 'servicecrm_v6_auth';
+        // ==================== 登入（智在生活 Standard）====================
+        // 拿掉原本寫在公開資料庫裡的授權碼，改用 Firebase 帳號驗證。
+        // 從行事曆連過來時，同網域的登入狀態會自動沿用，使用者不會有感覺。
+        const ADMIN_EMAIL = 'mp65p@hotmail.com';
+        const ALLOWED_EMAILS = [ADMIN_EMAIL];          // 之後要賣，改成查方案即可
+        const CRM_APP_VER = 'v1.0', CRM_BUILD_ID = '0924-1';
+        const CRM_EMAIL_FOR_SIGNIN = 'crmEmailForSignIn';
+        const LINE_SUPPORT_URL = 'https://line.me/R/ti/p/@373pfdee';
+        var crmUserEmail = null;
 
-        async function checkAuth() {
-            // 先看 localStorage 是否已有授權記錄
-            const savedAuth = localStorage.getItem(AUTH_KEY);
-
-            // 從 Firebase 取得正確授權碼
+        function crmAllowed(email){
+            return ALLOWED_EMAILS.indexOf(String(email||'').toLowerCase()) >= 0;
+        }
+        function renderCrmVerTag(){
+            var el = document.getElementById('crmVerTag');
+            if (el) el.textContent = CRM_APP_VER + (crmUserEmail === ADMIN_EMAIL ? ' · ' + CRM_BUILD_ID : '');
+            var em = document.getElementById('crm-account-email');
+            if (em) em.textContent = crmUserEmail || '—';
+        }
+        function showCrmLogin(msg){
+            var lg = document.getElementById('crmLogin');
+            if (lg) lg.style.display = 'flex';
+            document.getElementById('loading-overlay').style.display = 'none';
+            if (msg) { var e = document.getElementById('crmLoginMsg'); if (e) e.textContent = msg; }
+        }
+        function hideCrmLogin(){
+            var lg = document.getElementById('crmLogin');
+            if (lg) lg.style.display = 'none';
+        }
+        // 等 Firebase 回報目前登入狀態（沿用行事曆的登入）
+        function crmWaitAuth(){
+            return new Promise(function(resolve){
+                if (!auth) { resolve(null); return; }
+                var done = false;
+                var unsub = auth.onAuthStateChanged(function(u){
+                    if (done) return; done = true;
+                    try { unsub(); } catch(e){}
+                    resolve(u || null);
+                });
+                setTimeout(function(){ if (!done) { done = true; try{ unsub(); }catch(e){} resolve(null); } }, 8000);
+            });
+        }
+        // 舊資料搬到自己的帳號底下（只跑一次，你不用做任何事）
+        async function crmMigrateIfNeeded(){
+            if (!FB_KEY) return;
             try {
-                const snapshot = await db.ref(AUTH_FB_KEY).get();
-                if (!snapshot.exists()) {
-                    // 第一次使用，自動設定預設授權碼
-                    await db.ref(AUTH_FB_KEY).set({ code: '0430' });
-                }
-                const authData = snapshot.exists() ? snapshot.val() : { code: '0430' };
-                const correctCode = authData.code;
-
-                // 比對 localStorage 存的授權記錄
-                if (savedAuth === correctCode) {
-                    return true; // 已授權，直接進入
-                } else {
-                    return false; // 需要輸入授權碼
-                }
-            } catch (err) {
-                console.error('授權驗證失敗:', err);
-                return false;
-            }
+                var mine = await db.ref(FB_KEY).get();
+                if (mine.exists()) return;                        // 已經搬過了
+                var legacy = await db.ref(FB_ROOT).get();
+                if (!legacy.exists()) return;
+                var v = legacy.val() || {};
+                var payload = {};
+                ['providerName','selectedServiceType','serviceTypes','clients','contracts','bookings','payments','providers']
+                    .forEach(function(k){ if (v[k] !== undefined) payload[k] = v[k]; });
+                if (Object.keys(payload).length === 0) return;    // 沒有舊資料
+                await db.ref(FB_KEY).set(payload);
+                console.log('舊資料已搬到帳號底下');
+            } catch(e){ console.warn('搬遷略過', e); }
         }
-
-        async function verifyAuthCode(inputCode) {
+        async function crmEnter(email){
+            crmUserEmail = String(email).toLowerCase();
+            setCrmPath(crmUserEmail);
+            hideCrmLogin();
+            document.getElementById('loading-overlay').style.display = 'flex';
+            await crmMigrateIfNeeded();
+            await store.loadFromFirebase();
+            document.getElementById('loading-overlay').style.display = 'none';
+            renderCrmVerTag();
+            initStep1();
+            initBookingTimeOptions();
+            updateAllTabs();
+            var importFile = document.getElementById('import-file');
+            if (importFile) importFile.addEventListener('change', function(e){ importData(e); });
+        }
+        // 收信登入（直接開 CRM 網址、還沒登入時才用得到）
+        async function crmSendLink(){
+            var msg = document.getElementById('crmLoginMsg');
+            var input = document.getElementById('crmEmailInput');
+            var btn = document.getElementById('crmLoginBtn');
+            var email = (input.value || '').trim();
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { msg.textContent = 'Email 格式不正確'; return; }
+            if (!auth) { msg.textContent = '登入服務暫時無法使用，請確認網路'; return; }
+            btn.disabled = true; btn.textContent = '寄送中…';
             try {
-                const snapshot = await db.ref(AUTH_FB_KEY).get();
-                const correctCode = snapshot.exists() ? snapshot.val().code : '0430';
-                if (inputCode === correctCode) {
-                    localStorage.setItem(AUTH_KEY, inputCode);
-                    return true;
-                }
-                return false;
-            } catch (err) {
-                return false;
+                await auth.sendSignInLinkToEmail(email, { url: location.href.split('#')[0].split('?')[0], handleCodeInApp: true });
+                try { localStorage.setItem(CRM_EMAIL_FOR_SIGNIN, email); } catch(e){}
+                msg.textContent = '📧 登入連結已寄到 ' + email + '，請到信箱點擊連結（找不到請看垃圾郵件夾）';
+            } catch(e) {
+                msg.textContent = '寄送失敗：' + ((e && e.message) ? e.message : '請稍後再試');
             }
+            btn.disabled = false; btn.textContent = '登入';
         }
-
-        async function changeAuthCode(newCode) {
+        async function crmCompleteEmailLink(){
+            try { if (!auth || !auth.isSignInWithEmailLink(window.location.href)) return null; } catch(e){ return null; }
+            var email; try { email = localStorage.getItem(CRM_EMAIL_FOR_SIGNIN); } catch(e){}
+            if (!email) email = prompt('請輸入收到這封登入信的 Email：');
+            if (!email) return null;
             try {
-                await db.ref(AUTH_FB_KEY).set({ code: newCode });
-                localStorage.setItem(AUTH_KEY, newCode);
-                return true;
-            } catch (err) {
-                return false;
+                var res = await auth.signInWithEmailLink(email, window.location.href);
+                try { localStorage.removeItem(CRM_EMAIL_FOR_SIGNIN); } catch(e){}
+                history.replaceState(null, '', location.pathname);
+                return (res && res.user) ? res.user : null;
+            } catch(e) {
+                showCrmLogin('登入連結已失效，請重新寄送');
+                return null;
             }
         }
-
-        function showAuthScreen() {
-            const overlay = document.getElementById('auth-overlay');
-            overlay.style.display = 'flex';
-            setTimeout(() => document.getElementById('auth-input').focus(), 100);
-        }
-
-        function hideAuthScreen() {
-            document.getElementById('auth-overlay').style.display = 'none';
-        }
-
-        window.changeAuthCode = changeAuthCode;
-
-        async function saveNewAuthCode() {
-            const newCode = document.getElementById('new-auth-input').value.trim();
-            if (!newCode) { showToast('❌ 請輸入新的授權碼'); return; }
-            if (newCode.length < 4) { showToast('❌ 授權碼至少 4 位'); return; }
-            const ok = await changeAuthCode(newCode);
-            if (ok) {
-                document.getElementById('new-auth-input').value = '';
-                showToast('✅ 授權碼已更新！分享給需要的人');
-            } else {
-                showToast('❌ 更新失敗，請重試');
+        async function crmAdminLogin(){
+            var msg = document.getElementById('crmAdminMsg');
+            var em = (document.getElementById('crmAdminEmail').value || '').trim();
+            var pw = document.getElementById('crmAdminPw').value || '';
+            if (!em || !pw) { msg.textContent = '請輸入 Email 與密碼'; return; }
+            if (!auth) { msg.textContent = '登入服務暫時無法使用'; return; }
+            msg.textContent = '登入中…';
+            try {
+                var res = await auth.signInWithEmailAndPassword(em, pw);
+                var u = res && res.user;
+                if (!u || !crmAllowed(u.email)) { msg.textContent = '這個帳號沒有權限'; try{ await auth.signOut(); }catch(e){} return; }
+                msg.textContent = '';
+                await crmEnter(u.email);
+            } catch(e) {
+                msg.textContent = '登入失敗，請確認 Email 與密碼';
             }
         }
-        window.saveNewAuthCode = saveNewAuthCode;
+        function crmLogout(){
+            try { localStorage.removeItem('servicecrm_data'); } catch(e){}
+            var go = function(){ location.reload(); };
+            try { if (auth) { auth.signOut().then(go, go); return; } } catch(e){}
+            go();
+        }
+        window.crmLogout = crmLogout;
 
         // ==================== UI 控制 ====================
         function setActiveTab(tabName) {
@@ -3176,67 +3235,72 @@
         window.autoFillExpireDate = autoFillExpireDate;
         window.renderDashboard = renderDashboard;
 
+        // ===== 手機返回鍵（智在生活 Standard，五支 App 同一套）=====
+        function crmToast(msg){
+            var el = document.getElementById('toast');
+            if (!el) return;
+            el.textContent = msg; el.style.display = 'block';
+            clearTimeout(el._t); el._t = setTimeout(function(){ el.style.display = 'none'; }, 1800);
+        }
+        function appHandleBack(){
+            var cf = document.getElementById('confirm-overlay');
+            if (cf && cf.style.display === 'flex') { cf.style.display = 'none'; return true; }   // 確認視窗
+            var open = document.querySelectorAll('.modal.show');
+            if (open.length) { open[open.length - 1].classList.remove('show'); return true; }    // 彈窗
+            var lg = document.getElementById('crmLogin');
+            if (lg && lg.style.display === 'flex') return false;                                  // 登入頁 → 離開
+            var first = document.querySelector('.nav-btn');
+            var active = document.querySelector('.nav-btn.active');
+            if (first && active && first !== active) { first.click(); return true; }              // 其他分頁 → 回第一頁
+            return false;
+        }
+        (function(){
+            if (!window.history || !history.pushState) return;
+            var armed = false, timer = null;
+            function guard(){ try { history.pushState({ haGuard: 1 }, ''); } catch(e){} }
+            guard();
+            window.addEventListener('popstate', function(){
+                if (armed) return;
+                var handled = false;
+                try { handled = appHandleBack(); } catch(e){ handled = false; }
+                if (handled) { guard(); return; }
+                armed = true;
+                crmToast('再按一次返回鍵離開');
+                clearTimeout(timer);
+                timer = setTimeout(function(){ armed = false; guard(); }, 2000);
+            });
+        })();
+
         window.addEventListener('load', async function() {
-            // 先顯示 Loading
             document.getElementById('loading-overlay').style.display = 'flex';
+            renderCrmVerTag();
 
-            // 驗證授權碼
-            const isAuthed = await checkAuth();
+            // 綁定登入頁按鈕
+            var lb = document.getElementById('crmLoginBtn');
+            if (lb) lb.addEventListener('click', crmSendLink);
+            var ei = document.getElementById('crmEmailInput');
+            if (ei) ei.addEventListener('keydown', function(e){ if (e.key === 'Enter') crmSendLink(); });
+            var at = document.getElementById('crmAdminToggle');
+            if (at) at.addEventListener('click', function(){
+                var box = document.getElementById('crmAdminBox');
+                box.style.display = (box.style.display === 'none' || !box.style.display) ? 'block' : 'none';
+            });
+            var ab = document.getElementById('crmAdminBtn');
+            if (ab) ab.addEventListener('click', crmAdminLogin);
+            var ap = document.getElementById('crmAdminPw');
+            if (ap) ap.addEventListener('keydown', function(e){ if (e.key === 'Enter') crmAdminLogin(); });
 
-            if (!isAuthed) {
-                // 隱藏 Loading，顯示授權碼畫面
-                document.getElementById('loading-overlay').style.display = 'none';
-                showAuthScreen();
+            // 1. 先處理信件連結登入
+            var u = await crmCompleteEmailLink();
+            // 2. 沒有的話，沿用同網域既有的登入狀態（從行事曆連過來就是這條）
+            if (!u) u = await crmWaitAuth();
 
-                // 綁定授權碼按鈕
-                document.getElementById('auth-btn').addEventListener('click', async function() {
-                    const inputCode = document.getElementById('auth-input').value.trim();
-                    if (!inputCode) return;
-
-                    this.textContent = '驗證中...';
-                    this.disabled = true;
-
-                    const ok = await verifyAuthCode(inputCode);
-                    if (ok) {
-                        hideAuthScreen();
-                        document.getElementById('loading-overlay').style.display = 'flex';
-                        await store.loadFromFirebase();
-                        document.getElementById('loading-overlay').style.display = 'none';
-                        initStep1();
-                        initBookingTimeOptions();
-                        updateAllTabs();
-                        // 授權碼流程後也要綁定匯入事件
-                        const importFile = document.getElementById('import-file');
-                        if (importFile) {
-                            importFile.addEventListener('change', function(e) { importData(e); });
-                        }
-                    } else {
-                        document.getElementById('auth-error').style.display = 'block';
-                        this.textContent = '進入系統';
-                        this.disabled = false;
-                        document.getElementById('auth-input').value = '';
-                        document.getElementById('auth-input').focus();
-                    }
-                });
-
-                // 按 Enter 也可以確認
-                document.getElementById('auth-input').addEventListener('keypress', function(e) {
-                    if (e.key === 'Enter') document.getElementById('auth-btn').click();
-                });
-
+            if (u && u.email && crmAllowed(u.email)) {
+                await crmEnter(u.email);
+            } else if (u && u.email) {
+                showCrmLogin('這個帳號（' + u.email + '）沒有權限使用本系統');
             } else {
-                // 已授權，直接載入
-                await store.loadFromFirebase();
-                document.getElementById('loading-overlay').style.display = 'none';
-                initStep1();
-                initBookingTimeOptions();
-                updateAllTabs();
-
-                // 匯入檔案事件
-                const importFile = document.getElementById('import-file');
-                if (importFile) {
-                    importFile.addEventListener('change', function(e) { importData(e); });
-                }
+                showCrmLogin('');
             }
         });
     </script>
@@ -3250,19 +3314,31 @@
         <p style="font-size:13px;color:#7f8c8d;margin-top:8px;">連線至雲端資料庫</p>
     </div>
 
-    <!-- 授權碼輸入畫面 -->
-    <div id="auth-overlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:linear-gradient(135deg,#2c3e50,#3498db);z-index:99998;align-items:center;justify-content:center;">
-        <div style="background:white;padding:32px 24px;border-radius:16px;max-width:360px;width:90%;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,0.3);">
-            <div style="font-size:48px;margin-bottom:8px;">🏠</div>
-            <h2 style="color:#2c3e50;margin-bottom:6px;">客戶管理系統</h2>
-            <p style="color:#7f8c8d;font-size:13px;margin-bottom:24px;">請輸入授權碼以進入系統</p>
-            <input type="password" id="auth-input" placeholder="輸入授權碼..."
-                style="width:100%;padding:12px;border:2px solid #bdc3c7;border-radius:8px;font-size:18px;text-align:center;letter-spacing:4px;box-sizing:border-box;margin-bottom:8px;"
-                maxlength="20">
-            <p id="auth-error" style="color:#e74c3c;font-size:13px;margin-bottom:12px;display:none;">授權碼錯誤，請重試</p>
-            <button id="auth-btn" style="width:100%;padding:14px;background:#3498db;color:white;border:none;border-radius:8px;font-size:16px;font-weight:bold;cursor:pointer;">
-                進入系統
-            </button>
+    <!-- 登入畫面（智在生活 Standard） -->
+    <div id="crmLogin" style="display:none;position:fixed;inset:0;background:#FBF8F3;z-index:99998;align-items:center;justify-content:center;padding:24px;">
+        <div style="background:#fff;border:1px solid #E7E2DA;padding:32px 26px;border-radius:20px;max-width:360px;width:100%;text-align:center;box-shadow:0 10px 30px rgba(44,62,80,.08);">
+            <div style="font-size:46px;margin-bottom:10px;">🏠</div>
+            <h2 style="color:#2c3e50;margin:0 0 6px;font-size:22px;">客戶管理系統</h2>
+            <p style="color:#7f8c8d;font-size:13.5px;margin:0 0 20px;">把服務，變成生意。</p>
+            <input id="crmEmailInput" type="email" inputmode="email" autocomplete="email" maxlength="60" placeholder="請輸入 Email"
+                style="width:100%;padding:15px;border:1px solid #E7E2DA;border-radius:14px;background:#fff;font-size:16px;text-align:center;box-sizing:border-box;">
+            <button id="crmLoginBtn" type="button"
+                style="width:100%;margin-top:14px;padding:14px;border:none;border-radius:14px;background:#3498db;color:#fff;font-size:16px;font-weight:700;cursor:pointer;">登入</button>
+            <div id="crmLoginMsg" style="color:#e74c3c;font-size:13px;min-height:16px;margin-top:8px;line-height:1.6;"></div>
+            <div style="margin-top:12px;font-size:12px;line-height:1.8;color:#7f8c8d;text-align:left;background:#FBF8F3;border:1px solid #E7E2DA;border-radius:12px;padding:10px 12px;">
+                👨‍👩‍👧 從「智能行事曆」點進來會自動登入，不用再輸入一次
+            </div>
+            <button id="crmAdminToggle" type="button"
+                style="width:100%;margin-top:18px;padding:8px;background:none;border:none;color:#95a5a6;font-size:12.5px;opacity:.75;cursor:pointer;">🔧 管理員登入</button>
+            <div id="crmAdminBox" style="display:none;margin-top:10px;text-align:left;">
+                <input id="crmAdminEmail" type="email" inputmode="email" autocomplete="username" placeholder="管理員 Email"
+                    style="width:100%;padding:13px 14px;border:1px solid #E7E2DA;border-radius:14px;background:#fff;font-size:15px;margin-bottom:8px;box-sizing:border-box;">
+                <input id="crmAdminPw" type="password" autocomplete="current-password" placeholder="密碼"
+                    style="width:100%;padding:13px 14px;border:1px solid #E7E2DA;border-radius:14px;background:#fff;font-size:15px;margin-bottom:8px;box-sizing:border-box;">
+                <button id="crmAdminBtn" type="button"
+                    style="width:100%;padding:13px;border:none;border-radius:14px;background:#3498db;color:#fff;font-size:15px;font-weight:700;cursor:pointer;">管理員登入</button>
+                <div id="crmAdminMsg" style="color:#e74c3c;font-size:13px;min-height:16px;margin-top:6px;text-align:center;"></div>
+            </div>
         </div>
     </div>
 
