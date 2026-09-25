@@ -2,8 +2,13 @@
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>多業者到府服務 CRM + 預約 + 收款管理系統 v9</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>客戶管理系統</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#3498db">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
 
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -17,10 +22,20 @@
         }
 
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f5f5f5;
+            font-family: -apple-system, BlinkMacSystemFont, "PingFang TC", "Noto Sans TC", sans-serif;
+            background-color: #FBF8F3;   /* 智在生活標準底色 */
+            color: #2E2E33;
             padding: 10px;
         }
+        /* 表單輸入一律 16px：小於 16px 時 iPhone 會自動放大整個畫面 */
+        input, select, textarea { font-size: 16px; }
+        /* 更新橫幅（智在生活 Standard） */
+        .update-bar{display:none;position:fixed;left:0;right:0;top:0;z-index:9997;max-width:520px;margin:0 auto;
+          background:#3498db;color:#fff;align-items:center;gap:12px;
+          padding:calc(10px + env(safe-area-inset-top)) 16px 10px;box-shadow:0 2px 12px rgba(0,0,0,.15)}
+        .update-bar span{flex:1;font-size:14px;font-weight:600}
+        .update-bar button{background:#fff;color:#3498db;font-weight:700;font-size:13px;
+          padding:8px 16px;border-radius:10px;border:none}
 
         .container {
             max-width: 900px;
@@ -364,6 +379,11 @@
             color: #856404;
         }
 
+        .status-badge.overdue {
+            background: #F7E0DD;
+            color: #C0392B;
+        }
+
         .status-badge.paid {
             background-color: #d4edda;
             color: #155724;
@@ -388,6 +408,7 @@
     </style>
 </head>
 <body>
+<div class="update-bar" id="updateBar"><span>🔄 有新版本可用</span><button id="updateBtn" type="button">立即更新</button></div>
     <div class="container">
         <div class="header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
             <h1 style="margin:0;">🏠 客戶管理系統 <span id="crmVerTag" style="font-size:13px;font-weight:normal;opacity:0.7;">v1.0</span></h1>
@@ -452,8 +473,24 @@
                 <!-- 帳號 -->
                 <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #ecf0f1;">
                     <p style="font-size: 13px; color: #7f8c8d; margin-bottom: 10px;">👤 帳號</p>
-                    <p id="crm-account-email" style="font-size:14px;font-weight:bold;color:#2c3e50;word-break:break-all;margin:0 0 10px;">—</p>
+                    <p id="crm-account-email" style="font-size:14px;font-weight:bold;color:#2c3e50;word-break:break-all;margin:0 0 4px;">—</p>
+                    <p id="crm-account-plan" style="font-size:12.5px;color:#7f8c8d;margin:0 0 12px;"></p>
                     <button class="btn btn-secondary" style="width:100%" onclick="crmLogout()">🚪 登出</button>
+                </div>
+
+                <!-- 應用程式（智在生活 Standard） -->
+                <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #ecf0f1;">
+                    <p style="font-size: 13px; color: #7f8c8d; margin-bottom: 10px;">📱 應用程式</p>
+                    <button class="btn btn-secondary" style="width:100%" id="crmInstallBtn">📲 安裝到手機桌面</button>
+                    <button class="btn btn-secondary" style="width:100%;margin-top:8px" id="crmShareBtn">🔗 分享這個 App</button>
+                </div>
+
+                <!-- 支援 -->
+                <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #ecf0f1;">
+                    <p style="font-size: 13px; color: #7f8c8d; margin-bottom: 10px;">💬 支援</p>
+                    <button class="btn btn-secondary" style="width:100%" id="crmSupportBtn">💬 聯繫客服</button>
+                    <button class="btn btn-secondary" style="width:100%;margin-top:8px" id="crmTermsBtn">📄 服務條款與隱私政策</button>
+                    <p style="text-align:center;color:#95a5a6;font-size:12px;margin-top:16px;">客戶管理系統 <span id="crmVerTagFoot">v1.0</span></p>
                 </div>
 
                 <!-- 版本資訊移除 -->
@@ -767,8 +804,13 @@
                 <div id="booking-info-display" style="display:none;" class="info-box">
                     <p>客戶: <span id="booking-info-client"></span></p>
                     <p>住家: <span id="booking-info-home"></span></p>
-                    <p>地址: <span id="booking-info-address"></span></p>
                     <p>剩餘: <span id="booking-info-remaining"></span> 小時</p>
+                </div>
+
+                <div class="form-group" id="booking-address-group" style="display:none;">
+                    <label for="booking-address">服務地址 *</label>
+                    <input type="text" id="booking-address" placeholder="服務地址">
+                    <p style="font-size:11px;color:#95a5a6;margin-top:4px;">預設帶入客戶的地址，這次要去別的地方就直接改，不會影響客戶資料</p>
                 </div>
 
                 <div class="form-group">
@@ -1275,7 +1317,7 @@
         // 從行事曆連過來時，同網域的登入狀態會自動沿用，使用者不會有感覺。
         const ADMIN_EMAIL = 'mp65p@hotmail.com';
         const ALLOWED_EMAILS = [ADMIN_EMAIL];          // 之後要賣，改成查方案即可
-        const CRM_APP_VER = 'v1.0', CRM_BUILD_ID = '0924-2';
+        const CRM_APP_VER = 'v1.0', CRM_BUILD_ID = '0925-2';
         const CRM_EMAIL_FOR_SIGNIN = 'crmEmailForSignIn';
         const LINE_SUPPORT_URL = 'https://line.me/R/ti/p/@373pfdee';
         var crmUserEmail = null;
@@ -1288,6 +1330,10 @@
             if (el) el.textContent = CRM_APP_VER + (crmUserEmail === ADMIN_EMAIL ? ' · ' + CRM_BUILD_ID : '');
             var em = document.getElementById('crm-account-email');
             if (em) em.textContent = crmUserEmail || '—';
+            var pl = document.getElementById('crm-account-plan');
+            if (pl) pl.textContent = (crmUserEmail === ADMIN_EMAIL) ? '管理員' : '';
+            var vf = document.getElementById('crmVerTagFoot');
+            if (vf) vf.textContent = CRM_APP_VER + (crmUserEmail === ADMIN_EMAIL ? ' · ' + CRM_BUILD_ID : '');
         }
         function showCrmLogin(msg){
             var lg = document.getElementById('crmLogin');
@@ -1816,7 +1862,7 @@
                                 <button class="btn btn-sm btn-secondary" style="margin-left: 10px;" onclick="toggleExpand('${expandId}')">展開</button>
                             </div>
                             <div id="${expandId}" style="display: none; margin-top: 10px; padding-top: 10px; border-top: 1px solid #ecf0f1;">
-                                <p>合約總價: <strong>NT$${contract.totalPrice.toLocaleString()}</strong></p>
+                                <p>合約總價: <strong>NT$${(contract.totalPrice || 0).toLocaleString()}</strong></p>
                                 <p>類型: ${contract.contractType} | 合作: ${contract.cooperationMethod}</p>
                                 ${contract.signDate ? `<p>簽約日: ${contract.signDate}${contract.expireDate ? ` | 到期日: ${contract.expireDate}` : ''}</p>` : ''}
                                 ${contract.notes ? `<p><strong>備註:</strong> ${contract.notes}` : ''}
@@ -2132,6 +2178,7 @@
             document.getElementById('booking-modal').dataset.bookingId = '';
             document.getElementById('booking-modal').dataset.contractId = '';
             document.getElementById('booking-info-display').style.display = 'none';
+            document.getElementById('booking-address-group').style.display = 'none';   // 選了客戶才顯示
             document.getElementById('booking-client-search-group').style.display = 'block';
             document.getElementById('booking-client-search-input').value = '';
             document.getElementById('booking-client-id-hidden').value = '';
@@ -2192,7 +2239,9 @@
 
             document.getElementById('booking-info-client').textContent = clientName;
             document.getElementById('booking-info-home').textContent = client?.homeType || '';
-            document.getElementById('booking-info-address').textContent = client?.address || '';
+            var _ba = document.getElementById('booking-address');
+            if (_ba) _ba.value = client?.address || '';
+            document.getElementById('booking-address-group').style.display = 'block';
             document.getElementById('booking-info-remaining').textContent = remaining;
             document.getElementById('booking-info-display').style.display = 'block';
 
@@ -2233,7 +2282,7 @@
                 bookingDate: document.getElementById('booking-date').value,
                 bookingTime: document.getElementById('booking-time').value,
                 homeType: client.homeType,
-                address: client.address,
+                address: (document.getElementById('booking-address').value || '').trim() || client.address,
                 serviceHours: serviceHours,
                 serviceNotes: document.getElementById('booking-notes').value,
                 status: '未開始'
@@ -2279,7 +2328,8 @@
 
             document.getElementById('booking-info-client').textContent = client.clientName;
             document.getElementById('booking-info-home').textContent = client.homeType;
-            document.getElementById('booking-info-address').textContent = client.address;
+            document.getElementById('booking-address').value = (booking.address != null ? booking.address : client.address) || '';
+            document.getElementById('booking-address-group').style.display = 'block';
             document.getElementById('booking-info-remaining').textContent = remainingHours + booking.serviceHours;
             document.getElementById('booking-info-display').style.display = 'block';
 
@@ -2408,6 +2458,17 @@
         });
 
         // ==================== 收款管理 ====================
+        // 逾期判定：未收，且預約日期距今超過這個天數（之後可做成設定）
+        const OVERDUE_DAYS = 30;
+        function isOverduePayment(payment, booking) {
+            if (!payment || payment.paymentStatus !== '未收') return false;
+            var d = booking && booking.bookingDate;
+            if (!d) return false;
+            var t = Date.parse(d + 'T23:59:59');
+            if (!t) return false;
+            return (Date.now() - t) > OVERDUE_DAYS * 86400000;
+        }
+
         function renderPayments() {
             const paymentsList = document.getElementById('payments-list');
             const searchValue = document.getElementById('payment-search') ? document.getElementById('payment-search').value.toLowerCase() : '';
@@ -2431,12 +2492,15 @@
                 paymentsList.innerHTML = '<div class="empty-state">尚無收款紀錄' + (searchValue || statusFilter ? '（篩選無結果）' : '，請在預約管理中將預約狀態改為「完成」') + '</div>';
             } else {
                 paymentsList.innerHTML = payments.map(payment => {
-                    let statusBadgeClass = 'unpaid';
-                    if (payment.paymentStatus === '已收') statusBadgeClass = 'paid';
                     const modCount = payment.modificationHistory ? payment.modificationHistory.length : 0;
                     const expandId = `payment-expand-${payment.id}`;
                     const booking = store.getBooking(payment.bookingId);
                     const bookingDate = booking ? booking.bookingDate : '';
+                    const overdue = isOverduePayment(payment, booking);
+                    let statusBadgeClass = 'unpaid';
+                    if (payment.paymentStatus === '已收') statusBadgeClass = 'paid';
+                    else if (overdue) statusBadgeClass = 'overdue';
+                    const statusText = overdue ? '逾期未收' : payment.paymentStatus;
                     const cooperationMethod = payment.cooperationMethod || '';
                     const hourlyRate = payment.hourlyRate || 0;
 
@@ -2446,8 +2510,8 @@
                                 <div style="flex: 1;">
                                     <h4>${payment.clientName}${cooperationMethod ? `（${cooperationMethod}）` : ''}</h4>
                                     <p>預約日期: ${bookingDate} | 時數: ${payment.serviceHours}h</p>
-                                    <p>單價: NT$${hourlyRate}/h | 金額: <strong>NT$${payment.amountDue.toLocaleString()}</strong></p>
-                                    <p>狀態: <span class="status-badge ${statusBadgeClass}">${payment.paymentStatus}</span></p>
+                                    <p>單價: NT$${hourlyRate}/h | 金額: <strong>NT$${(payment.amountDue || 0).toLocaleString()}</strong></p>
+                                    <p>狀態: <span class="status-badge ${statusBadgeClass}">${statusText}</span>${overdue ? ` <span style="color:#C0392B;font-size:12px;">已超過 ${OVERDUE_DAYS} 天</span>` : ''}</p>
                                 </div>
                                 <button class="btn btn-sm btn-secondary" style="margin-left: 10px;" onclick="toggleExpand('${expandId}')">展開</button>
                             </div>
@@ -2536,11 +2600,15 @@
             const contract = store.getContract(booking.contractId);
             const client = store.getClient(contract.clientId);
 
-            const amountDue = contract.hourlyRate * booking.serviceHours;
+            // 公司派要用「我方收款費率」，自接才用客戶單價（跟自動產生收款的算法一致）
+            const effRate = contract.cooperationMethod === '公司派'
+                ? (contract.paymentRate || 600)
+                : contract.hourlyRate;
+            const amountDue = effRate * booking.serviceHours;
 
             document.getElementById('payment-client-name-display').textContent = client.clientName;
             document.getElementById('payment-hours-display').textContent = booking.serviceHours;
-            document.getElementById('payment-rate-display').textContent = contract.hourlyRate;
+            document.getElementById('payment-rate-display').textContent = effRate;
             document.getElementById('payment-amount').value = amountDue;
             document.getElementById('payment-booking-info').style.display = 'block';
         }
@@ -3235,6 +3303,82 @@
         window.autoFillExpireDate = autoFillExpireDate;
         window.renderDashboard = renderDashboard;
 
+        // ===== 應用程式／支援（智在生活 Standard）=====
+        const CRM_APP_URL = 'https://handyassist-system.github.io/My-CRM/';
+        var _crmDeferredPrompt = null;
+        window.addEventListener('beforeinstallprompt', function(e){ e.preventDefault(); _crmDeferredPrompt = e; });
+
+        function crmInstall(){
+            if (_crmDeferredPrompt){
+                _crmDeferredPrompt.prompt();
+                _crmDeferredPrompt.userChoice.then(function(){ _crmDeferredPrompt = null; });
+                return;
+            }
+            var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+            alert('安裝到手機桌面\n\n' + (isIOS
+                ? '1. 請改用 Safari 開啟本頁\n2. 點下方「分享」⬆️\n3. 選「加入主畫面」'
+                : '1. 請改用 Chrome 開啟本頁\n2. 點瀏覽器選單（⋮）\n3. 選「安裝應用程式／加到主畫面」'));
+        }
+        async function crmShare(){
+            var text = '客戶管理系統 — 到府服務師傅的客戶、預約與收款管理\n' + CRM_APP_URL;
+            try{
+                if (navigator.share){ await navigator.share({ title:'客戶管理系統', text:'客戶管理系統', url:CRM_APP_URL }); return; }
+                await navigator.clipboard.writeText(text);
+                showToast('已複製連結，貼給朋友就可以了');
+            }catch(e){ if (e && e.name === 'AbortError') return; prompt('複製這個連結：', CRM_APP_URL); }
+        }
+        var CRM_TERMS_HTML =
+            '<h3 style="margin:0 0 12px">📄 服務條款與隱私政策</h3>' +
+            '<div style="text-align:left;font-size:13.5px;line-height:1.75;max-height:60vh;overflow:auto">' +
+            '<p><b>1. 服務內容</b><br>本系統提供到府服務業者的客戶、合約、預約與收款管理，資料儲存於 Google Firebase。</p>' +
+            '<p><b>2. 帳號</b><br>以 Email 登入連結驗證身分，每個帳號的資料各自獨立，其他人看不到。</p>' +
+            '<p><b>3. 付款</b><br>付款採藍新金流線上付款。完成付款後，我們將於 1～2 個工作天內開通；若逾期未開通，請透過官方 LINE 聯繫，會優先處理。數位服務一經開通恕不退費，特殊情形請與客服協商。</p>' +
+            '<p><b>4. 資料與隱私</b><br>僅蒐集登入 Email 與您自行輸入的營業資料，不會提供給第三方。您可隨時聯繫客服刪除帳號與資料，也可自行在設定頁匯出備份。</p>' +
+            '<p><b>5. 服務變更與備份</b><br>我們得因維護或不可抗力暫停服務，並儘可能事先公告。仍強烈建議定期使用「匯出備份」。</p>' +
+            '<p><b>6. 聯絡方式</b><br>LINE 客服：@373pfdee</p>' +
+            '</div>';
+        function crmShowTerms(){
+            if (document.getElementById('crmTermsSheet')) return;
+            var d = document.createElement('div');
+            d.id = 'crmTermsSheet';
+            d.setAttribute('style','position:fixed;inset:0;z-index:9996;background:rgba(44,62,80,.5);display:flex;align-items:center;justify-content:center;padding:20px');
+            d.innerHTML = '<div style="width:100%;max-width:360px;background:#fff;border-radius:18px;padding:24px 20px;">' +
+                CRM_TERMS_HTML +
+                '<button id="crmTermsClose" class="btn btn-secondary" style="width:100%;margin-top:14px">關閉</button></div>';
+            document.body.appendChild(d);
+            var close = function(){ var el = document.getElementById('crmTermsSheet'); if (el) el.remove(); };
+            document.getElementById('crmTermsClose').addEventListener('click', close);
+            d.addEventListener('click', function(e){ if (e.target === d) close(); });
+        }
+
+        // PWA：註冊 Service Worker（離線快取＋偵測新版）
+        if ('serviceWorker' in navigator){
+            window.addEventListener('load', function(){
+                navigator.serviceWorker.register('sw.js').then(function(reg){
+                    reg.addEventListener('updatefound', function(){
+                        var nw = reg.installing; if (!nw) return;
+                        nw.addEventListener('statechange', function(){
+                            if (nw.state === 'installed' && navigator.serviceWorker.controller){
+                                var ub = document.getElementById('updateBar'); if (ub) ub.style.display = 'flex';
+                            }
+                        });
+                    });
+                }).catch(function(){});
+                var reloaded = false, asked = false;
+                navigator.serviceWorker.addEventListener('controllerchange', function(){
+                    if (!asked || reloaded) return; reloaded = true; location.reload();
+                });
+                var ub = document.getElementById('updateBtn');
+                if (ub) ub.addEventListener('click', function(){
+                    asked = true;
+                    navigator.serviceWorker.getRegistration().then(function(reg){
+                        if (reg && reg.waiting) reg.waiting.postMessage('SKIP_WAITING');
+                    });
+                    document.getElementById('updateBar').style.display = 'none';
+                });
+            });
+        }
+
         // ===== 手機返回鍵（智在生活 Standard，五支 App 同一套）=====
         function crmToast(msg){
             var el = document.getElementById('toast');
@@ -3287,6 +3431,10 @@
             });
             var ab = document.getElementById('crmAdminBtn');
             if (ab) ab.addEventListener('click', crmAdminLogin);
+            var ib = document.getElementById('crmInstallBtn'); if (ib) ib.addEventListener('click', crmInstall);
+            var sb = document.getElementById('crmShareBtn');   if (sb) sb.addEventListener('click', crmShare);
+            var pb = document.getElementById('crmSupportBtn'); if (pb) pb.addEventListener('click', function(){ window.open(LINE_SUPPORT_URL, '_blank', 'noopener'); });
+            var tb = document.getElementById('crmTermsBtn');   if (tb) tb.addEventListener('click', crmShowTerms);
             var ap = document.getElementById('crmAdminPw');
             if (ap) ap.addEventListener('keydown', function(e){ if (e.key === 'Enter') crmAdminLogin(); });
 
