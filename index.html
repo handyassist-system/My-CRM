@@ -83,6 +83,24 @@
             transition: all 0.3s;
         }
 
+        .svc-pill {
+            flex: 0 0 auto;
+            padding: 7px 15px;
+            border: 1px solid rgba(255,255,255,.28);
+            border-radius: 999px;
+            background: transparent;
+            color: #ecf0f1;
+            font-size: 13.5px;
+            font-family: inherit;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .svc-pill.on {
+            background: #fff;
+            border-color: #fff;
+            color: #2c3e50;
+            font-weight: bold;
+        }
         .nav-tabs button:hover {
             background-color: #e8e8e8;
         }
@@ -157,7 +175,8 @@
             font-weight: normal;
         }
 
-        button.btn {
+        button.btn, label.btn {
+            display: inline-block;
             padding: 10px 20px;
             margin-right: 10px;
             margin-top: 10px;
@@ -196,7 +215,7 @@
             background-color: #c0392b;
         }
 
-        button.btn-secondary {
+        button.btn-secondary, label.btn-secondary {
             background-color: #95a5a6;
             color: white;
         }
@@ -419,50 +438,148 @@
         </div>
 
         <!-- 頂部服務切換列 -->
-        <div id="service-switch-bar" style="display:none; background:#2c3e50; padding:8px 20px; display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
-            <span style="color:#ecf0f1; font-size:13px;">目前服務：</span>
-            <select id="quick-service-switch" style="padding:5px 10px; border-radius:4px; border:none; font-size:13px; background:white;">
-                <option value="">-- 選擇服務類型 --</option>
-            </select>
-        </div>
+        <div id="service-switch-bar" style="display:none; background:#34495e; padding:8px 12px; gap:8px; overflow-x:auto; white-space:nowrap; -webkit-overflow-scrolling:touch;"></div>
 
         <div class="nav-tabs">
-            <button class="nav-btn active" data-tab="step1">⚙️ 系統設定</button>
-            <button class="nav-btn" data-tab="clients">客戶管理</button>
+            <button class="nav-btn active" data-tab="clients">客戶管理</button>
             <button class="nav-btn" data-tab="contracts">合約管理</button>
             <button class="nav-btn" data-tab="bookings">預約管理</button>
             <button class="nav-btn" data-tab="payments">收款管理</button>
             <button class="nav-btn" data-tab="dashboard">報表統計</button>
             <button class="nav-btn" data-tab="tracking">客戶追蹤</button>
+            <button class="nav-btn" data-tab="step1">⚙️ 設定</button>
         </div>
 
         <div class="content">
             <!-- 系統設定 -->
-            <div id="step1" class="tab-pane active">
-                <h2>⚙️ 系統設定</h2>
+            <div id="step1" class="tab-pane">
+                <h2>⚙️ 設定</h2>
 
-                <!-- 業者名稱 -->
+                <!-- 你的稱呼 -->
                 <div class="form-group">
-                    <label for="provider-name-input">業者名稱</label>
+                    <label for="provider-name-input">你的店名或稱呼</label>
                     <div style="display:flex; gap:8px;">
-                        <input type="text" id="provider-name-input" placeholder="輸入業者名稱..." style="flex:1; padding:8px 10px; border:1px solid #bdc3c7; border-radius:4px;">
+                        <input type="text" id="provider-name-input" placeholder="例如：宏益冷氣、林師傅" style="flex:1; padding:8px 10px; border:1px solid #bdc3c7; border-radius:4px;">
                         <button class="btn btn-primary" onclick="saveProviderName()">儲存</button>
                     </div>
                     <p id="current-provider-name" style="margin-top:6px; font-size:13px; color:#27ae60;"></p>
                 </div>
 
-                <!-- 服務類型切換 -->
-                <div class="form-group" style="margin-top:20px;">
-                    <label>目前服務類型</label>
+                <!-- 服務項目 -->
+                <div class="form-group" style="margin-top:24px;">
+                    <label id="service-section-label">我的服務</label>
+                    <p id="service-section-hint" style="font-size:12px;color:#95a5a6;margin:2px 0 8px;display:none;">每個服務的客戶、合約、預約各自獨立，上方可切換。</p>
                     <div id="service-types-list" style="margin-top:8px;"></div>
+
+                    <button type="button" id="add-service-toggle"
+                        style="margin-top:10px;background:none;border:none;color:#3498db;font-size:13.5px;padding:4px 0;cursor:pointer;">＋ 我還有第二種服務</button>
+
+                    <div id="add-service-box" style="display:none;margin-top:10px;padding:12px;background:#f8f9fa;border-radius:8px;">
+                        <div class="form-group" style="margin-bottom:10px;">
+                            <label for="new-service-type-input" style="font-size:13px;">服務名稱</label>
+                            <input type="text" id="new-service-type-input" placeholder="例如：冷氣保養" style="width:100%;padding:8px 10px;border:1px solid #bdc3c7;border-radius:4px;box-sizing:border-box;">
+                        </div>
+                        <div class="form-group" style="margin-bottom:10px;">
+                            <label style="font-size:13px;">服務時要記錄什麼？</label>
+                            <div class="radio-group" style="flex-direction:column;align-items:flex-start;gap:6px;">
+                                <label><input type="radio" name="new-service-fields" value="none" checked> 只記基本資料</label>
+                                <label><input type="radio" name="new-service-fields" value="home"> 還要記住家狀況（房間數、寵物…）</label>
+                                <label><input type="radio" name="new-service-fields" value="repair"> 還要記電器與保固</label>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary" style="width:100%" onclick="addServiceType()">新增服務</button>
+                    </div>
+                </div>
+
+                <!-- 我的夥伴 -->
+                <div class="form-group" style="margin-top:24px;">
+                    <label id="partner-section-label">我的夥伴</label>
+                    <div id="partners-list" style="margin-top:8px;"></div>
+                    <button type="button" id="add-partner-toggle"
+                        style="margin-top:8px;background:none;border:none;color:#3498db;font-size:13.5px;padding:4px 0;cursor:pointer;">＋ 有時候會請人代班</button>
+                    <div id="add-partner-box" style="display:none;margin-top:10px;">
+                        <div style="display:flex;gap:6px;">
+                            <input type="text" id="new-partner-input" placeholder="夥伴姓名" maxlength="20" style="flex:1;padding:8px 10px;border:1px solid #bdc3c7;border-radius:4px;">
+                            <button class="btn btn-primary" onclick="addPartner()">新增</button>
+                        </div>
+                        <p style="font-size:11px;color:#95a5a6;margin-top:6px;">只是用來記錄「這次是誰去的」，夥伴沒有帳號、看不到你的資料</p>
+                    </div>
+                </div>
+
+                <!-- 服務設定 -->
+                <div style="margin-top:24px;padding-top:20px;border-top:1px solid #ecf0f1;">
+                    <p style="font-size:13px;color:#7f8c8d;margin-bottom:10px;">🛠️ 服務設定</p>
+
+                    <div class="form-group">
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="set-company-dispatch">
+                            <label for="set-company-dispatch">我有接「公司派案」</label>
+                        </div>
+                        <p style="font-size:11px;color:#95a5a6;margin-top:2px;">關閉的話，客戶和合約就不會出現「自接／公司派」的選項，畫面比較單純。</p>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="set-hourly-rate">一般收費（元/小時）</label>
+                        <input type="number" id="set-hourly-rate" min="0" step="1">
+                        <small style="color:#7f8c8d;">新增自接合約時的預設單價，個別合約仍可改</small>
+                    </div>
+
+                    <div class="form-group" id="set-payment-rate-group">
+                        <label for="set-payment-rate">公司派：我方收款費率（元/小時）</label>
+                        <input type="number" id="set-payment-rate" min="0" step="1">
+                        <small style="color:#7f8c8d;">新增公司派合約時的預設值，個別合約仍可改</small>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="set-use-oil">
+                            <label for="set-use-oil">預約時要勾「是否使用精油」</label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="set-contract-years">合約年限（年）</label>
+                        <input type="number" id="set-contract-years" min="0" step="1">
+                        <small style="color:#7f8c8d;">到期日 = 簽約日 + 這個年數，仍可手動改</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>客戶追蹤提醒（距離上次服務幾天）</label>
+                        <div style="display:flex;gap:8px;align-items:center;">
+                            <span style="font-size:13px;">🟡</span>
+                            <input type="number" id="set-track-yellow" min="1" step="1" style="width:80px;">
+                            <span style="font-size:13px;">天　🔴</span>
+                            <input type="number" id="set-track-red" min="1" step="1" style="width:80px;">
+                            <span style="font-size:13px;">天</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="set-overdue-days">收款逾期天數</label>
+                        <input type="number" id="set-overdue-days" min="1" step="1">
+                        <small style="color:#7f8c8d;">服務日過了這麼多天還沒收到錢，收款清單會標紅字</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>預約時段範圍</label>
+                        <div style="display:flex;gap:8px;align-items:center;">
+                            <input type="number" id="set-slot-start" min="0" max="23" step="1" style="width:80px;">
+                            <span style="font-size:13px;">點 到</span>
+                            <input type="number" id="set-slot-end" min="1" max="23" step="1" style="width:80px;">
+                            <span style="font-size:13px;">點</span>
+                        </div>
+                        <small style="color:#7f8c8d;">每半小時一個時段</small>
+                    </div>
+
+                    <button class="btn btn-primary" style="width:100%" onclick="saveServiceSettings()">儲存服務設定</button>
                 </div>
 
                 <!-- 資料備份 -->
                 <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ecf0f1;">
                     <p style="font-size: 13px; color: #7f8c8d; margin-bottom: 10px;">📦 資料備份</p>
-                    <div style="display:flex; gap: 10px; flex-wrap: wrap;">
-                        <button class="btn btn-secondary" onclick="exportData()">📥 匯出備份</button>
-                        <label class="btn btn-secondary" style="cursor:pointer; margin:0;">
+                    <div style="display:flex; gap:10px;">
+                        <button class="btn btn-secondary" style="flex:1; margin:0;" onclick="exportData()">📥 匯出備份</button>
+                        <label class="btn btn-secondary" style="flex:1; margin:0; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; text-align:center;">
                             📤 匯入還原
                             <input type="file" id="import-file" accept=".json" style="display:none;">
                         </label>
@@ -497,12 +614,10 @@
             </div>
 
             <!-- 客戶管理 -->
-            <div id="clients" class="tab-pane">
+            <div id="clients" class="tab-pane active">
                 <h2>客戶管理</h2>
-                <p style="margin-bottom: 15px; color: #7f8c8d;">⚠️ 客戶頁面不顯示任何價格欄位</p>
-
                 <div id="client-warning" class="alert alert-warning" style="display:none;">
-                    請先在 <strong>⚙️ 系統設定</strong> 中設定服務類型
+                    請先在 <strong>⚙️ 設定</strong> 中建立服務項目
                 </div>
 
                 <div style="display:flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
@@ -523,7 +638,7 @@
                 <h2>合約管理</h2>
 
                 <div id="contract-warning" class="alert alert-warning" style="display:none;">
-                    請先在 <strong>⚙️ 系統設定</strong> 中設定服務類型，並建立至少一個客戶
+                    請先在 <strong>⚙️ 設定</strong> 中建立服務項目，並新增至少一個客戶
                 </div>
 
                 <div style="display:flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
@@ -563,7 +678,10 @@
             <!-- 收款管理 -->
             <div id="payments" class="tab-pane">
                 <h2>收款管理</h2>
-                <p style="margin-bottom: 15px; color: #7f8c8d;">✅ 預約完成時系統自動生成收款紀錄</p>
+                <p style="margin-bottom: 15px; color: #7f8c8d; font-size:13px; line-height:1.7;">
+                    預約標為「完成」時，系統自動產生收款紀錄。<br>
+                    若某筆完成的預約沒有收款單，把它改回未完成、再改回完成，就會補開。
+                </p>
 
                 <div id="payment-warning" class="alert alert-warning" style="display:none;">
                     請先建立並完成至少一個預約
@@ -603,7 +721,7 @@
                 <div style="display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap; align-items:center;">
                     <select id="tracking-filter" onchange="renderTrackingList()" style="padding:8px 10px;border:1px solid #bdc3c7;border-radius:4px;font-size:13px;">
                         <option value="">全部客戶</option>
-                        <option value="red">🔴 需要追蹤（90天以上）</option>
+                        <option value="red" id="track-red-option">🔴 需要追蹤</option>
                         <option value="yellow">🟡 注意（60-89天）</option>
                         <option value="green">🟢 正常（30-59天）</option>
                         <option value="new">⚪ 尚未預約</option>
@@ -631,18 +749,18 @@
                     <input type="text" id="client-phone" required>
                 </div>
 
-                <div class="form-group">
+                <div class="form-group" id="client-source-group">
                     <label>客戶來源 *</label>
                     <div class="radio-group">
-                        <label><input type="radio" name="client-source" value="自接" required> 自接</label>
+                        <label><input type="radio" name="client-source" value="自接"> 自接</label>
                         <label><input type="radio" name="client-source" value="公司派"> 公司派</label>
                     </div>
                 </div>
 
-                <div class="form-group">
+                <div class="form-group" id="client-home-type-group">
                     <label>住家類型 *</label>
                     <div class="radio-group">
-                        <label><input type="radio" name="client-home-type" value="透天" required> 透天</label>
+                        <label><input type="radio" name="client-home-type" value="透天"> 透天</label>
                         <label><input type="radio" name="client-home-type" value="大樓"> 大樓</label>
                     </div>
                 </div>
@@ -706,25 +824,33 @@
                     <input type="number" id="contract-total-hours" required min="1" step="0.5">
                 </div>
 
-                <div class="form-group">
-                    <label for="contract-bonus-hours">贈送時數</label>
-                    <input type="number" id="contract-bonus-hours" min="0" step="0.5" value="0">
-                    <small style="color: #7f8c8d;">⚠️ 贈送時數可用，但金額計算不計入</small>
+                <button type="button" id="contract-adv-toggle"
+                    style="background:none;border:none;color:#3498db;font-size:13.5px;padding:4px 0;margin-bottom:10px;cursor:pointer;">＋ 進階選項</button>
+
+                <div id="contract-adv-box" style="display:none;padding:12px;background:#f8f9fa;border-radius:8px;margin-bottom:15px;">
+                    <div class="form-group" style="margin-bottom:12px;">
+                        <label for="contract-bonus-hours">贈送時數</label>
+                        <input type="number" id="contract-bonus-hours" min="0" step="0.5" value="0">
+                        <small style="color: #7f8c8d;">可以用，但金額計算不計入</small>
+                    </div>
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label for="contract-pre-used-hours">他人已服務時數</label>
+                        <input type="number" id="contract-pre-used-hours" min="0" step="0.5" value="0">
+                        <small style="color: #7f8c8d;">接手別人的合約時才需要填</small>
+                    </div>
                 </div>
 
-                <div class="form-group">
-                    <label for="contract-pre-used-hours">他人已服務時數</label>
-                    <input type="number" id="contract-pre-used-hours" min="0" step="0.5" value="0">
-                    <small style="color: #7f8c8d;">接手前他人已使用的時數</small>
-                </div>
-
-                <div class="form-group">
+                <div class="form-group" id="contract-cooperation-group">
                     <label>合作方式 *</label>
                     <div class="radio-group">
-                        <label><input type="radio" name="contract-cooperation" value="自接" required> 自接</label>
+                        <label><input type="radio" name="contract-cooperation" value="自接"> 自接</label>
                         <label><input type="radio" name="contract-cooperation" value="公司派"> 公司派</label>
                     </div>
                 </div>
+
+                <p id="contract-rate-note" style="display:none;font-size:12px;color:#e67e22;background:#fef5e7;border-radius:6px;padding:8px 10px;margin-bottom:10px;">
+                    改單價只影響之後新產生的收款，已經產生的收款單金額不會變。
+                </p>
 
                 <div id="contract-rate-group" style="display:none;" class="form-group">
                     <label for="contract-hourly-rate">合約單價（元/小時）*</label>
@@ -739,8 +865,8 @@
 
                 <div id="contract-payment-rate-group" style="display:none;" class="form-group">
                     <label for="contract-payment-rate">我方收款費率（元/小時）</label>
-                    <input type="number" id="contract-payment-rate" min="0" step="1" value="600">
-                    <small style="color: #7f8c8d;">計算收款時使用，預設 600</small>
+                    <input type="number" id="contract-payment-rate" min="0" step="1">
+                    <small style="color: #7f8c8d;">計算收款時使用，預設值可在 ⚙️ 設定 調整</small>
                 </div>
 
                 <div class="form-group">
@@ -767,7 +893,7 @@
                 <div class="form-group">
                     <label for="contract-expire-date">到期日期</label>
                     <input type="date" id="contract-expire-date">
-                    <small style="color: #7f8c8d;">預設為簽約日 + 2 年，可手動修改</small>
+                    <small style="color: #7f8c8d;" id="contract-expire-hint">預設為簽約日 + 2 年，可手動修改</small>
                 </div>
 
                 <div class="form-group">
@@ -803,7 +929,7 @@
 
                 <div id="booking-info-display" style="display:none;" class="info-box">
                     <p>客戶: <span id="booking-info-client"></span></p>
-                    <p>住家: <span id="booking-info-home"></span></p>
+                    <p id="booking-info-home-row">住家: <span id="booking-info-home"></span></p>
                     <p>剩餘: <span id="booking-info-remaining"></span> 小時</p>
                 </div>
 
@@ -811,6 +937,11 @@
                     <label for="booking-address">服務地址 *</label>
                     <input type="text" id="booking-address" placeholder="服務地址">
                     <p style="font-size:11px;color:#95a5a6;margin-top:4px;">預設帶入客戶的地址，這次要去別的地方就直接改，不會影響客戶資料</p>
+                </div>
+
+                <div class="form-group" id="booking-staff-group" style="display:none;">
+                    <label for="booking-staff">服務人員</label>
+                    <select id="booking-staff"></select>
                 </div>
 
                 <div class="form-group">
@@ -853,21 +984,13 @@
     <div id="payment-modal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 id="payment-modal-title">新增收款</h3>
+                <h3 id="payment-modal-title">編輯收款</h3>
             </div>
             <form id="payment-form">
-                <div class="form-group">
-                    <label for="payment-booking">選擇預約（完成的預約）*</label>
-                    <select id="payment-booking" required onchange="loadPaymentBookingInfo()">
-                        <option value="">-- 請選擇預約 --</option>
-                    </select>
-                </div>
+                <!-- 收款單一定對應一筆預約，這裡只是把它帶著，不讓使用者改 -->
+                <select id="payment-booking" required style="display:none;"></select>
 
-                <div id="payment-booking-info" style="display:none;" class="info-box">
-                    <p>客戶: <span id="payment-client-name-display"></span></p>
-                    <p>服務時數: <span id="payment-hours-display"></span> 小時</p>
-                    <p>單價: <span id="payment-rate-display"></span> 元/小時</p>
-                </div>
+                <div id="payment-booking-info" style="display:none;" class="info-box"></div>
 
                 <div class="form-group">
                     <label for="payment-amount">應收金額（元）*</label>
@@ -988,6 +1111,83 @@
         function crmEmailKey(e){ return String(e||'').toLowerCase().replace(/[.#$\[\]]/g,'_'); }
         function setCrmPath(email){ FB_KEY = FB_ROOT + '/' + crmEmailKey(email); }
 
+        // ==================== 服務設定（每個帳號自己的規則）====================
+        function defaultCrmSettings() {
+            return {
+                companyDispatch: false,   // 是否有「公司派案」模式
+                defaultHourlyRate: 0,     // 自接：預設單價（元/小時）
+                useOil: false,            // 預約時是否要勾「使用精油」
+                defaultPaymentRate: 600,  // 公司派：我方收款費率預設值
+                contractYears: 2,         // 合約到期日 = 簽約日 + N 年
+                trackYellow: 60,          // 客戶追蹤：黃燈天數
+                trackRed: 90,             // 客戶追蹤：紅燈天數
+                overdueDays: 30,          // 收款逾期天數
+                slotStart: 8,             // 預約時段起（整點）
+                slotEnd: 21,              // 預約時段迄（整點）
+                setupDone: false          // 是否已完成首次開通
+            };
+        }
+
+        function ensureCrmSettings(d) {
+            if (!d) return defaultCrmSettings();
+            if (!d.settings) {
+                d.settings = defaultCrmSettings();
+                // 舊帳號：已經在用公司派的，自動保留開啟，不會突然消失
+                var used = (d.contracts || []).some(function (c) { return c.cooperationMethod === '公司派'; }) ||
+                           (d.clients   || []).some(function (c) { return c.clientSource === '公司派'; });
+                if (used) d.settings.companyDispatch = true;
+                // 舊帳號：已經在用精油、或有居家類服務的，保留精油選項
+                var oiled = (d.bookings || []).some(function (b) { return b.useEssentialOil; }) ||
+                            (d.serviceTypes || []).some(function (t) { return t.fields === 'home'; });
+                if (oiled) d.settings.useOil = true;
+                // 舊帳號：拿最近一張自接合約的單價當預設
+                var selfC = (d.contracts || []).filter(function (c) { return c.cooperationMethod !== '公司派' && c.hourlyRate; });
+                if (selfC.length) d.settings.defaultHourlyRate = selfC[selfC.length - 1].hourlyRate;
+            }
+            var def = defaultCrmSettings();
+            Object.keys(def).forEach(function (k) {
+                if (d.settings[k] === undefined || d.settings[k] === null || d.settings[k] === '') d.settings[k] = def[k];
+            });
+            // 舊帳號：已經有服務項目或客戶的，視同開通過，不要再跳開通畫面
+            if (!d.settings.setupDone && ((d.serviceTypes || []).length > 0 || (d.clients || []).length > 0)) {
+                d.settings.setupDone = true;
+            }
+            return d.settings;
+        }
+
+        // 取得目前設定（store 還沒建好時給預設值，避免 render 時炸掉）
+        function S() {
+            try { return ensureCrmSettings(store.data); } catch (e) { return defaultCrmSettings(); }
+        }
+
+        // 夥伴名單（只是紀錄，沒有帳號）
+        function ensurePartners(d) {
+            if (!Array.isArray(d.partners)) d.partners = [];
+            return d.partners;
+        }
+        function partnerName(id) {
+            if (!id || id === 'me') return (store.data.providerName || '我自己');
+            var p = (store.data.partners || []).find(function (x) { return x.id === id; });
+            return p ? p.name : '（已刪除）';
+        }
+        function hasPartners() { return (store.data.partners || []).length > 0; }
+
+        // 舊帳號救援：服務類型不見了，但客戶身上還有 serviceTypeId，就把它補回來
+        function rescueServiceTypes(d) {
+            d.serviceTypes = d.serviceTypes || [];
+            if (d.serviceTypes.length) return;
+            var ids = {};
+            (d.clients || []).forEach(function (c) { if (c.serviceTypeId) ids[c.serviceTypeId] = true; });
+            var known = { st_clean: '除塵蟎', st_mite: '居家清潔', st_repair: '維修服務' };
+            Object.keys(ids).forEach(function (id, i) {
+                d.serviceTypes.push({
+                    id: id,
+                    typeName: known[id] || ('服務項目 ' + (i + 1)),
+                    fields: id === 'st_repair' ? 'repair' : 'home'
+                });
+            });
+        }
+
         // ==================== 資料管理 ====================
         class DataStore {
             constructor() {
@@ -1000,11 +1200,9 @@
                 if (!data) {
                     this.data = {
                         providerName: '',
-                        serviceTypes: [
-                            { id: 'st_clean',  typeName: '除塵蟎',   fields: 'home' },
-                            { id: 'st_mite',   typeName: '居家清潔', fields: 'home' },
-                            { id: 'st_repair', typeName: '維修服務', fields: 'repair' }
-                        ],
+                        settings: defaultCrmSettings(),
+                        partners: [],
+                        serviceTypes: [],
                         clients: [],
                         contracts: [],
                         bookings: [],
@@ -1035,20 +1233,8 @@
                         return true;
                     });
 
-                    const fixed = [
-                        { id: 'st_clean',  typeName: '除塵蟎',   fields: 'home' },
-                        { id: 'st_mite',   typeName: '居家清潔', fields: 'home' },
-                        { id: 'st_repair', typeName: '維修服務', fields: 'repair' }
-                    ];
-                    fixed.forEach(f => {
-                        const existById = this.data.serviceTypes.find(st => st.id === f.id);
-                        const existByName = this.data.serviceTypes.find(st => st.typeName === f.typeName);
-                        if (!existById && !existByName) {
-                            this.data.serviceTypes.push(f);
-                        } else if (existByName && !existByName.fields) {
-                            existByName.fields = f.fields;
-                        }
-                    });
+                    rescueServiceTypes(this.data);
+                    ensureCrmSettings(this.data);
                     // selectedServiceType 若已不存在就清除
                     if (this.data.selectedServiceType) {
                         const exists = this.data.serviceTypes.find(st => st.id === this.data.selectedServiceType);
@@ -1068,7 +1254,9 @@
                 const updateData = {
                     providerName: this.data.providerName || '',
                     selectedServiceType: this.data.selectedServiceType || null,
-                    serviceTypes: this.data.serviceTypes || []
+                    serviceTypes: this.data.serviceTypes || [],
+                    partners: ensurePartners(this.data),
+                    settings: ensureCrmSettings(this.data)
                 };
 
                 // 業務資料：有資料才寫入，防止空陣列覆蓋 Firebase
@@ -1127,33 +1315,22 @@
                     seen[st.typeName] = true;
                     return true;
                 });
-                const fixed = [
-                    { id: 'st_clean',  typeName: '除塵蟎',   fields: 'home' },
-                    { id: 'st_mite',   typeName: '居家清潔', fields: 'home' },
-                    { id: 'st_repair', typeName: '維修服務', fields: 'repair' }
-                ];
-                fixed.forEach(f => {
-                    const existById = this.data.serviceTypes.find(st => st.id === f.id);
-                    const existByName = this.data.serviceTypes.find(st => st.typeName === f.typeName);
-                    if (!existById && !existByName) {
-                        this.data.serviceTypes.push(f);
-                    } else if (existByName && !existByName.fields) {
-                        existByName.fields = f.fields;
-                    }
-                });
+                rescueServiceTypes(this.data);
+                ensureCrmSettings(this.data);
                 if (this.data.selectedServiceType) {
                     const exists = this.data.serviceTypes.find(st => st.id === this.data.selectedServiceType);
                     if (!exists) this.data.selectedServiceType = this.data.serviceTypes[0]?.id || null;
                 }
+                ensurePartners(this.data);
                 if (!this.data.clients) this.data.clients = [];
                 if (!this.data.contracts) this.data.contracts = [];
                 if (!this.data.bookings) this.data.bookings = [];
                 if (!this.data.payments) this.data.payments = [];
             }
 
-            addServiceType(typeName) {
+            addServiceType(typeName, fields) {
                 const id = 'st_' + Date.now();
-                this.data.serviceTypes.push({ id, typeName });
+                this.data.serviceTypes.push({ id, typeName, fields: fields || 'none' });
                 if (!this.data.selectedServiceType) this.data.selectedServiceType = id;
                 this.save();
                 return id;
@@ -1317,7 +1494,7 @@
         // 從行事曆連過來時，同網域的登入狀態會自動沿用，使用者不會有感覺。
         const ADMIN_EMAIL = 'mp65p@hotmail.com';
         const ALLOWED_EMAILS = [ADMIN_EMAIL];          // 之後要賣，改成查方案即可
-        const CRM_APP_VER = 'v1.0', CRM_BUILD_ID = '0925-2';
+        const CRM_APP_VER = 'v1.0', CRM_BUILD_ID = '0926-4';
         const CRM_EMAIL_FOR_SIGNIN = 'crmEmailForSignIn';
         const LINE_SUPPORT_URL = 'https://line.me/R/ti/p/@373pfdee';
         var crmUserEmail = null;
@@ -1368,7 +1545,7 @@
                 if (!legacy.exists()) return;
                 var v = legacy.val() || {};
                 var payload = {};
-                ['providerName','selectedServiceType','serviceTypes','clients','contracts','bookings','payments','providers']
+                ['providerName','selectedServiceType','serviceTypes','partners','settings','clients','contracts','bookings','payments','providers']
                     .forEach(function(k){ if (v[k] !== undefined) payload[k] = v[k]; });
                 if (Object.keys(payload).length === 0) return;    // 沒有舊資料
                 await db.ref(FB_KEY).set(payload);
@@ -1387,6 +1564,7 @@
             initStep1();
             initBookingTimeOptions();
             updateAllTabs();
+            if (needsSetup()) showSetupPage(); else setActiveTab('clients');
             var importFile = document.getElementById('import-file');
             if (importFile) importFile.addEventListener('change', function(e){ importData(e); });
         }
@@ -1447,6 +1625,7 @@
             go();
         }
         window.crmLogout = crmLogout;
+        window.finishSetup = finishSetup;
 
         // ==================== UI 控制 ====================
         function setActiveTab(tabName) {
@@ -1476,37 +1655,341 @@
 
             const list = document.getElementById('service-types-list');
             const types = store.getServiceTypes();
-            list.innerHTML = types.map(st => {
-                const isActive = store.data.selectedServiceType === st.id;
-                return `
-                    <div style="display:flex;align-items:center;gap:8px;padding:10px;border:2px solid ${isActive ? '#27ae60' : '#ecf0f1'};border-radius:6px;margin-bottom:8px;background:${isActive ? '#e8f5e9' : 'white'};">
-                        <span style="flex:1;font-weight:${isActive ? 'bold' : 'normal'};">
-                            ${st.typeName}${isActive ? ' ✅ 目前使用' : ''}
-                        </span>
-                        ${!isActive ? `<button class="btn btn-sm btn-secondary" onclick="switchServiceType('${st.id}')">切換</button>` : ''}
-                    </div>`;
-            }).join('');
+            const single = types.length === 1;
+            const FIELD_LABEL = { home: '會記住家狀況', repair: '會記電器與保固', none: '只記基本資料' };
+            const cnt = function (id) { return store.data.clients.filter(c => c.serviceTypeId === id).length; };
 
+            document.getElementById('service-section-label').textContent = single ? '我的服務' : '我的服務項目';
+            document.getElementById('service-section-hint').style.display = single ? 'none' : 'block';
+            const toggleBtn = document.getElementById('add-service-toggle');
+            toggleBtn.textContent = types.length === 0 ? '＋ 新增服務' : (single ? '＋ 我還有第二種服務' : '＋ 再新增一種服務');
+
+            if (types.length === 0) {
+                list.innerHTML = '<p style="font-size:13px;color:#e67e22;padding:10px;background:#fef5e7;border-radius:6px;">還沒有服務，先新增一個才能開始建立客戶。</p>';
+            } else if (single) {
+                const st = types[0];
+                const esc = (st.typeName || '').replace(/'/g, "\\'");
+                list.innerHTML = `
+                    <div style="display:flex;align-items:center;gap:8px;padding:12px 0;">
+                        <span style="flex:1;">
+                            <span style="font-weight:bold;font-size:15px;color:#2c3e50;">${st.typeName}</span>
+                            <br><small style="color:#95a5a6;">${FIELD_LABEL[st.fields] || FIELD_LABEL.none}</small>
+                        </span>
+                        <button class="btn btn-sm btn-secondary" onclick="editServiceType('${st.id}')">編輯</button>
+                    </div>`;
+            } else {
+                list.innerHTML = types.map(st => {
+                    const isActive = store.data.selectedServiceType === st.id;
+                    const esc = (st.typeName || '').replace(/'/g, "\\'");
+                    return `
+                    <div style="display:flex;align-items:center;gap:8px;padding:10px;border:2px solid ${isActive ? '#27ae60' : '#ecf0f1'};border-radius:8px;margin-bottom:8px;background:${isActive ? '#e8f5e9' : 'white'};">
+                        <span style="flex:1;cursor:pointer;" onclick="switchServiceType('${st.id}')">
+                            <span style="font-weight:${isActive ? 'bold' : 'normal'};">${st.typeName}</span>${isActive ? ' <span style="color:#27ae60;font-size:12px;">使用中</span>' : ''}
+                            <br><small style="color:#95a5a6;">${FIELD_LABEL[st.fields] || FIELD_LABEL.none} ｜ ${cnt(st.id)} 位客戶</small>
+                        </span>
+                        <button class="btn btn-sm btn-secondary" onclick="editServiceType('${st.id}')">編輯</button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteServiceType('${st.id}','${esc}')">✕</button>
+                    </div>`;
+                }).join('');
+            }
+
+            renderServiceSettings();
+            renderPartners();
             initQuickServiceSwitch();
+        }
+
+        // ==================== 夥伴 ====================
+        function renderPartners() {
+            const list = document.getElementById('partners-list');
+            const ps = ensurePartners(store.data);
+            const toggle = document.getElementById('add-partner-toggle');
+            document.getElementById('partner-section-label').style.display = ps.length ? 'block' : 'none';
+            toggle.textContent = ps.length ? '＋ 新增夥伴' : '＋ 有時候會請人代班';
+
+            if (!ps.length) { list.innerHTML = ''; return; }
+            const me = store.data.providerName || '我自己';
+            list.innerHTML =
+                `<div style="padding:8px 0;color:#2c3e50;font-size:14px;">${me}<small style="color:#95a5a6;"> · 我自己</small></div>` +
+                ps.map(p => {
+                    const esc = (p.name || '').replace(/'/g, "\\'");
+                    return `<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-top:1px solid #f0f0f0;">
+                        <span style="flex:1;font-size:14px;color:#2c3e50;">${p.name}</span>
+                        <button class="btn btn-sm btn-secondary" onclick="renamePartner('${p.id}','${esc}')">改名</button>
+                        <button class="btn btn-sm btn-danger" onclick="deletePartner('${p.id}','${esc}')">✕</button>
+                    </div>`;
+                }).join('');
+        }
+
+        function addPartner() {
+            const input = document.getElementById('new-partner-input');
+            const name = (input.value || '').trim();
+            if (!name) { showToast('請輸入夥伴姓名'); return; }
+            if (ensurePartners(store.data).some(p => p.name === name)) { showToast('已經有同名夥伴'); return; }
+            store.data.partners.push({ id: 'p_' + Date.now(), name: name });
+            store.save();
+            input.value = '';
+            document.getElementById('add-partner-box').style.display = 'none';
+            renderPartners();
+            showToast('✅ 已新增夥伴');
+        }
+
+        function renamePartner(id, oldName) {
+            const name = prompt('夥伴姓名', oldName);
+            if (name === null) return;
+            const t = name.trim();
+            if (!t) { showToast('名稱不能空白'); return; }
+            const p = (store.data.partners || []).find(x => x.id === id);
+            if (!p) return;
+            p.name = t;
+            store.save();
+            renderPartners();
+            updateAllTabs();
+        }
+
+        function deletePartner(id, name) {
+            const used = (store.data.bookings || []).filter(b => b.staffId === id).length;
+            const msg = used > 0
+                ? `「${name}」有 ${used} 筆預約紀錄。刪除後那些預約會顯示「已刪除」，確定嗎？`
+                : `確定刪除夥伴「${name}」嗎？`;
+            showConfirm(msg, () => {
+                store.data.partners = (store.data.partners || []).filter(p => p.id !== id);
+                store.save();
+                renderPartners();
+                updateAllTabs();
+                showToast('✅ 已刪除');
+            });
+        }
+
+        function renderStaffOptions(selectedId) {
+            const grp = document.getElementById('booking-staff-group');
+            const sel = document.getElementById('booking-staff');
+            if (!hasPartners()) { grp.style.display = 'none'; sel.innerHTML = ''; return; }
+            grp.style.display = 'block';
+            const me = store.data.providerName || '我自己';
+            sel.innerHTML = `<option value="me">${me}（我自己）</option>` +
+                store.data.partners.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+            sel.value = selectedId || 'me';
+            if (!sel.value) sel.value = 'me';
+        }
+
+        function editServiceType(typeId) {
+            const st = store.getServiceType(typeId);
+            if (!st) return;
+            document.getElementById('edit-service-modal').dataset.typeId = typeId;
+            document.getElementById('edit-service-name').value = st.typeName || '';
+            const f = st.fields || 'none';
+            const r = document.querySelector(`input[name="edit-service-fields"][value="${f}"]`);
+            if (r) r.checked = true;
+            document.getElementById('edit-service-modal').classList.add('show');
+        }
+
+        function closeEditServiceModal() {
+            document.getElementById('edit-service-modal').classList.remove('show');
+        }
+
+        function saveEditServiceType() {
+            const typeId = document.getElementById('edit-service-modal').dataset.typeId;
+            const st = store.getServiceType(typeId);
+            if (!st) return;
+            const t = (document.getElementById('edit-service-name').value || '').trim();
+            if (!t) { showToast('名稱不能空白'); return; }
+            if (store.getServiceTypes().some(x => x.id !== typeId && x.typeName === t)) {
+                showToast('已經有同名的服務了'); return;
+            }
+            const fr = document.querySelector('input[name="edit-service-fields"]:checked');
+            st.typeName = t;
+            st.fields = fr ? fr.value : 'none';
+            store.save();
+            closeEditServiceModal();
+            renderSettingsPage();
+            updateAllTabs();
+            showToast('✅ 已更新');
+        }
+
+        function renderServiceSettings() {
+            const st = S();
+            const set = function (id, v) { const el = document.getElementById(id); if (el) el.value = v; };
+            const cb = document.getElementById('set-company-dispatch');
+            if (cb) {
+                cb.checked = !!st.companyDispatch;
+                cb.onchange = function () {
+                    const g = document.getElementById('set-payment-rate-group');
+                    if (g) g.style.display = this.checked ? 'block' : 'none';
+                };
+            }
+            const g = document.getElementById('set-payment-rate-group');
+            if (g) g.style.display = st.companyDispatch ? 'block' : 'none';
+            set('set-hourly-rate', st.defaultHourlyRate);
+            const oilCb = document.getElementById('set-use-oil');
+            if (oilCb) oilCb.checked = !!st.useOil;
+            set('set-payment-rate', st.defaultPaymentRate);
+            set('set-contract-years', st.contractYears);
+            set('set-track-yellow', st.trackYellow);
+            set('set-track-red', st.trackRed);
+            set('set-overdue-days', st.overdueDays);
+            set('set-slot-start', st.slotStart);
+            set('set-slot-end', st.slotEnd);
+        }
+
+        function saveServiceSettings() {
+            const num = function (id, min, max, fallback) {
+                const el = document.getElementById(id);
+                let v = parseInt(el && el.value, 10);
+                if (isNaN(v)) v = fallback;
+                if (v < min) v = min;
+                if (v > max) v = max;
+                return v;
+            };
+            const cur = S();
+            const yellow = num('set-track-yellow', 1, 3650, cur.trackYellow);
+            let red = num('set-track-red', 1, 3650, cur.trackRed);
+            if (red <= yellow) red = yellow + 1;
+
+            let start = num('set-slot-start', 0, 23, cur.slotStart);
+            let end = num('set-slot-end', 1, 23, cur.slotEnd);
+            if (end <= start) end = start + 1;
+            if (end > 23) { end = 23; if (start >= 23) start = 22; }
+
+            store.data.settings = {
+                companyDispatch: !!document.getElementById('set-company-dispatch').checked,
+                defaultHourlyRate: num('set-hourly-rate', 0, 1000000, cur.defaultHourlyRate),
+                useOil: !!document.getElementById('set-use-oil').checked,
+                defaultPaymentRate: num('set-payment-rate', 0, 1000000, cur.defaultPaymentRate),
+                contractYears: num('set-contract-years', 0, 50, cur.contractYears),
+                trackYellow: yellow,
+                trackRed: red,
+                overdueDays: num('set-overdue-days', 1, 3650, cur.overdueDays),
+                slotStart: start,
+                slotEnd: end,
+                setupDone: cur.setupDone
+            };
+            store.save();
+            renderServiceSettings();
+            initBookingTimeOptions();
+            updateAllTabs();
+            showToast('✅ 服務設定已儲存');
+        }
+
+        // ==================== 首次開通 ====================
+        function needsSetup() {
+            return !S().setupDone && store.getServiceTypes().length === 0;
+        }
+
+        function showSetupPage() {
+            const el = document.getElementById('crmSetup');
+            el.style.display = 'flex';
+            document.getElementById('setup-provider').value = store.data.providerName || '';
+            document.getElementById('setupMsg').textContent = '';
+            setupShowStep(1);
+            const cb = document.getElementById('setup-company');
+            cb.onchange = function () {
+                document.getElementById('setup-payrate-group').style.display = this.checked ? 'block' : 'none';
+            };
+        }
+
+        function setupShowStep(k) {
+            document.getElementById('setupStep1').style.display = (k === 1) ? 'block' : 'none';
+            document.getElementById('setupStep2').style.display = (k === 2) ? 'block' : 'none';
+            document.getElementById('setupStepLabel').textContent =
+                (k === 1) ? '步驟 1／2　你是誰、做什麼' : '步驟 2／2　你的收費與規則';
+            document.getElementById('setupMsg').textContent = '';
+            document.getElementById('crmSetup').scrollTop = 0;
+        }
+
+        function setupNext() {
+            const msg = document.getElementById('setupMsg');
+            if (!(document.getElementById('setup-provider').value || '').trim()) { msg.textContent = '請填你的店名或稱呼'; return; }
+            if (!(document.getElementById('setup-service').value || '').trim()) { msg.textContent = '請填你主要做的服務'; return; }
+            setupShowStep(2);
+        }
+
+        function setupBack() { setupShowStep(1); }
+
+        function hideSetupPage() {
+            document.getElementById('crmSetup').style.display = 'none';
+        }
+
+        function finishSetup() {
+            const msg = document.getElementById('setupMsg');
+            const who = (document.getElementById('setup-provider').value || '').trim();
+            const svc = (document.getElementById('setup-service').value || '').trim();
+            const fr = document.querySelector('input[name="setup-fields"]:checked');
+            if (!who || !svc) { setupShowStep(1); msg.textContent = !who ? '請填你的店名或稱呼' : '請填你主要做的服務'; return; }
+
+            const num = function (id, min, max, fallback) {
+                let v = parseInt((document.getElementById(id) || {}).value, 10);
+                if (isNaN(v)) v = fallback;
+                if (v < min) v = min;
+                if (v > max) v = max;
+                return v;
+            };
+            const def = defaultCrmSettings();
+            let yellow = num('setup-yellow', 1, 3650, def.trackYellow);
+            let red = num('setup-red', 1, 3650, def.trackRed);
+            if (red <= yellow) red = yellow + 1;
+            let st0 = num('setup-slot-start', 0, 23, def.slotStart);
+            let st1 = num('setup-slot-end', 1, 23, def.slotEnd);
+            if (st1 <= st0) st1 = Math.min(23, st0 + 1);
+
+            store.data.providerName = who;
+            const id = store.addServiceType(svc, fr ? fr.value : 'none');
+            store.data.selectedServiceType = id;
+            const cfg = ensureCrmSettings(store.data);
+            cfg.defaultHourlyRate = num('setup-hourly-rate', 0, 1000000, 0);
+            cfg.companyDispatch = !!document.getElementById('setup-company').checked;
+            cfg.defaultPaymentRate = num('setup-payrate', 0, 1000000, def.defaultPaymentRate);
+            cfg.contractYears = num('setup-years', 0, 50, def.contractYears);
+            cfg.slotStart = st0;
+            cfg.slotEnd = st1;
+            cfg.trackYellow = yellow;
+            cfg.trackRed = red;
+            cfg.overdueDays = num('setup-overdue', 1, 3650, def.overdueDays);
+            cfg.setupDone = true;
+            store.save();
+
+            hideSetupPage();
+            initStep1();
+            initBookingTimeOptions();
+            updateAllTabs();
+            setActiveTab('clients');
+            showToast('✅ 設定完成，可以開始新增客戶了');
+        }
+
+        // 依設定顯示／隱藏「自接、公司派」選項
+        function applyCompanyDispatchUI(force) {
+            const on = !!S().companyDispatch || !!force;
+            const cg = document.getElementById('contract-cooperation-group');
+            if (cg) cg.style.display = on ? 'block' : 'none';
+            const sg = document.getElementById('client-source-group');
+            if (sg) sg.style.display = on ? 'block' : 'none';
+            if (!on) {
+                const r1 = document.querySelector('input[name="contract-cooperation"][value="自接"]');
+                if (r1 && !document.querySelector('input[name="contract-cooperation"]:checked')) r1.checked = true;
+                const r2 = document.querySelector('input[name="client-source"][value="自接"]');
+                if (r2 && !document.querySelector('input[name="client-source"]:checked')) r2.checked = true;
+            }
         }
 
         function saveProviderName() {
             const name = document.getElementById('provider-name-input').value.trim();
-            if (!name) { showToast('請輸入業者名稱'); return; }
+            if (!name) { showToast('請輸入你的店名或稱呼'); return; }
             store.data.providerName = name;
             store.save();
             document.getElementById('current-provider-name').textContent = `目前：${name}`;
-            showToast('✅ 業者名稱已儲存');
+            showToast('✅ 已儲存');
         }
 
         function addServiceType() {
             const input = document.getElementById('new-service-type-input');
             const typeName = input.value.trim();
-            if (!typeName) { showToast('請輸入服務類型名稱'); return; }
+            if (!typeName) { showToast('請輸入服務項目名稱'); return; }
             const exists = store.getServiceTypes().some(st => st.typeName === typeName);
-            if (exists) { showToast('此服務類型已存在'); return; }
-            store.addServiceType(typeName);
+            if (exists) { showToast('這個服務項目已經有了'); return; }
+            const fr = document.querySelector('input[name="new-service-fields"]:checked');
+            store.addServiceType(typeName, fr ? fr.value : 'none');
             input.value = '';
+            const box = document.getElementById('add-service-box');
+            if (box) box.style.display = 'none';
             renderSettingsPage();
             updateAllTabs();
         }
@@ -1534,28 +2017,28 @@
 
         function initQuickServiceSwitch() {
             const bar = document.getElementById('service-switch-bar');
-            const sel = document.getElementById('quick-service-switch');
             const types = store.getServiceTypes();
 
-            if (types.length === 0) {
+            // 只有一種服務（或還沒有）時，整條切換列不出現
+            if (types.length < 2) {
                 bar.style.display = 'none';
+                bar.innerHTML = '';
                 return;
             }
 
             bar.style.display = 'flex';
-            sel.innerHTML = types.map(st =>
-                `<option value="${st.id}" ${store.data.selectedServiceType === st.id ? 'selected' : ''}>${st.typeName}</option>`
-            ).join('');
+            bar.innerHTML = types.map(st => {
+                const on = store.data.selectedServiceType === st.id;
+                return `<button type="button" class="svc-pill${on ? ' on' : ''}" data-svc="${st.id}">${st.typeName}</button>`;
+            }).join('');
 
-            // 避免重複綁定
-            const newSel = sel.cloneNode(true);
-            sel.parentNode.replaceChild(newSel, sel);
-            newSel.value = store.data.selectedServiceType || '';
-            newSel.addEventListener('change', function() {
-                store.data.selectedServiceType = this.value;
-                store.save();
-                renderSettingsPage();
-                updateAllTabs();
+            bar.querySelectorAll('.svc-pill').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    store.data.selectedServiceType = this.dataset.svc;
+                    store.save();
+                    renderSettingsPage();
+                    updateAllTabs();
+                });
             });
         }
 
@@ -1601,7 +2084,12 @@
                                 <div style="flex: 1;">
                                     <h4>${client.clientName}${statusBadge}</h4>
                                     <p>📞 ${client.phone}</p>
-                                    <p>來源: ${client.clientSource} | 住家: ${client.homeType}</p>
+                                    ${(function(){
+                                        const bits = [];
+                                        if (S().companyDispatch && client.clientSource) bits.push('來源: ' + client.clientSource);
+                                        if (client.homeType) bits.push('住家: ' + client.homeType);
+                                        return bits.length ? '<p>' + bits.join(' | ') + '</p>' : '';
+                                    })()}
                                 </div>
                                 <button class="btn btn-sm btn-secondary" style="margin-left: 10px;" onclick="toggleExpand('${expandId}')">展開</button>
                             </div>
@@ -1641,6 +2129,7 @@
             document.getElementById('client-modal').dataset.clientId = '';
 
             renderDynamicFields();
+            applyCompanyDispatchUI();
 
             document.getElementById('client-modal').classList.add('show');
         }
@@ -1653,6 +2142,9 @@
             const container = document.getElementById('client-dynamic-fields');
             const st = store.getServiceType(store.data.selectedServiceType);
             const fields = st ? st.fields : 'home';
+
+            const htg = document.getElementById('client-home-type-group');
+            if (htg) htg.style.display = (fields === 'home') ? 'block' : 'none';
 
             if (fields === 'repair') {
                 container.innerHTML = `
@@ -1668,7 +2160,7 @@
                             <label><input type="radio" name="client-warranty-status" value="保固外"> 保固外</label>
                         </div>
                     </div>`;
-            } else {
+            } else if (fields === 'home') {
                 container.innerHTML = `
                     <h3 style="margin-top:20px;margin-bottom:15px;">居家資訊</h3>
                     <div class="form-group">
@@ -1687,6 +2179,8 @@
                             <label for="client-has-pets">是否有寵物</label>
                         </div>
                     </div>`;
+            } else {
+                container.innerHTML = '';
             }
         }
 
@@ -1699,8 +2193,10 @@
 
             document.getElementById('client-name').value = client.clientName;
             document.getElementById('client-phone').value = client.phone;
-            document.querySelector(`input[name="client-source"][value="${client.clientSource}"]`).checked = true;
-            document.querySelector(`input[name="client-home-type"][value="${client.homeType}"]`).checked = true;
+            const _srcR = document.querySelector(`input[name="client-source"][value="${client.clientSource || ''}"]`);
+            if (_srcR) _srcR.checked = true;
+            const _htR = document.querySelector(`input[name="client-home-type"][value="${client.homeType || ''}"]`);
+            if (_htR) _htR.checked = true;
             document.getElementById('client-address').value = client.address;
             document.getElementById('client-line').checked = client.lineOfficial;
             document.getElementById('client-notes').value = client.notes || '';
@@ -1708,6 +2204,7 @@
             if (statusRadio) statusRadio.checked = true;
 
             renderDynamicFields();
+            applyCompanyDispatchUI(client.clientSource === '公司派');
 
             const st = store.getServiceType(store.data.selectedServiceType);
             const fields = st ? st.fields : 'home';
@@ -1733,7 +2230,7 @@
             try {
                 // 檢查是否選擇了服務類型
                 if (!store.data.selectedServiceType) {
-                    showToast('❌ 錯誤：請先在 Step 1 選擇服務類型');
+                    showToast('❌ 請先在 ⚙️ 設定 建立服務項目');
                     return;
                 }
 
@@ -1750,16 +2247,16 @@
 
                 if (!clientName) { showToast('❌ 請填寫客戶姓名'); return; }
                 if (!phone) { showToast('❌ 請填寫聯絡電話'); return; }
-                if (!clientSource) { showToast('❌ 請選擇客戶來源'); return; }
-                if (!homeType) { showToast('❌ 請選擇住家類型'); return; }
+                if (S().companyDispatch && !clientSource) { showToast('❌ 請選擇客戶來源'); return; }
+                if (fields === 'home' && !homeType) { showToast('❌ 請選擇住家類型'); return; }
                 if (!address) { showToast('❌ 請填寫服務地址'); return; }
 
                 const client = {
                     serviceTypeId: store.data.selectedServiceType,
                     clientName: clientName,
                     phone: phone,
-                    clientSource: clientSource.value,
-                    homeType: homeType.value,
+                    clientSource: clientSource ? clientSource.value : '自接',
+                    homeType: homeType ? homeType.value : '',
                     address: address,
                     lineOfficial: document.getElementById('client-line').checked,
                     notes: document.getElementById('client-notes').value.trim(),
@@ -1808,10 +2305,8 @@
 
             // 自動判斷已結束（剩餘時數=0）
             contracts.forEach(contract => {
-                const usedHours = calculateUsedHours(contract.id);
-                const bonusHours = contract.bonusHours || 0;
-                const preUsedHours = contract.preUsedHours || 0;
-                const remaining = contract.totalHours + bonusHours - preUsedHours - usedHours;
+                // 只有「做完」才算消耗，排了還沒做不會讓合約提前結案
+                const remaining = contractHours(contract).remain;
                 if (remaining <= 0 && (contract.contractStatus || '進行中') === '進行中') {
                     contract.contractStatus = '已結束';
                     store.save();
@@ -1834,14 +2329,15 @@
                 contractsList.innerHTML = contracts.map(contract => {
                     const client = store.getClient(contract.clientId);
                     if (!client) return '';
-                    const usedHours = calculateUsedHours(contract.id);
+                    const H = contractHours(contract);
+                    const usedHours = H.used;
                     const bonusHours = contract.bonusHours || 0;
                     const preUsedHours = contract.preUsedHours || 0;
-                    const remainingHours = contract.totalHours + bonusHours - preUsedHours - usedHours;
+                    const remainingHours = H.remain;
                     const expandId = `contract-expand-${contract.id}`;
                     const contractStatus = contract.contractStatus || '進行中';
                     const isEnded = contractStatus === '已結束';
-                    const isWarning = !isEnded && remainingHours > 0 && remainingHours < 3;
+                    const isWarning = !isEnded && H.usable > 0 && H.usable < 3;
                     const alertIcon = isWarning ? ' 🔴' : '';
                     const statusBadge = isEnded
                         ? '<span style="background:#ecf0f1;color:#7f8c8d;padding:2px 6px;border-radius:10px;font-size:11px;margin-left:6px;">已結束</span>'
@@ -1849,7 +2345,7 @@
                     const itemStyle = isEnded ? 'opacity:0.55;' : '';
                     const remainingStyle = isWarning ? 'color:#e74c3c;font-weight:bold;' : isEnded ? 'color:#95a5a6;' : '';
                     const preUsedNote = preUsedHours > 0 ? ` | 他人已服務: ${preUsedHours}h` : '';
-                    const paymentRate = contract.cooperationMethod === '公司派' ? (contract.paymentRate || 600) : contract.hourlyRate;
+                    const paymentRate = contract.cooperationMethod === '公司派' ? (contract.paymentRate || S().defaultPaymentRate) : contract.hourlyRate;
 
                     return `
                         <div class="list-item" style="${itemStyle}">
@@ -1858,6 +2354,7 @@
                                     <h4>${client.clientName}${alertIcon}${statusBadge}</h4>
                                     <p>時數: ${contract.totalHours}h + 贈送 ${bonusHours}h | 單價: ${contract.hourlyRate} 元/h${contract.cooperationMethod === '公司派' ? ` | 收款費率: ${paymentRate} 元/h` : ''}</p>
                                     <p>我方使用: ${usedHours}h${preUsedNote} | 剩餘: <strong style="${remainingStyle}">${remainingHours}h</strong></p>
+                                    ${H.booked > 0 ? `<p style="font-size:12.5px;color:#e67e22;">其中 ${H.booked}h 已排未做，還能再排 ${H.usable}h</p>` : ''}
                                 </div>
                                 <button class="btn btn-sm btn-secondary" style="margin-left: 10px;" onclick="toggleExpand('${expandId}')">展開</button>
                             </div>
@@ -1910,6 +2407,17 @@
             document.getElementById('contract-rate-group').style.display = 'none';
             document.getElementById('contract-rate-fixed').style.display = 'none';
             document.getElementById('contract-payment-rate-group').style.display = 'none';
+            document.getElementById('contract-payment-rate').value = S().defaultPaymentRate;
+            if (S().defaultHourlyRate > 0) {
+                document.getElementById('contract-hourly-rate').value = S().defaultHourlyRate;
+                document.getElementById('contract-hourly-rate-company').value = S().defaultHourlyRate;
+            }
+            document.getElementById('contract-adv-box').style.display = 'none';
+            document.getElementById('contract-rate-note').style.display = 'none';
+            applyCompanyDispatchUI();
+            if (!S().companyDispatch) document.getElementById('contract-rate-group').style.display = 'block';
+            const _eh = document.getElementById('contract-expire-hint');
+            if (_eh) _eh.textContent = '預設為簽約日 + ' + S().contractYears + ' 年，可手動修改';
             document.getElementById('contract-modal').classList.add('show');
             initContractClientSearch();
         }
@@ -1976,7 +2484,7 @@
             const signDate = document.getElementById('contract-sign-date').value;
             if (!signDate) return;
             const expire = new Date(signDate);
-            expire.setFullYear(expire.getFullYear() + 2);
+            expire.setFullYear(expire.getFullYear() + (S().contractYears || 0));
             document.getElementById('contract-expire-date').value = expire.toISOString().split('T')[0];
         }
 
@@ -2007,7 +2515,7 @@
 
             if (cooperation === '公司派') {
                 hourlyRate = parseFloat(document.getElementById('contract-hourly-rate-company').value) || 0;
-                paymentRate = parseFloat(document.getElementById('contract-payment-rate').value) || 600;
+                paymentRate = parseFloat(document.getElementById('contract-payment-rate').value) || S().defaultPaymentRate;
             } else {
                 hourlyRate = parseFloat(document.getElementById('contract-hourly-rate').value) || 0;
                 paymentRate = hourlyRate;
@@ -2065,8 +2573,19 @@
             document.getElementById('contract-total-hours').value = contract.totalHours;
             document.getElementById('contract-bonus-hours').value = contract.bonusHours || 0;
             document.getElementById('contract-pre-used-hours').value = contract.preUsedHours || 0;
-            document.querySelector(`input[name="contract-cooperation"][value="${contract.cooperationMethod}"]`).checked = true;
-            document.querySelector(`input[name="contract-type"][value="${contract.contractType}"]`).checked = true;
+            const _coopR = document.querySelector(`input[name="contract-cooperation"][value="${contract.cooperationMethod || '自接'}"]`);
+            if (_coopR) _coopR.checked = true;
+            applyCompanyDispatchUI(contract.cooperationMethod === '公司派');
+            (function () {
+                const hasPaid = (store.data.payments || []).some(p => {
+                    const b = store.getBooking(p.bookingId);
+                    return b && b.contractId === contract.id;
+                });
+                const note = document.getElementById('contract-rate-note');
+                if (note) note.style.display = hasPaid ? 'block' : 'none';
+            })();
+            const _ctypeR = document.querySelector(`input[name="contract-type"][value="${contract.contractType || '首次合約'}"]`);
+            if (_ctypeR) _ctypeR.checked = true;
             const statusRadio = document.querySelector(`input[name="contract-status"][value="${contract.contractStatus || '進行中'}"]`);
             if (statusRadio) statusRadio.checked = true;
             document.getElementById('contract-sign-date').value = contract.signDate || '';
@@ -2080,7 +2599,7 @@
                 document.getElementById('contract-payment-rate-group').style.display = 'none';
             } else {
                 document.getElementById('contract-hourly-rate-company').value = contract.hourlyRate;
-                document.getElementById('contract-payment-rate').value = contract.paymentRate || 600;
+                document.getElementById('contract-payment-rate').value = contract.paymentRate || S().defaultPaymentRate;
                 document.getElementById('contract-rate-group').style.display = 'none';
                 document.getElementById('contract-rate-fixed').style.display = 'block';
                 document.getElementById('contract-payment-rate-group').style.display = 'block';
@@ -2090,10 +2609,25 @@
             document.getElementById('contract-modal').classList.add('show');
         }
 
-        function calculateUsedHours(contractId) {
-            return store.getBookingsByContract(contractId)
-                .filter(b => b.status === '完成')
-                .reduce((sum, b) => sum + b.serviceHours, 0);
+        // 合約時數總表
+        //   used   已完成（真的做掉了）
+        //   booked 已排未做（排了還沒完成）
+        //   remain 合約還沒消耗的時數（已完成才算消耗）
+        //   usable 還能再排幾小時 = remain − booked
+        // excludeId：編輯某筆預約時，把那筆自己排除，才不會重複計算
+        function contractHours(contract, excludeId) {
+            if (!contract) return { used: 0, booked: 0, remain: 0, usable: 0 };
+            const list = store.getBookingsByContract(contract.id)
+                .filter(b => b.id !== excludeId);
+            const used = list.filter(b => b.status === '完成')
+                .reduce((sum, b) => sum + (parseFloat(b.serviceHours) || 0), 0);
+            const booked = list.filter(b => b.status !== '完成')
+                .reduce((sum, b) => sum + (parseFloat(b.serviceHours) || 0), 0);
+            const pool = (parseFloat(contract.totalHours) || 0)
+                       + (parseFloat(contract.bonusHours) || 0)
+                       - (parseFloat(contract.preUsedHours) || 0);
+            const remain = pool - used;
+            return { used: used, booked: booked, remain: remain, usable: remain - booked };
         }
 
         // ==================== 預約管理 ====================
@@ -2146,7 +2680,8 @@
                                 <button class="btn btn-sm btn-secondary" style="margin-left: 10px;" onclick="toggleExpand('${expandId}')">展開</button>
                             </div>
                             <div id="${expandId}" style="display: none; margin-top: 10px; padding-top: 10px; border-top: 1px solid #ecf0f1;">
-                                <p>住家: ${booking.homeType} | 地址: ${booking.address}</p>
+                                <p>${booking.homeType ? '住家: ' + booking.homeType + ' | ' : ''}地址: ${booking.address || ''}</p>
+                                ${hasPartners() ? `<p>服務人員: ${partnerName(booking.staffId)}</p>` : ''}
                                 ${booking.useEssentialOil ? '<p>✓ 使用精油</p>' : ''}
                                 ${booking.serviceNotes ? `<p><strong>備註:</strong> ${booking.serviceNotes}` : ''}
                                 <div class="list-item-actions" style="margin-top: 10px;">
@@ -2186,6 +2721,7 @@
             document.getElementById('booking-client-dropdown').style.display = 'none';
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('booking-date').value = today;
+            renderStaffOptions('me');
             document.getElementById('booking-modal').classList.add('show');
             initBookingClientSearch();
         }
@@ -2228,26 +2764,24 @@
 
             document.getElementById('booking-modal').dataset.contractId = contract.id;
             const client = store.getClient(clientId);
-            const usedHours = calculateUsedHours(contract.id);
-            const bonusHours = contract.bonusHours || 0;
-            const preUsedHours = contract.preUsedHours || 0;
-            const remaining = contract.totalHours + bonusHours - preUsedHours - usedHours;
+            const H = contractHours(contract);
+            const remaining = H.usable;
 
             document.getElementById('booking-client-selected-info').innerHTML =
-                `✅ 已選擇：<strong>${clientName}</strong>　合約：${contract.totalHours}h（剩餘 ${remaining}h）`;
+                `✅ 已選擇：<strong>${clientName}</strong>　合約：${contract.totalHours}h（還能排 ${H.usable}h${H.booked > 0 ? `，另有 ${H.booked}h 已排未做` : ''}）`;
             document.getElementById('booking-client-selected-info').style.display = 'block';
 
             document.getElementById('booking-info-client').textContent = clientName;
             document.getElementById('booking-info-home').textContent = client?.homeType || '';
+            document.getElementById('booking-info-home-row').style.display = (client && client.homeType) ? 'block' : 'none';
             var _ba = document.getElementById('booking-address');
             if (_ba) _ba.value = client?.address || '';
             document.getElementById('booking-address-group').style.display = 'block';
             document.getElementById('booking-info-remaining').textContent = remaining;
             document.getElementById('booking-info-display').style.display = 'block';
 
-            const st = store.getServiceType(store.data.selectedServiceType);
             document.getElementById('booking-essential-oil-group').style.display =
-                store.data.selectedServiceType ? 'block' : 'none';
+                S().useOil ? 'block' : 'none';
         }
 
         function closeBookingModal() {
@@ -2261,15 +2795,12 @@
             const bookingId = document.getElementById('booking-modal').dataset.bookingId;
             if (!contractId) { showToast('請先選擇客戶'); return; }
             const contract = store.getContract(contractId);
-            const usedHours = calculateUsedHours(contractId);
-            const bonusHours = contract.bonusHours || 0;
-            const preUsedHours = contract.preUsedHours || 0;
-            const totalAvailableHours = contract.totalHours + bonusHours;
-            const remainingHours = totalAvailableHours - preUsedHours - usedHours;
+            const H = contractHours(contract, bookingId || undefined);
             const serviceHours = parseFloat(document.getElementById('booking-hours').value);
 
-            if (serviceHours > remainingHours) {
-                showToast(`❌ 服務時數不能超過剩餘時數 (${remainingHours} 小時)\n合約時數: ${contract.totalHours}h + 贈送: ${bonusHours}h${preUsedHours > 0 ? ' - 他人已服務: ' + preUsedHours + 'h' : ''}`);
+            if (serviceHours > H.usable) {
+                const extra = H.booked > 0 ? `（已完成 ${H.used}h、已排未做 ${H.booked}h）` : '';
+                showToast(`❌ 最多只能再排 ${H.usable} 小時${extra}`);
                 return;
             }
 
@@ -2288,7 +2819,11 @@
                 status: '未開始'
             };
 
-            if (true) {  // 所有服務類型都顯示精油選項
+            if (hasPartners()) {
+                booking.staffId = document.getElementById('booking-staff').value || 'me';
+            }
+
+            if (S().useOil) {
                 booking.useEssentialOil = document.getElementById('booking-essential-oil').checked;
             }
 
@@ -2314,11 +2849,7 @@
             if (!contract) return;
             const client = store.getClient(contract.clientId);
             if (!client) return;
-            const usedHours = calculateUsedHours(contract.id);
-            const bonusHours = contract.bonusHours || 0;
-            const preUsedHours = contract.preUsedHours || 0;
-            const totalAvailableHours = contract.totalHours + bonusHours;
-            const remainingHours = totalAvailableHours - preUsedHours - usedHours;
+            const H = contractHours(contract, bookingId);
 
             document.getElementById('booking-modal-title').textContent = '編輯預約';
             document.getElementById('booking-modal').dataset.bookingId = bookingId;
@@ -2327,19 +2858,20 @@
             document.getElementById('booking-client-search-group').style.display = 'none';
 
             document.getElementById('booking-info-client').textContent = client.clientName;
-            document.getElementById('booking-info-home').textContent = client.homeType;
+            document.getElementById('booking-info-home').textContent = client.homeType || '';
+            document.getElementById('booking-info-home-row').style.display = client.homeType ? 'block' : 'none';
             document.getElementById('booking-address').value = (booking.address != null ? booking.address : client.address) || '';
             document.getElementById('booking-address-group').style.display = 'block';
-            document.getElementById('booking-info-remaining').textContent = remainingHours + booking.serviceHours;
+            document.getElementById('booking-info-remaining').textContent = H.usable;
             document.getElementById('booking-info-display').style.display = 'block';
 
             document.getElementById('booking-date').value = booking.bookingDate;
             document.getElementById('booking-time').value = booking.bookingTime;
             document.getElementById('booking-hours').value = booking.serviceHours;
             document.getElementById('booking-notes').value = booking.serviceNotes || '';
+            renderStaffOptions(booking.staffId);
 
-            const st = store.getServiceType(store.data.selectedServiceType);
-            if (true) {  // 所有服務類型都顯示精油選項
+            if (S().useOil) {
                 document.getElementById('booking-essential-oil-group').style.display = 'block';
                 document.getElementById('booking-essential-oil').checked = booking.useEssentialOil;
             } else {
@@ -2433,7 +2965,7 @@
                 const existingPayment = store.data.payments.find(p => p.bookingId === bookingId);
                 if (!existingPayment) {
                     const hourlyRate = contract.cooperationMethod === '公司派'
-                        ? (contract.paymentRate || 600)
+                        ? (contract.paymentRate || S().defaultPaymentRate)
                         : contract.hourlyRate;
                     const amountDue = hourlyRate * booking.serviceHours;
                     store.addPayment({
@@ -2459,14 +2991,14 @@
 
         // ==================== 收款管理 ====================
         // 逾期判定：未收，且預約日期距今超過這個天數（之後可做成設定）
-        const OVERDUE_DAYS = 30;
+        // 逾期天數改由 ⚙️ 設定 決定
         function isOverduePayment(payment, booking) {
             if (!payment || payment.paymentStatus !== '未收') return false;
             var d = booking && booking.bookingDate;
             if (!d) return false;
             var t = Date.parse(d + 'T23:59:59');
             if (!t) return false;
-            return (Date.now() - t) > OVERDUE_DAYS * 86400000;
+            return (Date.now() - t) > (S().overdueDays || 30) * 86400000;
         }
 
         function renderPayments() {
@@ -2511,7 +3043,7 @@
                                     <h4>${payment.clientName}${cooperationMethod ? `（${cooperationMethod}）` : ''}</h4>
                                     <p>預約日期: ${bookingDate} | 時數: ${payment.serviceHours}h</p>
                                     <p>單價: NT$${hourlyRate}/h | 金額: <strong>NT$${(payment.amountDue || 0).toLocaleString()}</strong></p>
-                                    <p>狀態: <span class="status-badge ${statusBadgeClass}">${statusText}</span>${overdue ? ` <span style="color:#C0392B;font-size:12px;">已超過 ${OVERDUE_DAYS} 天</span>` : ''}</p>
+                                    <p>狀態: <span class="status-badge ${statusBadgeClass}">${statusText}</span>${overdue ? ` <span style="color:#C0392B;font-size:12px;">已超過 ${S().overdueDays || 30} 天</span>` : ''}</p>
                                 </div>
                                 <button class="btn btn-sm btn-secondary" style="margin-left: 10px;" onclick="toggleExpand('${expandId}')">展開</button>
                             </div>
@@ -2556,61 +3088,8 @@
             renderPayments();
         }
 
-        function openPaymentModal() {
-            const completedBookings = store.getBookings().filter(b => b.status === '完成');
-
-            if (completedBookings.length === 0) {
-                showToast('沒有已完成的預約');
-                return;
-            }
-
-            document.getElementById('payment-form').reset();
-            document.getElementById('payment-modal-title').textContent = '新增收款';
-            document.getElementById('payment-modal').dataset.paymentId = '';
-
-            const bookingSelect = document.getElementById('payment-booking');
-            bookingSelect.innerHTML = '<option value="">-- 請選擇預約 --</option>';
-
-            completedBookings.forEach(booking => {
-                const contract = store.getContract(booking.contractId);
-                const client = store.getClient(contract.clientId);
-                const option = document.createElement('option');
-                option.value = booking.id;
-                option.textContent = `${client.clientName} - ${booking.bookingDate} ${booking.bookingTime} (${booking.serviceHours}h)`;
-                bookingSelect.appendChild(option);
-            });
-
-            document.getElementById('payment-booking-info').style.display = 'none';
-
-            document.getElementById('payment-modal').classList.add('show');
-        }
-
         function closePaymentModal() {
             document.getElementById('payment-modal').classList.remove('show');
-        }
-
-        function loadPaymentBookingInfo() {
-            const bookingId = document.getElementById('payment-booking').value;
-            if (!bookingId) {
-                document.getElementById('payment-booking-info').style.display = 'none';
-                return;
-            }
-
-            const booking = store.getBooking(bookingId);
-            const contract = store.getContract(booking.contractId);
-            const client = store.getClient(contract.clientId);
-
-            // 公司派要用「我方收款費率」，自接才用客戶單價（跟自動產生收款的算法一致）
-            const effRate = contract.cooperationMethod === '公司派'
-                ? (contract.paymentRate || 600)
-                : contract.hourlyRate;
-            const amountDue = effRate * booking.serviceHours;
-
-            document.getElementById('payment-client-name-display').textContent = client.clientName;
-            document.getElementById('payment-hours-display').textContent = booking.serviceHours;
-            document.getElementById('payment-rate-display').textContent = effRate;
-            document.getElementById('payment-amount').value = amountDue;
-            document.getElementById('payment-booking-info').style.display = 'block';
         }
 
         document.getElementById('payment-form').addEventListener('submit', function(e) {
@@ -2867,7 +3346,34 @@
                 monthlyHtml += '</div>';
             }
 
+            // 各人場次與時數（只有夥伴時才出現）
+            let staffHtml = '';
+            if (hasPartners()) {
+                const doneBookings = store.getBookings().filter(b => {
+                    if (b.status !== '完成') return false;
+                    if (filterMonth) return (b.bookingDate || '').startsWith(filterMonth);
+                    if (filterYear) return (b.bookingDate || '').startsWith(filterYear);
+                    return true;
+                });
+                const tally = {};
+                doneBookings.forEach(b => {
+                    const k = b.staffId || 'me';
+                    if (!tally[k]) tally[k] = { jobs: 0, hours: 0 };
+                    tally[k].jobs++;
+                    tally[k].hours += parseFloat(b.serviceHours) || 0;
+                });
+                const keys = Object.keys(tally).sort((a, b) => tally[b].jobs - tally[a].jobs);
+                if (keys.length) {
+                    staffHtml = `<div class="info-box"><h3>👷 各人場次與時數 ${periodLabel}</h3>` +
+                        keys.map(k => `<p>${partnerName(k)}: <strong>${tally[k].jobs} 場</strong> · ${tally[k].hours} 小時</p>`).join('') +
+                        `</div>`;
+                }
+            }
+
+            const signName = store.data.providerName || '';
+
             dashboardContent.innerHTML = `
+                ${signName ? `<p style="font-size:13px;color:#7f8c8d;margin:0 0 12px;">${signName} · 報表${periodLabel}</p>` : ''}
                 <div class="info-box">
                     <h3>📊 客戶統計</h3>
                     <p>現有客戶數（服務中）: <strong>${activeClients} 位</strong></p>
@@ -2879,6 +3385,7 @@
                     <p>✓ 已收款: <strong>NT$${paidAmount.toLocaleString()}</strong>（${allPayments.filter(p => p.paymentStatus === '已收').length}筆）</p>
                     <p>○ 未收款: <strong>NT$${unpaidAmount.toLocaleString()}</strong>（${allPayments.filter(p => p.paymentStatus === '未收').length}筆）</p>
                 </div>
+                ${staffHtml}
                 ${monthlyHtml}
             `;
         }
@@ -2905,8 +3412,8 @@
 
                 let level = 'new';
                 if (daysDiff !== null) {
-                    if (daysDiff >= 90) level = 'red';
-                    else if (daysDiff >= 60) level = 'yellow';
+                    if (daysDiff >= (S().trackRed || 90)) level = 'red';
+                    else if (daysDiff >= (S().trackYellow || 60)) level = 'yellow';
                     else level = 'green';
                 }
 
@@ -2978,15 +3485,11 @@
             let contractHtml = '<p style="color:#95a5a6;font-size:13px;">尚無合約</p>';
             if (contracts.length > 0) {
                 contractHtml = contracts.filter(c => (c.contractStatus || '進行中') === '進行中').map(contract => {
-                    const usedHours = store.getBookingsByContract(contract.id)
-                        .filter(b => b.status === '完成')
-                        .reduce((sum, b) => sum + b.serviceHours, 0);
+                    const H2 = contractHours(contract);
                     const bonus = contract.bonusHours || 0;
-                    const preUsed = contract.preUsedHours || 0;
-                    const remaining = contract.totalHours + bonus - preUsed - usedHours;
                     return `
                         <div style="background:#f8f9fa;border-radius:6px;padding:10px;margin-bottom:8px;">
-                            <p style="font-size:13px;"><strong>剩餘時數：${remaining}h</strong> / ${contract.totalHours + bonus}h</p>
+                            <p style="font-size:13px;"><strong>剩餘時數：${H2.remain}h</strong> / ${contract.totalHours + bonus}h${H2.booked > 0 ? `<span style="color:#e67e22;font-weight:normal;"> ｜ ${H2.booked}h 已排未做</span>` : ''}</p>
                             <p style="font-size:12px;color:#7f8c8d;">${contract.cooperationMethod} ｜ NT$${contract.paymentRate || contract.hourlyRate}/h</p>
                         </div>`;
                 }).join('') || '<p style="color:#95a5a6;font-size:13px;">目前無進行中合約</p>';
@@ -3038,38 +3541,6 @@
 
         window.openClientDetailModal = openClientDetailModal;
         window.closeClientDetailModal = closeClientDetailModal;
-
-        function calculateMonthlyStats(paidPayments) {
-            const stats = {};
-            paidPayments.forEach(payment => {
-                if (!payment.actualPaymentDate) return;
-                const date = new Date(payment.actualPaymentDate);
-                const monthKey = date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0');
-                
-                if (!stats[monthKey]) {
-                    stats[monthKey] = { amount: 0, count: 0 };
-                }
-                stats[monthKey].amount += payment.amountDue;
-                stats[monthKey].count += 1;
-            });
-            return stats;
-        }
-
-        function calculateYearlyStats(paidPayments) {
-            const stats = {};
-            paidPayments.forEach(payment => {
-                if (!payment.actualPaymentDate) return;
-                const date = new Date(payment.actualPaymentDate);
-                const yearKey = date.getFullYear().toString();
-                
-                if (!stats[yearKey]) {
-                    stats[yearKey] = { amount: 0, count: 0 };
-                }
-                stats[yearKey].amount += payment.amountDue;
-                stats[yearKey].count += 1;
-            });
-            return stats;
-        }
 
         // ==================== UX 優化函數 ====================
         function toggleExpand(expandId) {
@@ -3186,11 +3657,13 @@
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             const date = new Date().toISOString().split('T')[0];
+            const who = (store.data.providerName || '').replace(/[\\/:*?"<>|\s]/g, '');
+            const fname = `${who ? who + '-' : ''}客戶管理備份-${date}.json`;
             a.href = url;
-            a.download = `crm-backup-${date}.json`;
+            a.download = fname;
             a.click();
             URL.revokeObjectURL(url);
-            showToast(`✅ 備份完成！檔案名稱：crm-backup-${date}.json`);
+            showToast(`✅ 備份完成：${fname}`);
         }
 
         function importData(event) {
@@ -3258,9 +3731,10 @@
             while (bookingTimeSelect.options.length > 1) {
                 bookingTimeSelect.remove(1);
             }
-            for (let hour = 8; hour <= 21; hour++) {
+            const _s = S(), _h0 = _s.slotStart, _h1 = _s.slotEnd;
+            for (let hour = _h0; hour <= _h1; hour++) {
                 ['00', '30'].forEach(min => {
-                    if (hour === 21 && min === '30') return;
+                    if (hour === _h1 && min === '30') return;
                     const timeStr = String(hour).padStart(2, '0') + ':' + min;
                     const option = document.createElement('option');
                     option.value = timeStr;
@@ -3274,6 +3748,34 @@
         window.exportData = exportData;
         window.importData = importData;
         window.saveProviderName = saveProviderName;
+        window.saveServiceSettings = saveServiceSettings;
+        window.setupNext = setupNext;
+        window.setupBack = setupBack;
+        window.editServiceType = editServiceType;
+        window.saveEditServiceType = saveEditServiceType;
+        window.closeEditServiceModal = closeEditServiceModal;
+        window.addPartner = addPartner;
+        window.renamePartner = renamePartner;
+        window.deletePartner = deletePartner;
+        (function () {
+            const pt = document.getElementById('add-partner-toggle');
+            if (pt) pt.addEventListener('click', function () {
+                const box = document.getElementById('add-partner-box');
+                box.style.display = (box.style.display === 'none' || !box.style.display) ? 'block' : 'none';
+                if (box.style.display === 'block') document.getElementById('new-partner-input').focus();
+            });
+            const at = document.getElementById('contract-adv-toggle');
+            if (at) at.addEventListener('click', function () {
+                const box = document.getElementById('contract-adv-box');
+                box.style.display = (box.style.display === 'none' || !box.style.display) ? 'block' : 'none';
+            });
+            const t = document.getElementById('add-service-toggle');
+            if (t) t.addEventListener('click', function () {
+                const box = document.getElementById('add-service-box');
+                box.style.display = (box.style.display === 'none' || !box.style.display) ? 'block' : 'none';
+                if (box.style.display === 'block') document.getElementById('new-service-type-input').focus();
+            });
+        })();
         window.addServiceType = addServiceType;
         window.deleteServiceType = deleteServiceType;
         window.switchServiceType = switchServiceType;
@@ -3391,6 +3893,8 @@
             if (cf && cf.style.display === 'flex') { cf.style.display = 'none'; return true; }   // 確認視窗
             var open = document.querySelectorAll('.modal.show');
             if (open.length) { open[open.length - 1].classList.remove('show'); return true; }    // 彈窗
+            var sp = document.getElementById('crmSetup');
+            if (sp && sp.style.display === 'flex') return false;                                  // 開通頁 → 離開
             var lg = document.getElementById('crmLogin');
             if (lg && lg.style.display === 'flex') return false;                                  // 登入頁 → 離開
             var first = document.querySelector('.nav-btn');
@@ -3487,6 +3991,135 @@
                     style="width:100%;padding:13px;border:none;border-radius:14px;background:#3498db;color:#fff;font-size:15px;font-weight:700;cursor:pointer;">管理員登入</button>
                 <div id="crmAdminMsg" style="color:#e74c3c;font-size:13px;min-height:16px;margin-top:6px;text-align:center;"></div>
             </div>
+        </div>
+    </div>
+
+    <!-- 編輯服務 -->
+    <div id="edit-service-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header"><h3>編輯服務</h3></div>
+            <div class="form-group">
+                <label for="edit-service-name">服務名稱</label>
+                <input type="text" id="edit-service-name" maxlength="20">
+            </div>
+            <div class="form-group">
+                <label>服務時要記錄什麼？</label>
+                <div class="radio-group" style="flex-direction:column;align-items:flex-start;gap:8px;">
+                    <label><input type="radio" name="edit-service-fields" value="none"> 只記基本資料</label>
+                    <label><input type="radio" name="edit-service-fields" value="home"> 還要記住家狀況（房間數、寵物…）</label>
+                    <label><input type="radio" name="edit-service-fields" value="repair"> 還要記電器與保固</label>
+                </div>
+                <p style="font-size:11.5px;color:#95a5a6;margin-top:6px;">改成別的類型，舊資料會留著，只是欄位不再顯示</p>
+            </div>
+            <button type="button" class="btn btn-success" onclick="saveEditServiceType()">儲存</button>
+            <button type="button" class="btn btn-secondary" onclick="closeEditServiceModal()">取消</button>
+        </div>
+    </div>
+
+    <!-- 首次開通 -->
+    <div id="crmSetup" style="display:none;position:fixed;inset:0;background:#FBF8F3;z-index:99997;align-items:center;justify-content:center;padding:24px;overflow-y:auto;">
+        <div style="background:#fff;border:1px solid #E7E2DA;padding:30px 24px;border-radius:20px;max-width:380px;width:100%;box-shadow:0 10px 30px rgba(44,62,80,.08);">
+            <div style="text-align:center;margin-bottom:20px;">
+                <div style="font-size:40px;margin-bottom:6px;">🏠</div>
+                <h2 style="color:#2c3e50;margin:0 0 4px;font-size:20px;">歡迎使用客戶管理系統</h2>
+                <p id="setupStepLabel" style="color:#95a5a6;font-size:12.5px;margin:0;">步驟 1／2　你是誰、做什麼</p>
+            </div>
+
+            <!-- 步驟 1 -->
+            <div id="setupStep1">
+                <div class="form-group">
+                    <label for="setup-provider">你的店名或稱呼</label>
+                    <input type="text" id="setup-provider" placeholder="例如：宏益冷氣、林師傅" maxlength="20"
+                        style="width:100%;padding:13px 14px;border:1px solid #E7E2DA;border-radius:12px;font-size:16px;box-sizing:border-box;">
+                    <p style="font-size:11.5px;color:#95a5a6;margin-top:4px;">沒有店名就填自己的名字，會顯示在報表上</p>
+                </div>
+
+                <div class="form-group" style="margin-top:16px;">
+                    <label for="setup-service">你主要做什麼服務？</label>
+                    <input type="text" id="setup-service" placeholder="例如：冷氣保養" maxlength="20"
+                        style="width:100%;padding:13px 14px;border:1px solid #E7E2DA;border-radius:12px;font-size:16px;box-sizing:border-box;">
+                </div>
+
+                <div class="form-group" style="margin-top:16px;">
+                    <label>服務時要記錄什麼？</label>
+                    <div class="radio-group" style="flex-direction:column;align-items:flex-start;gap:9px;margin-top:6px;">
+                        <label><input type="radio" name="setup-fields" value="none" checked> 只記基本資料</label>
+                        <label><input type="radio" name="setup-fields" value="home"> 還要記住家狀況（房間數、寵物…）</label>
+                        <label><input type="radio" name="setup-fields" value="repair"> 還要記電器與保固</label>
+                    </div>
+                    <p style="font-size:11.5px;color:#95a5a6;margin-top:6px;">之後在設定裡隨時能改，也能再加別的服務</p>
+                </div>
+
+                <button type="button" onclick="setupNext()"
+                    style="width:100%;margin-top:22px;padding:14px;border:none;border-radius:14px;background:#3498db;color:#fff;font-size:16px;font-weight:700;cursor:pointer;">下一步</button>
+            </div>
+
+            <!-- 步驟 2 -->
+            <div id="setupStep2" style="display:none;">
+                <div class="form-group">
+                    <label for="setup-hourly-rate">一般收費（元/小時）</label>
+                    <input type="number" id="setup-hourly-rate" min="0" step="1" placeholder="例如：1000"
+                        style="width:100%;padding:13px 14px;border:1px solid #E7E2DA;border-radius:12px;font-size:16px;box-sizing:border-box;">
+                    <p style="font-size:11.5px;color:#95a5a6;margin-top:4px;">新增合約時自動帶入，個別合約仍可改</p>
+                </div>
+
+                <div class="form-group" style="margin-top:14px;">
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="setup-company">
+                        <label for="setup-company">我也有接公司派的案子</label>
+                    </div>
+                </div>
+
+                <div class="form-group" id="setup-payrate-group" style="display:none;margin-top:14px;">
+                    <label for="setup-payrate">公司派：我方收款費率（元/小時）</label>
+                    <input type="number" id="setup-payrate" min="0" step="1" value="600"
+                        style="width:100%;padding:13px 14px;border:1px solid #E7E2DA;border-radius:12px;font-size:16px;box-sizing:border-box;">
+                </div>
+
+                <div class="form-group" style="margin-top:14px;">
+                    <label for="setup-years">合約年限（年）</label>
+                    <input type="number" id="setup-years" min="0" step="1" value="2"
+                        style="width:100%;padding:13px 14px;border:1px solid #E7E2DA;border-radius:12px;font-size:16px;box-sizing:border-box;">
+                </div>
+
+                <div class="form-group" style="margin-top:14px;">
+                    <label>預約時段範圍</label>
+                    <div style="display:flex;gap:8px;align-items:center;margin-top:4px;">
+                        <input type="number" id="setup-slot-start" min="0" max="23" value="8" style="width:80px;padding:11px;border:1px solid #E7E2DA;border-radius:12px;font-size:16px;box-sizing:border-box;">
+                        <span style="font-size:13px;color:#7f8c8d;">點 到</span>
+                        <input type="number" id="setup-slot-end" min="1" max="23" value="21" style="width:80px;padding:11px;border:1px solid #E7E2DA;border-radius:12px;font-size:16px;box-sizing:border-box;">
+                        <span style="font-size:13px;color:#7f8c8d;">點</span>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-top:14px;">
+                    <label>多久沒服務要提醒</label>
+                    <div style="display:flex;gap:8px;align-items:center;margin-top:4px;">
+                        <span style="font-size:13px;">🟡</span>
+                        <input type="number" id="setup-yellow" min="1" value="60" style="width:80px;padding:11px;border:1px solid #E7E2DA;border-radius:12px;font-size:16px;box-sizing:border-box;">
+                        <span style="font-size:13px;color:#7f8c8d;">天　🔴</span>
+                        <input type="number" id="setup-red" min="1" value="90" style="width:80px;padding:11px;border:1px solid #E7E2DA;border-radius:12px;font-size:16px;box-sizing:border-box;">
+                        <span style="font-size:13px;color:#7f8c8d;">天</span>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-top:14px;">
+                    <label for="setup-overdue">收款超過幾天算逾期</label>
+                    <input type="number" id="setup-overdue" min="1" value="30"
+                        style="width:100%;padding:13px 14px;border:1px solid #E7E2DA;border-radius:12px;font-size:16px;box-sizing:border-box;">
+                </div>
+
+                <p style="font-size:12px;color:#95a5a6;margin-top:14px;text-align:center;">這些之後在設定裡隨時能改</p>
+
+                <div style="display:flex;gap:10px;margin-top:14px;">
+                    <button type="button" onclick="setupBack()"
+                        style="flex:0 0 96px;padding:14px;border:1px solid #E7E2DA;border-radius:14px;background:#fff;color:#7f8c8d;font-size:15px;cursor:pointer;">上一步</button>
+                    <button type="button" id="setupGoBtn" onclick="finishSetup()"
+                        style="flex:1;padding:14px;border:none;border-radius:14px;background:#3498db;color:#fff;font-size:16px;font-weight:700;cursor:pointer;">開始使用</button>
+                </div>
+            </div>
+
+            <div id="setupMsg" style="color:#e74c3c;font-size:13px;min-height:16px;margin-top:8px;text-align:center;"></div>
         </div>
     </div>
 
