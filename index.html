@@ -83,6 +83,58 @@
             transition: all 0.3s;
         }
 
+        /* 設定：清單 + 子頁 */
+        .set-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            padding: 15px 4px;
+            background: none;
+            border: none;
+            border-bottom: 1px solid #ecf0f1;
+            font-family: inherit;
+            font-size: 15px;
+            color: #2c3e50;
+            text-align: left;
+            cursor: pointer;
+        }
+        .set-row:active { background: #f4f6f7; }
+        .set-ico { flex: 0 0 auto; font-size: 17px; }
+        .set-name { flex: 0 0 auto; }
+        .set-val {
+            flex: 1;
+            text-align: right;
+            color: #95a5a6;
+            font-size: 13px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .set-arrow { flex: 0 0 auto; color: #bdc3c7; font-size: 19px; line-height: 1; }
+        .set-gap { height: 18px; }
+
+        .setpg { display: none; }
+        .setpg.on { display: block; }
+        .setpg-head {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 18px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #ecf0f1;
+        }
+        .setpg-back {
+            background: none;
+            border: none;
+            color: #3498db;
+            font-family: inherit;
+            font-size: 15px;
+            padding: 4px 6px 4px 0;
+            cursor: pointer;
+        }
+        .setpg-title { font-size: 17px; font-weight: bold; color: #2c3e50; }
+
         .svc-pill {
             flex: 0 0 auto;
             padding: 7px 15px;
@@ -427,6 +479,10 @@
     </style>
 </head>
 <body>
+<div id="previewBar" style="display:none;position:fixed;top:0;left:0;right:0;z-index:99999;background:#e67e22;color:#fff;padding:9px 12px;align-items:center;gap:10px;font-size:13px;box-shadow:0 2px 8px rgba(0,0,0,.2);">
+    <span style="flex:1;line-height:1.5;">👁 <strong>預覽模式</strong>　這是新使用者看到的畫面，不會動到你的資料</span>
+    <button type="button" onclick="endPreview()" style="flex:0 0 auto;background:#fff;color:#e67e22;border:none;border-radius:6px;padding:6px 12px;font-family:inherit;font-size:13px;font-weight:bold;cursor:pointer;">結束預覽</button>
+</div>
 <div class="update-bar" id="updateBar"><span>🔄 有新版本可用</span><button id="updateBtn" type="button">立即更新</button></div>
     <div class="container">
         <div class="header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
@@ -453,9 +509,26 @@
         <div class="content">
             <!-- 系統設定 -->
             <div id="step1" class="tab-pane">
-                <h2>⚙️ 設定</h2>
+                <div id="set-menu">
+                    <h2 style="margin-bottom:14px;">⚙️ 設定</h2>
+                    <button type="button" class="set-row" onclick="openSetPage('basic')"><span class="set-ico">🏠</span><span class="set-name">基本資料</span><span class="set-val" id="sv-basic"></span><span class="set-arrow">›</span></button>
+                    <button type="button" class="set-row" onclick="openSetPage('service')"><span class="set-ico">🧰</span><span class="set-name">我的服務</span><span class="set-val" id="sv-service"></span><span class="set-arrow">›</span></button>
+                    <button type="button" class="set-row" onclick="openSetPage('partner')"><span class="set-ico">👥</span><span class="set-name">我的夥伴</span><span class="set-val" id="sv-partner"></span><span class="set-arrow">›</span></button>
+                    <button type="button" class="set-row" onclick="openSetPage('svcset')"><span class="set-ico">🛠️</span><span class="set-name">服務與收費</span><span class="set-val" id="sv-svcset"></span><span class="set-arrow">›</span></button>
+                    <div class="set-gap"></div>
+                    <button type="button" class="set-row" onclick="openSetPage('backup')"><span class="set-ico">📦</span><span class="set-name">資料備份</span><span class="set-val" id="sv-backup"></span><span class="set-arrow">›</span></button>
+                    <button type="button" class="set-row" onclick="openSetPage('app')"><span class="set-ico">📱</span><span class="set-name">應用程式</span><span class="set-val" id="sv-app"></span><span class="set-arrow">›</span></button>
+                    <div class="set-gap"></div>
+                    <button type="button" class="set-row" onclick="openSetPage('account')"><span class="set-ico">👤</span><span class="set-name">帳號</span><span class="set-val" id="sv-account"></span><span class="set-arrow">›</span></button>
+                    <button type="button" class="set-row" onclick="openSetPage('support')"><span class="set-ico">💬</span><span class="set-name">支援與條款</span><span class="set-val" id="sv-support"></span><span class="set-arrow">›</span></button>
+                    <div class="set-gap" id="set-admin-gap" style="display:none;"></div>
+                    <button type="button" class="set-row" id="set-admin-preview" style="display:none;" onclick="startPreview()"><span class="set-ico">🔧</span><span class="set-name">預覽新使用者畫面</span><span class="set-val">管理員</span><span class="set-arrow">›</span></button>
+                    <p style="text-align:center;color:#95a5a6;font-size:12px;margin-top:22px;">客戶管理系統 <span id="crmVerTagFoot">v1.0</span></p>
+                </div>
 
-                <!-- 你的稱呼 -->
+                <div class="setpg" id="setpg-basic">
+                    <div class="setpg-head"><button type="button" class="setpg-back" onclick="closeSetPage()">‹ 返回</button><span class="setpg-title">基本資料</span></div>
+<!-- 你的稱呼 -->
                 <div class="form-group">
                     <label for="provider-name-input">你的店名或稱呼</label>
                     <div style="display:flex; gap:8px;">
@@ -464,10 +537,13 @@
                     </div>
                     <p id="current-provider-name" style="margin-top:6px; font-size:13px; color:#27ae60;"></p>
                 </div>
+                </div>
 
-                <!-- 服務項目 -->
-                <div class="form-group" style="margin-top:24px;">
-                    <label id="service-section-label">我的服務</label>
+                <div class="setpg" id="setpg-service">
+                    <div class="setpg-head"><button type="button" class="setpg-back" onclick="closeSetPage()">‹ 返回</button><span class="setpg-title">我的服務</span></div>
+<!-- 服務項目 -->
+                <div class="form-group">
+                    <label id="service-section-label" style="display:none;">我的服務</label>
                     <p id="service-section-hint" style="font-size:12px;color:#95a5a6;margin:2px 0 8px;display:none;">每個服務的客戶、合約、預約各自獨立，上方可切換。</p>
                     <div id="service-types-list" style="margin-top:8px;"></div>
 
@@ -487,27 +563,37 @@
                                 <label><input type="radio" name="new-service-fields" value="repair"> 還要記電器與保固</label>
                             </div>
                         </div>
-                        <button class="btn btn-primary" style="width:100%" onclick="addServiceType()">新增服務</button>
+                        <div style="display:flex;gap:8px;">
+                            <button type="button" class="btn btn-secondary" style="flex:0 0 90px;margin:0;" onclick="cancelAddService()">取消</button>
+                            <button class="btn btn-primary" style="flex:1;margin:0;" onclick="addServiceType()">新增服務</button>
+                        </div>
                     </div>
                 </div>
+                </div>
 
-                <!-- 我的夥伴 -->
-                <div class="form-group" style="margin-top:24px;">
-                    <label id="partner-section-label">我的夥伴</label>
+                <div class="setpg" id="setpg-partner">
+                    <div class="setpg-head"><button type="button" class="setpg-back" onclick="closeSetPage()">‹ 返回</button><span class="setpg-title">我的夥伴</span></div>
+<!-- 我的夥伴 -->
+                <div class="form-group">
+                    <label id="partner-section-label" style="display:none;">我的夥伴</label>
                     <div id="partners-list" style="margin-top:8px;"></div>
                     <button type="button" id="add-partner-toggle"
                         style="margin-top:8px;background:none;border:none;color:#3498db;font-size:13.5px;padding:4px 0;cursor:pointer;">＋ 有時候會請人代班</button>
                     <div id="add-partner-box" style="display:none;margin-top:10px;">
-                        <div style="display:flex;gap:6px;">
-                            <input type="text" id="new-partner-input" placeholder="夥伴姓名" maxlength="20" style="flex:1;padding:8px 10px;border:1px solid #bdc3c7;border-radius:4px;">
-                            <button class="btn btn-primary" onclick="addPartner()">新增</button>
+                        <input type="text" id="new-partner-input" placeholder="夥伴姓名" maxlength="20" style="width:100%;padding:8px 10px;border:1px solid #bdc3c7;border-radius:4px;box-sizing:border-box;">
+                        <div style="display:flex;gap:8px;margin-top:8px;">
+                            <button type="button" class="btn btn-secondary" style="flex:0 0 90px;margin:0;" onclick="cancelAddPartner()">取消</button>
+                            <button class="btn btn-primary" style="flex:1;margin:0;" onclick="addPartner()">新增夥伴</button>
                         </div>
                         <p style="font-size:11px;color:#95a5a6;margin-top:6px;">只是用來記錄「這次是誰去的」，夥伴沒有帳號、看不到你的資料</p>
                     </div>
                 </div>
+                </div>
 
-                <!-- 服務設定 -->
-                <div style="margin-top:24px;padding-top:20px;border-top:1px solid #ecf0f1;">
+                <div class="setpg" id="setpg-svcset">
+                    <div class="setpg-head"><button type="button" class="setpg-back" onclick="closeSetPage()">‹ 返回</button><span class="setpg-title">服務與收費</span></div>
+<!-- 服務設定 -->
+                <div>
                     <p style="font-size:13px;color:#7f8c8d;margin-bottom:10px;">🛠️ 服務設定</p>
 
                     <div class="form-group">
@@ -573,10 +659,12 @@
 
                     <button class="btn btn-primary" style="width:100%" onclick="saveServiceSettings()">儲存服務設定</button>
                 </div>
+                </div>
 
-                <!-- 資料備份 -->
+                <div class="setpg" id="setpg-backup">
+                    <div class="setpg-head"><button type="button" class="setpg-back" onclick="closeSetPage()">‹ 返回</button><span class="setpg-title">資料備份</span></div>
+<!-- 資料備份 -->
                 <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ecf0f1;">
-                    <p style="font-size: 13px; color: #7f8c8d; margin-bottom: 10px;">📦 資料備份</p>
                     <div style="display:flex; gap:10px;">
                         <button class="btn btn-secondary" style="flex:1; margin:0;" onclick="exportData()">📥 匯出備份</button>
                         <label class="btn btn-secondary" style="flex:1; margin:0; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; text-align:center;">
@@ -586,30 +674,35 @@
                     </div>
                     <p style="font-size: 11px; color: #95a5a6; margin-top: 8px;">⚠️ 匯入會覆蓋現有資料，請先匯出備份</p>
                 </div>
+                </div>
 
-                <!-- 帳號 -->
-                <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #ecf0f1;">
-                    <p style="font-size: 13px; color: #7f8c8d; margin-bottom: 10px;">👤 帳號</p>
+                <div class="setpg" id="setpg-app">
+                    <div class="setpg-head"><button type="button" class="setpg-back" onclick="closeSetPage()">‹ 返回</button><span class="setpg-title">應用程式</span></div>
+<!-- 應用程式（智在生活 Standard） -->
+                <div>
+                    <button class="btn btn-secondary" style="width:100%" id="crmInstallBtn">📲 安裝到手機桌面</button>
+                    <button class="btn btn-secondary" style="width:100%;margin-top:8px" id="crmShareBtn">🔗 分享這個 App</button>
+                </div>
+                </div>
+
+                <div class="setpg" id="setpg-account">
+                    <div class="setpg-head"><button type="button" class="setpg-back" onclick="closeSetPage()">‹ 返回</button><span class="setpg-title">帳號</span></div>
+<!-- 帳號 -->
+                <div>
                     <p id="crm-account-email" style="font-size:14px;font-weight:bold;color:#2c3e50;word-break:break-all;margin:0 0 4px;">—</p>
                     <p id="crm-account-plan" style="font-size:12.5px;color:#7f8c8d;margin:0 0 12px;"></p>
                     <button class="btn btn-secondary" style="width:100%" onclick="crmLogout()">🚪 登出</button>
                 </div>
-
-                <!-- 應用程式（智在生活 Standard） -->
-                <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #ecf0f1;">
-                    <p style="font-size: 13px; color: #7f8c8d; margin-bottom: 10px;">📱 應用程式</p>
-                    <button class="btn btn-secondary" style="width:100%" id="crmInstallBtn">📲 安裝到手機桌面</button>
-                    <button class="btn btn-secondary" style="width:100%;margin-top:8px" id="crmShareBtn">🔗 分享這個 App</button>
                 </div>
 
-                <!-- 支援 -->
-                <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #ecf0f1;">
-                    <p style="font-size: 13px; color: #7f8c8d; margin-bottom: 10px;">💬 支援</p>
+                <div class="setpg" id="setpg-support">
+                    <div class="setpg-head"><button type="button" class="setpg-back" onclick="closeSetPage()">‹ 返回</button><span class="setpg-title">支援與條款</span></div>
+<!-- 支援 -->
+                <div>
                     <button class="btn btn-secondary" style="width:100%" id="crmSupportBtn">💬 聯繫客服</button>
                     <button class="btn btn-secondary" style="width:100%;margin-top:8px" id="crmTermsBtn">📄 服務條款與隱私政策</button>
-                    <p style="text-align:center;color:#95a5a6;font-size:12px;margin-top:16px;">客戶管理系統 <span id="crmVerTagFoot">v1.0</span></p>
+                                    </div>
                 </div>
-
                 <!-- 版本資訊移除 -->
             </div>
 
@@ -1244,6 +1337,7 @@
             }
 
             save() {
+                if (typeof PREVIEW !== 'undefined' && PREVIEW) return;   // 預覽模式：不存任何東西
                 localStorage.setItem('servicecrm_data', JSON.stringify(this.data));
                 if (!this._firebaseReady) {
                     console.warn('Firebase 未就緒，跳過雲端儲存');
@@ -1494,7 +1588,7 @@
         // 從行事曆連過來時，同網域的登入狀態會自動沿用，使用者不會有感覺。
         const ADMIN_EMAIL = 'mp65p@hotmail.com';
         const ALLOWED_EMAILS = [ADMIN_EMAIL];          // 之後要賣，改成查方案即可
-        const CRM_APP_VER = 'v1.0', CRM_BUILD_ID = '0926-4';
+        const CRM_APP_VER = 'v1.0', CRM_BUILD_ID = '0926-6';
         const CRM_EMAIL_FOR_SIGNIN = 'crmEmailForSignIn';
         const LINE_SUPPORT_URL = 'https://line.me/R/ti/p/@373pfdee';
         var crmUserEmail = null;
@@ -1629,6 +1723,7 @@
 
         // ==================== UI 控制 ====================
         function setActiveTab(tabName) {
+            if (tabName === 'step1') { try { closeSetPage(); } catch (e) {} }
             document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
             document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
 
@@ -1659,10 +1754,12 @@
             const FIELD_LABEL = { home: '會記住家狀況', repair: '會記電器與保固', none: '只記基本資料' };
             const cnt = function (id) { return store.data.clients.filter(c => c.serviceTypeId === id).length; };
 
-            document.getElementById('service-section-label').textContent = single ? '我的服務' : '我的服務項目';
             document.getElementById('service-section-hint').style.display = single ? 'none' : 'block';
             const toggleBtn = document.getElementById('add-service-toggle');
-            toggleBtn.textContent = types.length === 0 ? '＋ 新增服務' : (single ? '＋ 我還有第二種服務' : '＋ 再新增一種服務');
+            const svcBoxOpen = document.getElementById('add-service-box').style.display === 'block';
+            toggleBtn.textContent = svcBoxOpen ? '− 收起'
+                : types.length === 0 ? '＋ 新增服務'
+                : single ? '＋ 我還有第二種服務' : '＋ 再新增一種服務';
 
             if (types.length === 0) {
                 list.innerHTML = '<p style="font-size:13px;color:#e67e22;padding:10px;background:#fef5e7;border-radius:6px;">還沒有服務，先新增一個才能開始建立客戶。</p>';
@@ -1695,6 +1792,7 @@
 
             renderServiceSettings();
             renderPartners();
+            renderSetMenu();
             initQuickServiceSwitch();
         }
 
@@ -1703,8 +1801,8 @@
             const list = document.getElementById('partners-list');
             const ps = ensurePartners(store.data);
             const toggle = document.getElementById('add-partner-toggle');
-            document.getElementById('partner-section-label').style.display = ps.length ? 'block' : 'none';
-            toggle.textContent = ps.length ? '＋ 新增夥伴' : '＋ 有時候會請人代班';
+            const pBoxOpen = document.getElementById('add-partner-box').style.display === 'block';
+            toggle.textContent = pBoxOpen ? '− 收起' : (ps.length ? '＋ 新增夥伴' : '＋ 有時候會請人代班');
 
             if (!ps.length) { list.innerHTML = ''; return; }
             const me = store.data.providerName || '我自己';
@@ -1718,6 +1816,20 @@
                         <button class="btn btn-sm btn-danger" onclick="deletePartner('${p.id}','${esc}')">✕</button>
                     </div>`;
                 }).join('');
+        }
+
+        function cancelAddService() {
+            document.getElementById('new-service-type-input').value = '';
+            const r = document.querySelector('input[name="new-service-fields"][value="none"]');
+            if (r) r.checked = true;
+            document.getElementById('add-service-box').style.display = 'none';
+            renderSettingsPage();
+        }
+
+        function cancelAddPartner() {
+            document.getElementById('new-partner-input').value = '';
+            document.getElementById('add-partner-box').style.display = 'none';
+            renderPartners();
         }
 
         function addPartner() {
@@ -1868,6 +1980,84 @@
             initBookingTimeOptions();
             updateAllTabs();
             showToast('✅ 服務設定已儲存');
+        }
+
+        // ==================== 預覽模式（管理員專用）====================
+        // 進入後所有儲存都會被擋掉，看到的是全新帳號的樣子
+        var PREVIEW = false;
+
+        function startPreview() {
+            if (crmUserEmail !== ADMIN_EMAIL) { showToast('這個功能只有管理員可以用'); return; }
+            showConfirm('要用「全新使用者」的角度看一次嗎？\n預覽期間所有操作都不會存檔，也不會動到你現在的資料。', function () {
+                PREVIEW = true;
+                store._firebaseReady = false;
+                store.data = {
+                    providerName: '', settings: defaultCrmSettings(), partners: [],
+                    serviceTypes: [], clients: [], contracts: [], bookings: [], payments: [],
+                    selectedServiceType: null
+                };
+                document.getElementById('previewBar').style.display = 'flex';
+                document.body.style.paddingTop = '44px';
+                initStep1();
+                initBookingTimeOptions();
+                updateAllTabs();
+                setActiveTab('clients');
+                showSetupPage();
+            });
+        }
+
+        function endPreview() {
+            location.reload();
+        }
+
+        // ==================== 設定：清單 / 子頁 ====================
+        var setPageOpen = null;
+
+        function openSetPage(key) {
+            const pg = document.getElementById('setpg-' + key);
+            if (!pg) return;
+            document.querySelectorAll('.setpg').forEach(el => el.classList.remove('on'));
+            pg.classList.add('on');
+            document.getElementById('set-menu').style.display = 'none';
+            setPageOpen = key;
+            window.scrollTo(0, 0);
+        }
+
+        function closeSetPage() {
+            document.querySelectorAll('.setpg').forEach(el => el.classList.remove('on'));
+            document.getElementById('set-menu').style.display = 'block';
+            setPageOpen = null;
+            renderSettingsPage();
+            window.scrollTo(0, 0);
+        }
+
+        // 清單右邊的目前設定值
+        function renderSetMenu() {
+            const put = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+            const st = S();
+            const types = store.getServiceTypes();
+            const ps = (store.data.partners || []);
+
+            put('sv-basic', store.data.providerName || '尚未設定');
+            put('sv-service', types.length === 0 ? '尚未設定'
+                : types.length === 1 ? types[0].typeName
+                : types.length + ' 種服務');
+            put('sv-partner', ps.length === 0 ? '只有我自己' : ps.length + ' 位夥伴');
+            const bits = [];
+            if (st.defaultHourlyRate > 0) bits.push(st.defaultHourlyRate + ' 元/h');
+            bits.push(st.contractYears + ' 年');
+            if (st.companyDispatch) bits.push('有公司派');
+            put('sv-svcset', bits.join(' · '));
+            put('sv-account', crmUserEmail || '');
+            put('sv-backup', '');
+            put('sv-app', '');
+            put('sv-support', '');
+
+            const isAdmin = (crmUserEmail === ADMIN_EMAIL) && !PREVIEW;
+            const ar = document.getElementById('set-admin-preview');
+            const ag = document.getElementById('set-admin-gap');
+            if (ar) ar.style.display = isAdmin ? 'flex' : 'none';
+            if (ag) ag.style.display = isAdmin ? 'block' : 'none';
         }
 
         // ==================== 首次開通 ====================
@@ -2413,6 +2603,7 @@
                 document.getElementById('contract-hourly-rate-company').value = S().defaultHourlyRate;
             }
             document.getElementById('contract-adv-box').style.display = 'none';
+            document.getElementById('contract-adv-toggle').textContent = '＋ 進階選項';
             document.getElementById('contract-rate-note').style.display = 'none';
             applyCompanyDispatchUI();
             if (!S().companyDispatch) document.getElementById('contract-rate-group').style.display = 'block';
@@ -3749,31 +3940,45 @@
         window.importData = importData;
         window.saveProviderName = saveProviderName;
         window.saveServiceSettings = saveServiceSettings;
+        window.startPreview = startPreview;
+        window.endPreview = endPreview;
+        window.openSetPage = openSetPage;
+        window.closeSetPage = closeSetPage;
         window.setupNext = setupNext;
         window.setupBack = setupBack;
         window.editServiceType = editServiceType;
         window.saveEditServiceType = saveEditServiceType;
         window.closeEditServiceModal = closeEditServiceModal;
         window.addPartner = addPartner;
+        window.cancelAddService = cancelAddService;
+        window.cancelAddPartner = cancelAddPartner;
         window.renamePartner = renamePartner;
         window.deletePartner = deletePartner;
         (function () {
             const pt = document.getElementById('add-partner-toggle');
             if (pt) pt.addEventListener('click', function () {
                 const box = document.getElementById('add-partner-box');
-                box.style.display = (box.style.display === 'none' || !box.style.display) ? 'block' : 'none';
-                if (box.style.display === 'block') document.getElementById('new-partner-input').focus();
+                const open = !(box.style.display === 'none' || !box.style.display);
+                if (open) { cancelAddPartner(); return; }
+                box.style.display = 'block';
+                this.textContent = '− 收起';
+                document.getElementById('new-partner-input').focus();
             });
             const at = document.getElementById('contract-adv-toggle');
             if (at) at.addEventListener('click', function () {
                 const box = document.getElementById('contract-adv-box');
-                box.style.display = (box.style.display === 'none' || !box.style.display) ? 'block' : 'none';
+                const open = !(box.style.display === 'none' || !box.style.display);
+                box.style.display = open ? 'none' : 'block';
+                this.textContent = open ? '＋ 進階選項' : '− 收起進階選項';
             });
             const t = document.getElementById('add-service-toggle');
             if (t) t.addEventListener('click', function () {
                 const box = document.getElementById('add-service-box');
-                box.style.display = (box.style.display === 'none' || !box.style.display) ? 'block' : 'none';
-                if (box.style.display === 'block') document.getElementById('new-service-type-input').focus();
+                const open = !(box.style.display === 'none' || !box.style.display);
+                if (open) { cancelAddService(); return; }
+                box.style.display = 'block';
+                this.textContent = '− 收起';
+                document.getElementById('new-service-type-input').focus();
             });
         })();
         window.addServiceType = addServiceType;
@@ -3893,6 +4098,8 @@
             if (cf && cf.style.display === 'flex') { cf.style.display = 'none'; return true; }   // 確認視窗
             var open = document.querySelectorAll('.modal.show');
             if (open.length) { open[open.length - 1].classList.remove('show'); return true; }    // 彈窗
+            if (PREVIEW) { endPreview(); return true; }                                        // 預覽中 → 先結束預覽
+            if (setPageOpen) { closeSetPage(); return true; }                                  // 設定子頁 → 回清單
             var sp = document.getElementById('crmSetup');
             if (sp && sp.style.display === 'flex') return false;                                  // 開通頁 → 離開
             var lg = document.getElementById('crmLogin');
