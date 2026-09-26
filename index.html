@@ -592,9 +592,12 @@
 
                 <div class="setpg" id="setpg-svcset">
                     <div class="setpg-head"><button type="button" class="setpg-back" onclick="closeSetPage()">‹ 返回</button><span class="setpg-title">服務與收費</span></div>
+                    <div id="svcset-scope" style="display:none;background:#eaf4fc;border-radius:8px;padding:10px 12px;margin-bottom:16px;font-size:13px;color:#2c3e50;line-height:1.6;">
+                        以下設定只套用在「<strong id="svcset-scope-name"></strong>」<br>
+                        <span style="color:#7f8c8d;font-size:12px;">要改別的服務，請先在上方切換</span>
+                    </div>
 <!-- 服務設定 -->
                 <div>
-                    <p style="font-size:13px;color:#7f8c8d;margin-bottom:10px;">🛠️ 服務設定</p>
 
                     <div class="form-group">
                         <div class="checkbox-group">
@@ -639,6 +642,8 @@
                             <span style="font-size:13px;">天</span>
                         </div>
                     </div>
+
+                    <p style="font-size:12px;color:#95a5a6;margin:22px 0 10px;padding-top:14px;border-top:1px solid #ecf0f1;" id="set-account-note">以下兩項是整個帳號共用，不分服務</p>
 
                     <div class="form-group">
                         <label for="set-overdue-days">收款逾期天數</label>
@@ -1248,7 +1253,43 @@
             return d.settings;
         }
 
-        // 取得目前設定（store 還沒建好時給預設值，避免 render 時炸掉）
+        // 這幾項跟著「服務項目」走，不同服務可以不一樣
+        const SVC_KEYS = ['companyDispatch', 'defaultHourlyRate', 'defaultPaymentRate',
+                          'contractYears', 'trackYellow', 'trackRed', 'useOil'];
+
+        function defaultSvcCfg() {
+            const d = defaultCrmSettings(), o = {};
+            SVC_KEYS.forEach(function (k) { o[k] = d[k]; });
+            return o;
+        }
+
+        // base 是帳號層的舊設定：第一次拆分時原封不動複製過來，行為才不會變
+        function ensureSvcCfg(st, base) {
+            if (!st) return defaultSvcCfg();
+            const d = defaultSvcCfg();
+            if (!st.cfg) {
+                st.cfg = {};
+                SVC_KEYS.forEach(function (k) {
+                    st.cfg[k] = (base && base[k] !== undefined && base[k] !== null) ? base[k] : d[k];
+                });
+            } else {
+                SVC_KEYS.forEach(function (k) {
+                    if (st.cfg[k] === undefined || st.cfg[k] === null || st.cfg[k] === '') st.cfg[k] = d[k];
+                });
+            }
+            return st.cfg;
+        }
+
+        // 目前切換到的那個服務的設定
+        function SVC() {
+            try {
+                const st = store.getServiceType(store.data.selectedServiceType);
+                if (st) return ensureSvcCfg(st, store.data.settings);
+            } catch (e) {}
+            return defaultSvcCfg();
+        }
+
+        // 取得帳號層設定（店名、時段、逾期天數…）
         function S() {
             try { return ensureCrmSettings(store.data); } catch (e) { return defaultCrmSettings(); }
         }
@@ -1328,6 +1369,7 @@
 
                     rescueServiceTypes(this.data);
                     ensureCrmSettings(this.data);
+                    (this.data.serviceTypes || []).forEach(st => ensureSvcCfg(st, this.data.settings));
                     // selectedServiceType 若已不存在就清除
                     if (this.data.selectedServiceType) {
                         const exists = this.data.serviceTypes.find(st => st.id === this.data.selectedServiceType);
@@ -1411,6 +1453,7 @@
                 });
                 rescueServiceTypes(this.data);
                 ensureCrmSettings(this.data);
+                (this.data.serviceTypes || []).forEach(st => ensureSvcCfg(st, this.data.settings));
                 if (this.data.selectedServiceType) {
                     const exists = this.data.serviceTypes.find(st => st.id === this.data.selectedServiceType);
                     if (!exists) this.data.selectedServiceType = this.data.serviceTypes[0]?.id || null;
@@ -1424,7 +1467,7 @@
 
             addServiceType(typeName, fields) {
                 const id = 'st_' + Date.now();
-                this.data.serviceTypes.push({ id, typeName, fields: fields || 'none' });
+                this.data.serviceTypes.push({ id, typeName, fields: fields || 'none', cfg: defaultSvcCfg() });
                 if (!this.data.selectedServiceType) this.data.selectedServiceType = id;
                 this.save();
                 return id;
@@ -1588,7 +1631,7 @@
         // 從行事曆連過來時，同網域的登入狀態會自動沿用，使用者不會有感覺。
         const ADMIN_EMAIL = 'mp65p@hotmail.com';
         const ALLOWED_EMAILS = [ADMIN_EMAIL];          // 之後要賣，改成查方案即可
-        const CRM_APP_VER = 'v1.0', CRM_BUILD_ID = '0926-6';
+        const CRM_APP_VER = 'v1.0', CRM_BUILD_ID = '0926-7';
         const CRM_EMAIL_FOR_SIGNIN = 'crmEmailForSignIn';
         const LINE_SUPPORT_URL = 'https://line.me/R/ti/p/@373pfdee';
         var crmUserEmail = null;
@@ -1919,28 +1962,41 @@
         }
 
         function renderServiceSettings() {
-            const st = S();
+            const c = SVC();              // 這個服務的設定
+            const a = S();                // 帳號共用設定
             const set = function (id, v) { const el = document.getElementById(id); if (el) el.value = v; };
+
+            // 兩種以上服務時，標明現在改的是哪一個
+            const types = store.getServiceTypes();
+            const cur = store.getServiceType(store.data.selectedServiceType);
+            const scope = document.getElementById('svcset-scope');
+            if (scope) {
+                scope.style.display = (types.length > 1 && cur) ? 'block' : 'none';
+                if (cur) document.getElementById('svcset-scope-name').textContent = cur.typeName;
+            }
+            const anote = document.getElementById('set-account-note');
+            if (anote) anote.style.display = types.length > 1 ? 'block' : 'none';
+
             const cb = document.getElementById('set-company-dispatch');
             if (cb) {
-                cb.checked = !!st.companyDispatch;
+                cb.checked = !!c.companyDispatch;
                 cb.onchange = function () {
                     const g = document.getElementById('set-payment-rate-group');
                     if (g) g.style.display = this.checked ? 'block' : 'none';
                 };
             }
             const g = document.getElementById('set-payment-rate-group');
-            if (g) g.style.display = st.companyDispatch ? 'block' : 'none';
-            set('set-hourly-rate', st.defaultHourlyRate);
+            if (g) g.style.display = c.companyDispatch ? 'block' : 'none';
+            set('set-hourly-rate', c.defaultHourlyRate);
             const oilCb = document.getElementById('set-use-oil');
-            if (oilCb) oilCb.checked = !!st.useOil;
-            set('set-payment-rate', st.defaultPaymentRate);
-            set('set-contract-years', st.contractYears);
-            set('set-track-yellow', st.trackYellow);
-            set('set-track-red', st.trackRed);
-            set('set-overdue-days', st.overdueDays);
-            set('set-slot-start', st.slotStart);
-            set('set-slot-end', st.slotEnd);
+            if (oilCb) oilCb.checked = !!c.useOil;
+            set('set-payment-rate', c.defaultPaymentRate);
+            set('set-contract-years', c.contractYears);
+            set('set-track-yellow', c.trackYellow);
+            set('set-track-red', c.trackRed);
+            set('set-overdue-days', a.overdueDays);
+            set('set-slot-start', a.slotStart);
+            set('set-slot-end', a.slotEnd);
         }
 
         function saveServiceSettings() {
@@ -1952,29 +2008,33 @@
                 if (v > max) v = max;
                 return v;
             };
-            const cur = S();
-            const yellow = num('set-track-yellow', 1, 3650, cur.trackYellow);
-            let red = num('set-track-red', 1, 3650, cur.trackRed);
+            const c = SVC(), a = S();
+            const yellow = num('set-track-yellow', 1, 3650, c.trackYellow);
+            let red = num('set-track-red', 1, 3650, c.trackRed);
             if (red <= yellow) red = yellow + 1;
 
-            let start = num('set-slot-start', 0, 23, cur.slotStart);
-            let end = num('set-slot-end', 1, 23, cur.slotEnd);
+            let start = num('set-slot-start', 0, 23, a.slotStart);
+            let end = num('set-slot-end', 1, 23, a.slotEnd);
             if (end <= start) end = start + 1;
             if (end > 23) { end = 23; if (start >= 23) start = 22; }
 
-            store.data.settings = {
-                companyDispatch: !!document.getElementById('set-company-dispatch').checked,
-                defaultHourlyRate: num('set-hourly-rate', 0, 1000000, cur.defaultHourlyRate),
-                useOil: !!document.getElementById('set-use-oil').checked,
-                defaultPaymentRate: num('set-payment-rate', 0, 1000000, cur.defaultPaymentRate),
-                contractYears: num('set-contract-years', 0, 50, cur.contractYears),
-                trackYellow: yellow,
-                trackRed: red,
-                overdueDays: num('set-overdue-days', 1, 3650, cur.overdueDays),
-                slotStart: start,
-                slotEnd: end,
-                setupDone: cur.setupDone
-            };
+            // 這個服務自己的設定
+            const st = store.getServiceType(store.data.selectedServiceType);
+            if (st) {
+                st.cfg = {
+                    companyDispatch: !!document.getElementById('set-company-dispatch').checked,
+                    defaultHourlyRate: num('set-hourly-rate', 0, 1000000, c.defaultHourlyRate),
+                    defaultPaymentRate: num('set-payment-rate', 0, 1000000, c.defaultPaymentRate),
+                    contractYears: num('set-contract-years', 0, 50, c.contractYears),
+                    trackYellow: yellow,
+                    trackRed: red,
+                    useOil: !!document.getElementById('set-use-oil').checked
+                };
+            }
+            // 整個帳號共用的設定
+            a.overdueDays = num('set-overdue-days', 1, 3650, a.overdueDays);
+            a.slotStart = start;
+            a.slotEnd = end;
             store.save();
             renderServiceSettings();
             initBookingTimeOptions();
@@ -2034,7 +2094,6 @@
         // 清單右邊的目前設定值
         function renderSetMenu() {
             const put = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
-            const st = S();
             const types = store.getServiceTypes();
             const ps = (store.data.partners || []);
 
@@ -2043,10 +2102,13 @@
                 : types.length === 1 ? types[0].typeName
                 : types.length + ' 種服務');
             put('sv-partner', ps.length === 0 ? '只有我自己' : ps.length + ' 位夥伴');
+            const c = SVC();
+            const cur = store.getServiceType(store.data.selectedServiceType);
             const bits = [];
-            if (st.defaultHourlyRate > 0) bits.push(st.defaultHourlyRate + ' 元/h');
-            bits.push(st.contractYears + ' 年');
-            if (st.companyDispatch) bits.push('有公司派');
+            if (types.length > 1 && cur) bits.push(cur.typeName);
+            if (c.defaultHourlyRate > 0) bits.push(c.defaultHourlyRate + ' 元/h');
+            bits.push(c.contractYears + ' 年');
+            if (c.companyDispatch) bits.push('有公司派');
             put('sv-svcset', bits.join(' · '));
             put('sv-account', crmUserEmail || '');
             put('sv-backup', '');
@@ -2124,17 +2186,25 @@
             store.data.providerName = who;
             const id = store.addServiceType(svc, fr ? fr.value : 'none');
             store.data.selectedServiceType = id;
-            const cfg = ensureCrmSettings(store.data);
-            cfg.defaultHourlyRate = num('setup-hourly-rate', 0, 1000000, 0);
-            cfg.companyDispatch = !!document.getElementById('setup-company').checked;
-            cfg.defaultPaymentRate = num('setup-payrate', 0, 1000000, def.defaultPaymentRate);
-            cfg.contractYears = num('setup-years', 0, 50, def.contractYears);
-            cfg.slotStart = st0;
-            cfg.slotEnd = st1;
-            cfg.trackYellow = yellow;
-            cfg.trackRed = red;
-            cfg.overdueDays = num('setup-overdue', 1, 3650, def.overdueDays);
-            cfg.setupDone = true;
+            const acc = ensureCrmSettings(store.data);
+            acc.slotStart = st0;
+            acc.slotEnd = st1;
+            acc.overdueDays = num('setup-overdue', 1, 3650, def.overdueDays);
+            acc.setupDone = true;
+
+            // 這個服務自己的收費規則
+            const newSt = store.getServiceType(id);
+            if (newSt) {
+                newSt.cfg = {
+                    companyDispatch: !!document.getElementById('setup-company').checked,
+                    defaultHourlyRate: num('setup-hourly-rate', 0, 1000000, 0),
+                    defaultPaymentRate: num('setup-payrate', 0, 1000000, def.defaultPaymentRate),
+                    contractYears: num('setup-years', 0, 50, def.contractYears),
+                    trackYellow: yellow,
+                    trackRed: red,
+                    useOil: false
+                };
+            }
             store.save();
 
             hideSetupPage();
@@ -2147,7 +2217,7 @@
 
         // 依設定顯示／隱藏「自接、公司派」選項
         function applyCompanyDispatchUI(force) {
-            const on = !!S().companyDispatch || !!force;
+            const on = !!SVC().companyDispatch || !!force;
             const cg = document.getElementById('contract-cooperation-group');
             if (cg) cg.style.display = on ? 'block' : 'none';
             const sg = document.getElementById('client-source-group');
@@ -2276,7 +2346,7 @@
                                     <p>📞 ${client.phone}</p>
                                     ${(function(){
                                         const bits = [];
-                                        if (S().companyDispatch && client.clientSource) bits.push('來源: ' + client.clientSource);
+                                        if (SVC().companyDispatch && client.clientSource) bits.push('來源: ' + client.clientSource);
                                         if (client.homeType) bits.push('住家: ' + client.homeType);
                                         return bits.length ? '<p>' + bits.join(' | ') + '</p>' : '';
                                     })()}
@@ -2437,7 +2507,7 @@
 
                 if (!clientName) { showToast('❌ 請填寫客戶姓名'); return; }
                 if (!phone) { showToast('❌ 請填寫聯絡電話'); return; }
-                if (S().companyDispatch && !clientSource) { showToast('❌ 請選擇客戶來源'); return; }
+                if (SVC().companyDispatch && !clientSource) { showToast('❌ 請選擇客戶來源'); return; }
                 if (fields === 'home' && !homeType) { showToast('❌ 請選擇住家類型'); return; }
                 if (!address) { showToast('❌ 請填寫服務地址'); return; }
 
@@ -2535,7 +2605,7 @@
                     const itemStyle = isEnded ? 'opacity:0.55;' : '';
                     const remainingStyle = isWarning ? 'color:#e74c3c;font-weight:bold;' : isEnded ? 'color:#95a5a6;' : '';
                     const preUsedNote = preUsedHours > 0 ? ` | 他人已服務: ${preUsedHours}h` : '';
-                    const paymentRate = contract.cooperationMethod === '公司派' ? (contract.paymentRate || S().defaultPaymentRate) : contract.hourlyRate;
+                    const paymentRate = contract.cooperationMethod === '公司派' ? (contract.paymentRate || SVC().defaultPaymentRate) : contract.hourlyRate;
 
                     return `
                         <div class="list-item" style="${itemStyle}">
@@ -2597,18 +2667,18 @@
             document.getElementById('contract-rate-group').style.display = 'none';
             document.getElementById('contract-rate-fixed').style.display = 'none';
             document.getElementById('contract-payment-rate-group').style.display = 'none';
-            document.getElementById('contract-payment-rate').value = S().defaultPaymentRate;
-            if (S().defaultHourlyRate > 0) {
-                document.getElementById('contract-hourly-rate').value = S().defaultHourlyRate;
-                document.getElementById('contract-hourly-rate-company').value = S().defaultHourlyRate;
+            document.getElementById('contract-payment-rate').value = SVC().defaultPaymentRate;
+            if (SVC().defaultHourlyRate > 0) {
+                document.getElementById('contract-hourly-rate').value = SVC().defaultHourlyRate;
+                document.getElementById('contract-hourly-rate-company').value = SVC().defaultHourlyRate;
             }
             document.getElementById('contract-adv-box').style.display = 'none';
             document.getElementById('contract-adv-toggle').textContent = '＋ 進階選項';
             document.getElementById('contract-rate-note').style.display = 'none';
             applyCompanyDispatchUI();
-            if (!S().companyDispatch) document.getElementById('contract-rate-group').style.display = 'block';
+            if (!SVC().companyDispatch) document.getElementById('contract-rate-group').style.display = 'block';
             const _eh = document.getElementById('contract-expire-hint');
-            if (_eh) _eh.textContent = '預設為簽約日 + ' + S().contractYears + ' 年，可手動修改';
+            if (_eh) _eh.textContent = '預設為簽約日 + ' + SVC().contractYears + ' 年，可手動修改';
             document.getElementById('contract-modal').classList.add('show');
             initContractClientSearch();
         }
@@ -2675,7 +2745,7 @@
             const signDate = document.getElementById('contract-sign-date').value;
             if (!signDate) return;
             const expire = new Date(signDate);
-            expire.setFullYear(expire.getFullYear() + (S().contractYears || 0));
+            expire.setFullYear(expire.getFullYear() + (SVC().contractYears || 0));
             document.getElementById('contract-expire-date').value = expire.toISOString().split('T')[0];
         }
 
@@ -2706,7 +2776,7 @@
 
             if (cooperation === '公司派') {
                 hourlyRate = parseFloat(document.getElementById('contract-hourly-rate-company').value) || 0;
-                paymentRate = parseFloat(document.getElementById('contract-payment-rate').value) || S().defaultPaymentRate;
+                paymentRate = parseFloat(document.getElementById('contract-payment-rate').value) || SVC().defaultPaymentRate;
             } else {
                 hourlyRate = parseFloat(document.getElementById('contract-hourly-rate').value) || 0;
                 paymentRate = hourlyRate;
@@ -2790,7 +2860,7 @@
                 document.getElementById('contract-payment-rate-group').style.display = 'none';
             } else {
                 document.getElementById('contract-hourly-rate-company').value = contract.hourlyRate;
-                document.getElementById('contract-payment-rate').value = contract.paymentRate || S().defaultPaymentRate;
+                document.getElementById('contract-payment-rate').value = contract.paymentRate || SVC().defaultPaymentRate;
                 document.getElementById('contract-rate-group').style.display = 'none';
                 document.getElementById('contract-rate-fixed').style.display = 'block';
                 document.getElementById('contract-payment-rate-group').style.display = 'block';
@@ -2972,7 +3042,7 @@
             document.getElementById('booking-info-display').style.display = 'block';
 
             document.getElementById('booking-essential-oil-group').style.display =
-                S().useOil ? 'block' : 'none';
+                SVC().useOil ? 'block' : 'none';
         }
 
         function closeBookingModal() {
@@ -3014,7 +3084,7 @@
                 booking.staffId = document.getElementById('booking-staff').value || 'me';
             }
 
-            if (S().useOil) {
+            if (SVC().useOil) {
                 booking.useEssentialOil = document.getElementById('booking-essential-oil').checked;
             }
 
@@ -3062,7 +3132,7 @@
             document.getElementById('booking-notes').value = booking.serviceNotes || '';
             renderStaffOptions(booking.staffId);
 
-            if (S().useOil) {
+            if (SVC().useOil) {
                 document.getElementById('booking-essential-oil-group').style.display = 'block';
                 document.getElementById('booking-essential-oil').checked = booking.useEssentialOil;
             } else {
@@ -3156,7 +3226,7 @@
                 const existingPayment = store.data.payments.find(p => p.bookingId === bookingId);
                 if (!existingPayment) {
                     const hourlyRate = contract.cooperationMethod === '公司派'
-                        ? (contract.paymentRate || S().defaultPaymentRate)
+                        ? (contract.paymentRate || SVC().defaultPaymentRate)
                         : contract.hourlyRate;
                     const amountDue = hourlyRate * booking.serviceHours;
                     store.addPayment({
@@ -3603,8 +3673,8 @@
 
                 let level = 'new';
                 if (daysDiff !== null) {
-                    if (daysDiff >= (S().trackRed || 90)) level = 'red';
-                    else if (daysDiff >= (S().trackYellow || 60)) level = 'yellow';
+                    if (daysDiff >= (SVC().trackRed || 90)) level = 'red';
+                    else if (daysDiff >= (SVC().trackYellow || 60)) level = 'yellow';
                     else level = 'green';
                 }
 
