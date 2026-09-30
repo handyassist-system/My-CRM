@@ -27,8 +27,8 @@
 
         /* ── 智在生活共用命名（四個 App 都用這組名字，值各自不同）── */
         :root{
-            --primary:#3498db;
-            --primary-d:#2980b9;
+            --primary:#4A7A9B;
+            --primary-d:#3A6A88;
             --danger:#e74c3c;
             --ink:#2E2E33;
             --sub:#7f8c8d;
@@ -47,10 +47,10 @@
         input, select, textarea { font-size: 16px; }
         /* 更新橫幅（智在生活 Standard） */
         .update-bar{display:none;position:fixed;left:0;right:0;top:0;z-index:9997;max-width:520px;margin:0 auto;
-          background:#3498db;color:#fff;align-items:center;gap:12px;
+          background:#4A7A9B;color:#fff;align-items:center;gap:12px;
           padding:calc(10px + env(safe-area-inset-top)) 16px 10px;box-shadow:0 2px 12px rgba(0,0,0,.15)}
         .update-bar span{flex:1;font-size:14px;font-weight:600}
-        .update-bar button{background:#fff;color:#3498db;font-weight:700;font-size:13px;
+        .update-bar button{background:#fff;color:#4A7A9B;font-weight:700;font-size:13px;
           padding:8px 16px;border-radius:10px;border:none}
 
         .container {
@@ -143,7 +143,7 @@
         .setpg-back {
             background: none;
             border: none;
-            color: #3498db;
+            color: #4A7A9B;
             font-family: inherit;
             font-size: 15px;
             padding: 4px 6px 4px 0;
@@ -175,7 +175,7 @@
 
         .nav-tabs button.active {
             color: #2c3e50;
-            border-bottom-color: #3498db;
+            border-bottom-color: #4A7A9B;
             background-color: white;
         }
 
@@ -259,12 +259,12 @@
         }
 
         button.btn-primary {
-            background-color: #3498db;
+            background-color: #4A7A9B;
             color: white;
         }
 
         button.btn-primary:hover {
-            background-color: #2980b9;
+            background-color: #3A6A88;
         }
 
         button.btn-success {
@@ -438,7 +438,7 @@
             padding: 12px;
             border-radius: 10px;
             margin-bottom: 15px;
-            border-left: 4px solid #3498db;
+            border-left: 4px solid #4A7A9B;
         }
 
         .info-box p {
@@ -554,7 +554,51 @@
 .subs-row2 .v{flex:1;}
 .subs-mini{border:1px solid #dfe3e8;background:#fff;color:#5a6a78;border-radius:8px;padding:6px 12px;font-size:12px;font-family:inherit;min-height:34px;cursor:pointer;}
 
-    </style>
+    
+/* ===== 設定頁統一樣式（與生活管家一致）=====
+   分組不放文字標題，按鈕上的字就是說明；卡片之間用間距分區。 */
+.set-grouphead{ display:none !important; }
+#set-menu{
+  background:#fff !important; border:1px solid #E3DED4 !important;
+  border-radius:18px !important; padding:15px !important; overflow:visible !important;
+  box-shadow:0 2px 10px rgba(46,46,51,.06) !important; margin-bottom:14px !important;
+}
+.set-row{
+  width:100% !important; display:flex !important; align-items:center !important; gap:10px !important;
+  padding:12px !important; border-radius:12px !important;
+  border:1px solid #E7E2DA !important; border-bottom:1px solid #E7E2DA !important;
+  background:#FBF8F3 !important; color:#2E2E33 !important;
+  font-size:14px !important; font-weight:600 !important; font-family:inherit !important;
+  text-align:left !important; min-height:48px !important; cursor:pointer;
+  margin-bottom:8px !important;
+}
+.set-row:last-child{ margin-bottom:0 !important; }
+.set-row:active{ background:#F1ECE3 !important; }
+.set-gap{ height:10px !important; margin:0 !important; background:none !important; border:none !important; }
+.set-arrow{ margin-left:auto !important; color:#B9B3A8 !important; }
+
+.set-acc{background:#fff;border:1px solid #E3DED4;border-radius:18px;padding:16px;margin-bottom:14px;box-shadow:0 2px 10px rgba(46,46,51,.06);}
+.set-acc .em{font-size:14.5px;font-weight:700;color:#2E2E33;word-break:break-all;}
+.set-acc .pl{font-size:13px;color:#4A7A9B;font-weight:600;margin-top:4px;}
+.set-acc .ex{font-size:12px;color:#8A928C;margin-top:2px;}
+
+/* 輸入框聚焦提示 —— 原本沒有，點下去看不出游標在哪一格 */
+input:focus, textarea:focus, select:focus{
+  outline:none; border-color:#4A7A9B !important;
+  box-shadow:0 0 0 3px rgba(74,122,155,.14) !important;
+}
+
+/* ===== 底部導覽（與其他三個 App 一致）===== */
+#crmNav{position:fixed;left:0;right:0;bottom:0;z-index:40;max-width:520px;margin:0 auto;
+  display:flex;background:#fff;border-top:1px solid #E7E2DA;
+  padding-bottom:env(safe-area-inset-bottom,0px);box-shadow:0 -2px 10px rgba(46,46,51,.05);}
+#crmNav .nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:3px;background:none;border:none;padding:8px 2px 7px;font-family:inherit;font-size:11.5px;
+  color:#8A928C;cursor:pointer;min-height:56px;-webkit-tap-highlight-color:transparent;}
+#crmNav .nav-btn .ic{font-size:19px;line-height:1;}
+#crmNav .nav-btn.active{color:#4A7A9B;font-weight:700;}
+.content{padding-bottom:78px !important;}
+</style>
 </head>
 <body>
 <div id="previewBar" style="display:none;position:fixed;top:0;left:0;right:0;z-index:99999;background:#e67e22;color:#fff;padding:9px 12px;align-items:center;gap:10px;font-size:13px;box-shadow:0 2px 8px rgba(0,0,0,.2);">
@@ -569,45 +613,43 @@
                style="background:rgba(255,255,255,0.15); color:white; padding:8px 14px; border-radius:8px; text-decoration:none; font-size:13px; font-weight:bold; white-space:nowrap; display:inline-flex; align-items:center; gap:6px;">
                 📅 行事曆
             </a>
+                <button type="button" id="crmSetBtn" title="設定" style="background:rgba(255,255,255,.15);color:#fff;border:none;border-radius:8px;padding:8px 12px;font-size:18px;line-height:1;cursor:pointer;">⚙️</button>
         </div>
 
         <!-- 頂部服務切換列 -->
         <div id="service-switch-bar" style="display:none; background:#34495e; padding:8px 12px; gap:8px; overflow-x:auto; white-space:nowrap; -webkit-overflow-scrolling:touch;"></div>
 
-        <div class="nav-tabs">
-            <button class="nav-btn active" data-tab="clients">客戶管理</button>
-            <button class="nav-btn" data-tab="contracts">合約管理</button>
-            <button class="nav-btn" data-tab="bookings">預約管理</button>
-            <button class="nav-btn" data-tab="payments">收款管理</button>
-            <button class="nav-btn" data-tab="dashboard">報表統計</button>
-            <button class="nav-btn" data-tab="tracking">客戶追蹤</button>
-            <button class="nav-btn" data-tab="step1">⚙️ 設定</button>
-        </div>
+        
 
         <div class="content">
             <!-- 系統設定 -->
             <div id="step1" class="tab-pane">
                 <div id="set-menu">
                     <h2 style="margin-bottom:14px;">⚙️ 設定</h2>
-                    <button type="button" class="set-row" onclick="openSetPage('basic')"><span class="set-ico">🏠</span><span class="set-name">基本資料</span><span class="set-val" id="sv-basic"></span><span class="set-arrow">›</span></button>
-                    <button type="button" class="set-row" onclick="openSetPage('service')"><span class="set-ico">🧰</span><span class="set-name">我的服務</span><span class="set-val" id="sv-service"></span><span class="set-arrow">›</span></button>
-                    <button type="button" class="set-row" onclick="openSetPage('partner')"><span class="set-ico">👥</span><span class="set-name">我的夥伴</span><span class="set-val" id="sv-partner"></span><span class="set-arrow">›</span></button>
-                    <button type="button" class="set-row" onclick="openSetPage('svcset')"><span class="set-ico">🛠️</span><span class="set-name">服務與收費</span><span class="set-val" id="sv-svcset"></span><span class="set-arrow">›</span></button>
+                    <div class="set-acc" id="crmAccCard"><div class="em" id="acc-em">—</div><div class="pl" id="acc-pl">—</div><div class="ex" id="acc-ex"></div></div>
+                    <button type="button" class="set-row" id="set-upgrade" onclick="openCrmUpgrade()"><span class="set-ico">⭐</span><span class="set-name">升級完整版</span><span class="set-val" id="sv-plan"></span><span class="set-arrow">›</span></button>
+                    <div class="set-gap"></div>
+                    <button type="button" class="set-row" onclick="openSetPage('basic')"><span class="set-ico">🏠</span><span class="set-name">店家資料</span><span class="set-val" id="sv-basic"></span><span class="set-arrow">›</span></button>
+                    <button type="button" class="set-row" onclick="openSetPage('service')"><span class="set-ico">🧰</span><span class="set-name">服務項目</span><span class="set-val" id="sv-service"></span><span class="set-arrow">›</span></button>
+                    <button type="button" class="set-row" onclick="openSetPage('partner')"><span class="set-ico">👥</span><span class="set-name">代班人員</span><span class="set-val" id="sv-partner"></span><span class="set-arrow">›</span></button>
+                    <button type="button" class="set-row" onclick="openSetPage('svcset')"><span class="set-ico">🛠️</span><span class="set-name">收費與規則</span><span class="set-val" id="sv-svcset"></span><span class="set-arrow">›</span></button>
                     <div class="set-gap"></div>
                     <button type="button" class="set-row" onclick="openSetPage('backup')"><span class="set-ico">📦</span><span class="set-name">資料備份</span><span class="set-val" id="sv-backup"></span><span class="set-arrow">›</span></button>
-                    <button type="button" class="set-row" onclick="openSetPage('app')"><span class="set-ico">📱</span><span class="set-name">應用程式</span><span class="set-val" id="sv-app"></span><span class="set-arrow">›</span></button>
+                    <button type="button" class="set-row" onclick="document.getElementById('crmInstallBtn').click()"><span class="set-ico">📲</span><span class="set-name">安裝到手機桌面</span><span class="set-val" id="sv-app"></span><span class="set-arrow">›</span></button>
+                    <button type="button" class="set-row" onclick="document.getElementById('crmShareBtn').click()"><span class="set-ico">🔗</span><span class="set-name">分享這個 App</span><span class="set-val"></span><span class="set-arrow">›</span></button>
                     <div class="set-gap"></div>
-                    <button type="button" class="set-row" id="set-upgrade" onclick="openCrmUpgrade()"><span class="set-ico">⭐</span><span class="set-name">升級完整版</span><span class="set-val" id="sv-plan"></span><span class="set-arrow">›</span></button>
-                    <button type="button" class="set-row" onclick="openSetPage('account')"><span class="set-ico">👤</span><span class="set-name">帳號</span><span class="set-val" id="sv-account"></span><span class="set-arrow">›</span></button>
-                    <button type="button" class="set-row" onclick="openSetPage('support')"><span class="set-ico">💬</span><span class="set-name">支援與條款</span><span class="set-val" id="sv-support"></span><span class="set-arrow">›</span></button>
+                    <button type="button" class="set-row" onclick="openSetPage('support')"><span class="set-ico">💬</span><span class="set-name">聯繫客服</span><span class="set-val" id="sv-support"></span><span class="set-arrow">›</span></button>
+                    <button type="button" class="set-row" onclick="legalDocs.open('terms')"><span class="set-ico">📄</span><span class="set-name">服務條款與隱私政策</span><span class="set-val"></span><span class="set-arrow">›</span></button>
                     <div class="set-gap" id="set-admin-gap" style="display:none;"></div>
-                    <button type="button" class="set-row" id="set-admin-subs" style="display:none;" onclick="subsAdmin.open()"><span class="set-ico">🔑</span><span class="set-name">訂閱管理</span><span class="set-val">管理員</span><span class="set-arrow">›</span></button>
-                    <button type="button" class="set-row" id="set-admin-preview" style="display:none;" onclick="startPreview()"><span class="set-ico">🔧</span><span class="set-name">預覽新使用者畫面</span><span class="set-val">管理員</span><span class="set-arrow">›</span></button>
+                    <button type="button" class="set-row" id="set-admin-subs" style="display:none;" onclick="subsAdmin.open()"><span class="set-ico">🔑</span><span class="set-name">訂閱管理</span><span class="set-val"></span><span class="set-arrow">›</span></button>
+                    <button type="button" class="set-row" id="set-admin-preview" style="display:none;" onclick="previewMode.open()"><span class="set-ico">🧪</span><span class="set-name">預覽使用者畫面</span><span class="set-val"></span><span class="set-arrow">›</span></button>
+                    <div class="set-gap"></div>
+                    <button type="button" class="set-row" onclick="crmLogout()"><span class="set-ico">🚪</span><span class="set-name">登出</span><span class="set-val"></span><span class="set-arrow">›</span></button>
                     <p style="text-align:center;color:#95a5a6;font-size:12px;margin-top:22px;">客戶管理系統 <span id="crmVerTagFoot">v1.0</span></p>
                 </div>
 
                 <div class="setpg" id="setpg-basic">
-                    <div class="setpg-head"><button type="button" class="setpg-back" onclick="closeSetPage()">‹ 返回</button><span class="setpg-title">基本資料</span></div>
+                    <div class="setpg-head"><button type="button" class="setpg-back" onclick="closeSetPage()">‹ 返回</button><span class="setpg-title">店家資料</span></div>
 <!-- 你的稱呼 -->
                 <div class="form-group">
                     <label for="provider-name-input">你的店名或稱呼</label>
@@ -620,7 +662,7 @@
                 </div>
 
                 <div class="setpg" id="setpg-service">
-                    <div class="setpg-head"><button type="button" class="setpg-back" onclick="closeSetPage()">‹ 返回</button><span class="setpg-title">我的服務</span></div>
+                    <div class="setpg-head"><button type="button" class="setpg-back" onclick="closeSetPage()">‹ 返回</button><span class="setpg-title">服務項目</span></div>
 <!-- 服務項目 -->
                 <div class="form-group">
                     <label id="service-section-label" style="display:none;">我的服務</label>
@@ -628,7 +670,7 @@
                     <div id="service-types-list" style="margin-top:8px;"></div>
 
                     <button type="button" id="add-service-toggle"
-                        style="margin-top:10px;background:none;border:none;color:#3498db;font-size:13.5px;padding:4px 0;cursor:pointer;">＋ 我還有第二種服務</button>
+                        style="margin-top:10px;background:none;border:none;color:#4A7A9B;font-size:13.5px;padding:4px 0;cursor:pointer;">＋ 我還有第二種服務</button>
 
                     <div id="add-service-box" style="display:none;margin-top:10px;padding:12px;background:#f8f9fa;border-radius:8px;">
                         <div class="form-group" style="margin-bottom:10px;">
@@ -652,13 +694,13 @@
                 </div>
 
                 <div class="setpg" id="setpg-partner">
-                    <div class="setpg-head"><button type="button" class="setpg-back" onclick="closeSetPage()">‹ 返回</button><span class="setpg-title">我的夥伴</span></div>
+                    <div class="setpg-head"><button type="button" class="setpg-back" onclick="closeSetPage()">‹ 返回</button><span class="setpg-title">代班人員</span></div>
 <!-- 我的夥伴 -->
                 <div class="form-group">
                     <label id="partner-section-label" style="display:none;">我的夥伴</label>
                     <div id="partners-list" style="margin-top:8px;"></div>
                     <button type="button" id="add-partner-toggle"
-                        style="margin-top:8px;background:none;border:none;color:#3498db;font-size:13.5px;padding:4px 0;cursor:pointer;">＋ 有時候會請人代班</button>
+                        style="margin-top:8px;background:none;border:none;color:#4A7A9B;font-size:13.5px;padding:4px 0;cursor:pointer;">＋ 有時候會請人代班</button>
                     <div id="add-partner-box" style="display:none;margin-top:10px;">
                         <input type="text" id="new-partner-input" placeholder="夥伴姓名" maxlength="20" style="width:100%;padding:8px 10px;border:1px solid #bdc3c7;border-radius:4px;box-sizing:border-box;">
                         <div style="display:flex;gap:8px;margin-top:8px;">
@@ -671,7 +713,7 @@
                 </div>
 
                 <div class="setpg" id="setpg-svcset">
-                    <div class="setpg-head"><button type="button" class="setpg-back" onclick="closeSetPage()">‹ 返回</button><span class="setpg-title">服務與收費</span></div>
+                    <div class="setpg-head"><button type="button" class="setpg-back" onclick="closeSetPage()">‹ 返回</button><span class="setpg-title">收費與規則</span></div>
                     <div id="svcset-scope" style="display:none;background:#eaf4fc;border-radius:8px;padding:10px 12px;margin-bottom:16px;font-size:13px;color:#2c3e50;line-height:1.6;">
                         以下設定只套用在「<strong id="svcset-scope-name"></strong>」<br>
                         <span style="color:#7f8c8d;font-size:12px;">要改別的服務，請先在上方切換</span>
@@ -1003,7 +1045,7 @@
                 </div>
 
                 <button type="button" id="contract-adv-toggle"
-                    style="background:none;border:none;color:#3498db;font-size:13.5px;padding:4px 0;margin-bottom:10px;cursor:pointer;">＋ 進階選項</button>
+                    style="background:none;border:none;color:#4A7A9B;font-size:13.5px;padding:4px 0;margin-bottom:10px;cursor:pointer;">＋ 進階選項</button>
 
                 <div id="contract-adv-box" style="display:none;padding:12px;background:#f8f9fa;border-radius:8px;margin-bottom:15px;">
                     <div class="form-group" style="margin-bottom:12px;">
@@ -1839,11 +1881,14 @@
                 if(!bar){
                     bar = document.createElement('div');
                     bar.id = 'crmRoBar';
-                    bar.style.cssText = 'position:sticky;top:0;z-index:900;background:#FDF3E3;border-bottom:1px solid #F0DFC0;'
-                        + 'padding:10px 14px;font-size:13px;color:#8A6112;display:flex;align-items:center;gap:10px;line-height:1.5';
+                    // body 有 10px padding，用負邊距讓橫幅貼齊左右；z-index 要高過更新列(9997)以外的東西
+                    bar.style.cssText = 'position:sticky;top:0;z-index:9990;background:#FDF3E3;border-bottom:1px solid #F0DFC0;'
+                        + 'margin:-10px -10px 10px;padding:10px 14px;font-size:13px;color:#8A6112;'
+                        + 'display:flex;align-items:center;gap:10px;line-height:1.5';
                     bar.innerHTML = '<span style="flex:1">🔒 唯讀中，升級完整版可繼續新增與編輯</span>'
-                        + '<a href="' + LINE_SUPPORT_URL + '" target="_blank" rel="noopener" '
-                        + 'style="flex:0 0 auto;background:#06C755;color:#fff;padding:7px 14px;border-radius:8px;text-decoration:none;font-weight:700;font-size:12.5px">升級</a>';
+                        + '<button type="button" onclick="openCrmUpgrade()" '
+                        + 'style="flex:0 0 auto;background:#4A7A9B;color:#fff;border:none;padding:7px 14px;'
+                        + 'border-radius:8px;font-family:inherit;font-weight:700;font-size:12.5px;cursor:pointer">看方案</button>';
                     document.body.insertBefore(bar, document.body.firstChild);
                 }
                 bar.style.display = 'flex';
@@ -1925,6 +1970,11 @@
             var res = await crmVerify(crmUserEmail);
             if(!res.ok){ document.getElementById('loading-overlay').style.display='none'; showCrmLogin(res.msg||'無法使用'); return; }
             crmPlan = res.plan; crmExpiry = res.expiry || ''; crmClientsCreated = Number(res.clientsCreated||0);
+            setTimeout(function(){
+              expiryNotice.check({ app:'crm', appName:'客戶管理', plan:crmPlan, expiry:crmExpiry,
+                isAdmin:crmIsAdmin, accent:'#4A7A9B',
+                onUpgrade:function(){ openCrmUpgrade(); } });
+            }, 900);
             await crmMigrateIfNeeded();
             await store.loadFromFirebase();
             // 舊帳號沒有計數 → 用現有客戶數補上，避免既有使用者一登入就被鎖
@@ -1994,49 +2044,12 @@
                 msg.textContent = '登入失敗，請確認 Email 與密碼';
             }
         }
-        function ensureUpgradeShell(){
-            if(document.getElementById('crmUpgrade')) return;
-            var d=document.createElement('div');
-            d.id='crmUpgrade';
-            d.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9990;display:none;align-items:flex-end;';
-            d.addEventListener('click', function(e){ if(e.target===d) closeCrmUpgrade(); });
-            var inner=document.createElement('div');
-            inner.id='crmUpgradeBody';
-            inner.style.cssText='background:#fff;width:100%;max-height:90vh;overflow-y:auto;border-radius:16px 16px 0 0;padding:20px 18px calc(24px + env(safe-area-inset-bottom));-webkit-overflow-scrolling:touch;';
-            d.appendChild(inner);
-            document.body.appendChild(d);
-        }
+        
         function openCrmUpgrade(){
-            ensureUpgradeShell();
-            var rows = [
-                ['客戶數', '5 位', '不限'],
-                ['合約管理', '\u2014', '\u2705'],
-                ['預約排程', '\u2014', '\u2705'],
-                ['收款紀錄', '\u2014', '\u2705'],
-                ['營運儀表板', '\u2014', '\u2705'],
-                ['服務追蹤', '\u2014', '\u2705'],
-                ['同帳號裝置數', '1 台', '3 台']
-            ];
-            var html = '<div style="font-size:18px;font-weight:700;color:#2c3e50;margin-bottom:4px">\u2b50 \u5347\u7d1a\u5b8c\u6574\u7248</div>'
-                + '<div style="font-size:13px;color:#7b8794;margin-bottom:16px">\u5ba2\u6236\u3001\u5408\u7d04\u3001\u9810\u7d04\u3001\u6536\u6b3e\uff0c\u4e00\u500b\u7cfb\u7d71\u7ba1\u5b8c</div>'
-                + '<div style="border:1px solid #e5e7eb;border-radius:12px;overflow:hidden">'
-                + '<div style="display:grid;grid-template-columns:1fr 70px 70px;background:#f3f6f8;padding:9px 12px;font-size:12px;font-weight:700;color:#5a6a78">'
-                  + '<span></span><span style="text-align:center">\u514d\u8cbb</span><span style="text-align:center">\u5b8c\u6574\u7248</span></div>';
-            rows.forEach(function(r){
-                html += '<div style="display:grid;grid-template-columns:1fr 70px 70px;padding:10px 12px;font-size:13.5px;color:#2c3e50;border-top:1px solid #f0f2f4">'
-                     + '<span>' + r[0] + '</span>'
-                     + '<span style="text-align:center;color:#9aa4ad">' + r[1] + '</span>'
-                     + '<span style="text-align:center">' + r[2] + '</span></div>';
-            });
-            html += '</div>';
-            html += payCardHtml({ app:'crm', email: crmUserEmail || '', price:6000, per:500, accent:'#4A7A9B', note:'\u65e9\u9ce5\u50f9' });
-            html += '<div style="text-align:center;color:#9aa4ad;font-size:12px;margin-top:8px">\u539f\u50f9 $7,200\uff0c\u524d 15 \u4f4d\u65e9\u9ce5\u50f9 $6,000\uff0c\u7e8c\u7d04\u540c\u50f9</div>';
-            html += '<button type="button" class="subs-ghost" onclick="closeCrmUpgrade()">\u95dc\u9589</button>';
-            document.getElementById('crmUpgradeBody').innerHTML = html;
-            document.getElementById('crmUpgrade').style.display = 'flex';
-            payCardBind();
+            upgradeSheet.setEmail(crmUserEmail || '');
+            upgradeSheet.open('');
         }
-        function closeCrmUpgrade(){ var el=document.getElementById('crmUpgrade'); if(el) el.style.display='none'; }
+        function closeCrmUpgrade(){ upgradeSheet.close(); }
         window.openCrmUpgrade = openCrmUpgrade;
         window.closeCrmUpgrade = closeCrmUpgrade;
 
@@ -2050,20 +2063,60 @@
         window.finishSetup = finishSetup;
 
         // ==================== UI 控制 ====================
+        // 報表、追蹤、設定沒有自己的導覽按鈕（收在「更多」和右上齒輪），
+        // 所以找不到按鈕時不能當掉，改成把「更多」標亮
+        var CRM_MORE_TABS = ['dashboard','tracking'];
         function setActiveTab(tabName) {
             if (tabName === 'step1') { try { closeSetPage(); } catch (e) {} }
             document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
             document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
 
-            document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
-            document.querySelector(`#${tabName}`).classList.add('active');
+            var btn = document.querySelector('[data-tab="' + tabName + '"]');
+            if (btn) btn.classList.add('active');
+            else if (CRM_MORE_TABS.indexOf(tabName) >= 0) {
+                var mb = document.getElementById('crmMoreBtn');
+                if (mb) mb.classList.add('active');
+            }
+            var pane = document.querySelector('#' + tabName);
+            if (pane) pane.classList.add('active');
         }
+
+        // 「更多」：報表統計與客戶追蹤
+        function crmOpenMore(){
+            var w = document.getElementById('crmMoreSheet');
+            if(!w){
+                w = document.createElement('div');
+                w.id = 'crmMoreSheet';
+                w.style.cssText = 'position:fixed;inset:0;background:rgba(18,22,20,.5);z-index:10020;display:flex;align-items:flex-end;';
+                w.innerHTML = '<div style="background:#fff;width:100%;border-radius:16px 16px 0 0;padding:18px 18px calc(20px + env(safe-area-inset-bottom));">'
+                    + '<div style="font-size:16px;font-weight:700;margin-bottom:14px;">更多</div>'
+                    + '<button type="button" class="set-row" data-go="dashboard"><span class="set-ico">\uD83D\uDCCA</span><span class="set-name">報表統計</span><span class="set-val"></span><span class="set-arrow">\u203a</span></button>'
+                    + '<button type="button" class="set-row" data-go="tracking"><span class="set-ico">\uD83D\uDD0D</span><span class="set-name">客戶追蹤</span><span class="set-val"></span><span class="set-arrow">\u203a</span></button>'
+                    + '<button type="button" class="subs-ghost" data-go="">關閉</button></div>';
+                document.body.appendChild(w);
+                w.addEventListener('click', function(e){
+                    if(e.target === w){ w.style.display='none'; return; }
+                    var t = e.target.closest('[data-go]');
+                    if(!t) return;
+                    w.style.display='none';
+                    var go = t.getAttribute('data-go');
+                    if(go) setActiveTab(go);
+                });
+            }
+            w.style.display = 'flex';
+        }
+        window.crmOpenMore = crmOpenMore;
 
         document.querySelectorAll('.nav-btn').forEach(btn => {
             btn.addEventListener('click', function() {
+                if (this.id === 'crmMoreBtn') { crmOpenMore(); return; }
                 setActiveTab(this.dataset.tab);
             });
         });
+        (function(){
+            var sb = document.getElementById('crmSetBtn');
+            if (sb) sb.addEventListener('click', function(){ setActiveTab('step1'); });
+        })();
 
         // ==================== 系統設定 ====================
         function initStep1() {
@@ -2404,6 +2457,12 @@
             const isAdmin = (isCrmAdminEmail(crmUserEmail)) && !PREVIEW;
             const ar = document.getElementById('set-admin-preview');
             const ag = document.getElementById('set-admin-gap');
+            var _em=document.getElementById('acc-em');
+            if(_em) _em.textContent = crmUserEmail || '—';
+            var _pl=document.getElementById('acc-pl');
+            if(_pl) _pl.textContent = crmIsAdmin ? '管理員' : (CRM_PLAN_LABEL[crmPlan] || '免費版');
+            var _ex=document.getElementById('acc-ex');
+            if(_ex) _ex.textContent = (!crmIsAdmin && crmExpiry) ? ('到期日：' + crmExpiry) : '';
             var svp = document.getElementById('sv-plan');
             if (svp) svp.textContent = crmIsAdmin ? '管理員' : (CRM_PLAN_LABEL[crmPlan] || '免費版');
             var upRow = document.getElementById('set-upgrade');
@@ -4069,7 +4128,7 @@
 
             let bookingsHtml = '<p style="color:#95a5a6;font-size:13px;">尚無預約紀錄</p>';
             if (allBookings.length > 0) {
-                const statusColor = { '完成': '#27ae60', '未開始': '#7f8c8d', '進行中': '#3498db' };
+                const statusColor = { '完成': '#27ae60', '未開始': '#7f8c8d', '進行中': '#4A7A9B' };
                 bookingsHtml = allBookings.map(b => `
                     <div style="padding:10px 0;border-bottom:1px solid #ecf0f1;">
                         <div style="display:flex;justify-content:space-between;align-items:center;">
@@ -4282,16 +4341,8 @@
         }
 
         function showConfirm(msg, onOk, okText) {
-            const overlay = document.getElementById('confirm-overlay');
-            document.getElementById('confirm-message').textContent = msg;
-            overlay.style.display = 'flex';
-            const ok = document.getElementById('confirm-ok');
-            const cancel = document.getElementById('confirm-cancel');
-            const _label = ok.textContent;
-            if (okText) ok.textContent = okText;
-            const cleanup = () => { overlay.style.display = 'none'; ok.textContent = _label; ok.onclick = null; cancel.onclick = null; };
-            ok.onclick = () => { cleanup(); if (onOk) onOk(); };
-            cancel.onclick = () => { cleanup(); };
+            return confirmDialog({ message: msg, okText: okText || '確定', accent: '#4A7A9B' })
+              .then(function(ok){ if (ok && typeof onOk === 'function') onOk(); return ok; });
         }
 
         function updateAllTabs() {
@@ -4456,8 +4507,8 @@
         // crmToast 保留舊名字供既有呼叫使用，實際走同一個 showToast
         function crmToast(msg){ showToast(msg, 1800); }
         function appHandleBack(){
-            var cf = document.getElementById('confirm-overlay');
-            if (cf && cf.style.display === 'flex') { cf.style.display = 'none'; return true; }   // 確認視窗
+            var cf = document.getElementById('cfWrap');
+            if (cf && cf.classList.contains('on')) { document.getElementById('cfNo').click(); return true; }   // 確認視窗
             var open = document.querySelectorAll('.modal.show');
             if (open.length) { open[open.length - 1].classList.remove('show'); return true; }    // 彈窗
             if (PREVIEW) { endPreview(); return true; }                                        // 預覽中 → 先結束預覽
@@ -4540,7 +4591,7 @@
    ==================================================================== */
 (function(){
   var SUBS_APPS = [
-    { id:'cal',  icon:'📅', name:'行事曆',   path:'subscribers/' },
+    { id:'cal',  icon:'📅', name:'生活管家', path:'subscribers/' },
     { id:'cook', icon:'🍳', name:'食在料理', path:'jiachangzhu_subscribers/' },
     { id:'trv',  icon:'✈️', name:'旅遊計畫', path:'travel_subscribers/' },
     { id:'crm',  icon:'👥', name:'客戶管理', path:'crm_subscribers/' }
@@ -4696,13 +4747,16 @@
   }
 
   /* ---------- 新增 ---------- */
+  /* 開通只有一種情境：有人付錢了。
+     試用是 App 自己開的、免費版是試用到期自動轉的，都不需要手動建立，
+     所以這裡不給方案選項，一律開完整版。 */
   function openAdd(){
-    S.addPlan='full'; S.addMonths=12; S.addApp = (S.tab!=='all'&&S.tab!=='soon') ? S.tab : 'crm';
+    S.addMonths=12; S.addApp = (S.tab!=='all'&&S.tab!=='soon') ? S.tab : 'crm';
     sheet(addHtml());
     wireAdd();
   }
   function addHtml(){
-    return '<div class="subs-sh-title">新增客戶</div>'+
+    return '<div class="subs-sh-title">開通完整版</div>'+
       '<div class="subs-sh-sub">有人付款後用這個開通</div>'+
       '<div class="subs-label">哪個 App</div>'+
       '<div class="subs-chips" id="ax">'+SUBS_APPS.map(function(a){
@@ -4710,20 +4764,13 @@
       }).join('')+'</div>'+
       '<div class="subs-label">客戶 Email</div>'+
       '<input type="email" class="subs-input" id="aEmail" placeholder="linda@gmail.com" autocomplete="off" inputmode="email">'+
-      '<div class="subs-label">方案</div>'+
-      '<div class="subs-chips" id="ap">'+
-        '<button type="button" class="subs-chip on" data-v="full">完整版</button>'+
-        '<button type="button" class="subs-chip" data-v="trial">試用</button>'+
-        '<button type="button" class="subs-chip" data-v="free">免費版</button>'+
-      '</div>'+
       '<div class="subs-label">期間</div>'+
       '<div class="subs-chips" id="am">'+
         '<button type="button" class="subs-chip on" data-v="12">一年</button>'+
         '<button type="button" class="subs-chip" data-v="24">兩年</button>'+
-        '<button type="button" class="subs-chip" data-v="1">一個月</button>'+
       '</div>'+
       '<div class="subs-calc" id="aCalc"></div>'+
-      '<button type="button" class="subs-primary" id="aGo">確定新增</button>'+
+      '<button type="button" class="subs-primary" id="aGo">確定開通</button>'+
       '<button type="button" class="subs-ghost" onclick="subsAdmin.closeSheet()">取消</button>';
   }
   function wireAdd(){
@@ -4738,7 +4785,6 @@
       });
     }
     chips('ax', function(v){ S.addApp=v; });
-    chips('ap', function(v){ S.addPlan=v; });
     chips('am', function(v){ S.addMonths=Number(v); });
     if(em) em.addEventListener('input', calc);
     calc();
@@ -4747,10 +4793,8 @@
     function calc(){
       var c=document.getElementById('aCalc'); if(!c) return;
       var v=(em&&em.value||'').trim().toLowerCase();
-      var mp=document.getElementById('am');
-      if(mp) mp.style.display = (S.addPlan==='free') ? 'none' : 'flex';
-      var expTxt = (S.addPlan==='free') ? '不到期' : slash(ymd(addMonths(Date.now(), S.addMonths)));
-      c.innerHTML = '資料位置　<b>'+(v?esc(eKey(v)):'—')+'</b><br>到期日　　<b>'+expTxt+'</b>';
+      c.innerHTML = '資料位置　<b>'+(v?esc(eKey(v)):'—')+'</b><br>到期日　　<b>'+
+                    slash(ymd(addMonths(Date.now(), S.addMonths)))+'</b>';
     }
   }
   async function doAdd(){
@@ -4759,25 +4803,26 @@
     if(!isMail(v)){ toast('Email 格式不對，請檢查'); if(em) em.focus(); return; }
     var app=SUBS_APPS.filter(function(a){ return a.id===S.addApp; })[0];
     var key=eKey(v), now=Date.now();
-    var free = S.addPlan==='free';
-    var rec={ email:v, plan:S.addPlan, expiry: free?'':ymd(addMonths(now,S.addMonths)),
-              status:'active', deviceLimit:devLimit(S.addPlan), createdAt:now, lastSeen:now };
+    var exp=ymd(addMonths(now, S.addMonths));
     btn.disabled=true; btn.textContent='處理中…';
     try{
       var ref=firebase.database().ref(app.path+key);
       var snap=await ref.once('value');
-      if(snap.val()){ // 已存在 → 只改方案與到期，不動 devices / clientsCreated
-        await ref.update({ plan:rec.plan, expiry:rec.expiry, status:'active', deviceLimit:rec.deviceLimit });
-        toast('已更新　'+app.name+'　'+(PLAN_TXT[S.addPlan]||S.addPlan));
+      if(snap.val()){
+        // 已經有帳號（多半是試用中的人付錢了）→ 只升級方案與到期日，
+        // 不動 devices / clientsCreated，他既有的資料與裝置都保留
+        await ref.update({ plan:'full', expiry:exp, status:'active', deviceLimit:devLimit('full') });
+        toast('已升級　'+app.name+'　完整版　至 '+slash(exp));
       } else {
-        rec.devices={}; if(app.id==='crm') rec.clientsCreated=0;
+        var rec = { email:v, plan:'full', expiry:exp, status:'active',
+                    deviceLimit:devLimit('full'), createdAt:now, lastSeen:now, devices:{} };
+        if(app.id === 'crm') rec.clientsCreated = 0;   // CRM 的記錄有這個欄位，缺了會跟 App 自建的格式不一致
         await ref.set(rec);
-        toast('已新增　'+app.name+'　'+(PLAN_TXT[S.addPlan]||S.addPlan));
+        toast('已開通　'+app.name+'　完整版　至 '+slash(exp));
       }
       closeSheet(); await load();
-    }catch(e){ toast(fail('新增', e)); btn.disabled=false; btn.textContent='確定新增'; }
+    }catch(e){ toast(fail('開通', e)); btn.disabled=false; btn.textContent='確定開通'; }
   }
-
   /* ---------- 管理單一客戶 ---------- */
   function openManage(key, appId){
     S.sel=key; S.selApp=appId;
@@ -4799,18 +4844,17 @@
       return;
     }
     var used=Object.keys(sub.devices||{}).length;
+    var isPaid = (st.rawPlan==='full'||st.rawPlan==='basic'||st.rawPlan==='family');
     sheet(
       '<div class="subs-sh-title">'+esc(email)+'</div>'+
       '<div class="subs-sh-sub">'+app.icon+' '+app.name+'　'+
         (st.expiry ? (PLAN_TXT[st.rawPlan]||st.rawPlan)+' · '+slash(st.expiry) : (PLAN_TXT[st.rawPlan]||st.rawPlan))+
         '</div>'+
       '<button type="button" class="subs-primary" id="mRenew">續約一年</button>'+
-      '<div class="subs-label">改方案</div>'+
-      '<div class="subs-chips" id="mp">'+
-        ['full','trial','free'].map(function(p){
-          return '<button type="button" class="subs-chip'+(st.rawPlan===p?' on':'')+'" data-v="'+p+'">'+PLAN_TXT[p]+'</button>';
-        }).join('')+
-      '</div>'+
+      (isPaid ? '<div class="subs-label">取消付費</div>'+
+        '<div class="subs-chips" id="mp">'+
+          '<button type="button" class="subs-chip" data-v="free">改為免費版</button>'+
+        '</div>' : '')+
       '<div class="subs-label">延長</div>'+
       '<div class="subs-chips" id="me">'+
         '<button type="button" class="subs-chip" data-v="1">＋1 月</button>'+
@@ -4835,8 +4879,13 @@
         else extend(path, Number(v));
       };
     });
-    document.getElementById('mp').querySelectorAll('.subs-chip').forEach(function(b){
-      b.onclick=function(){ changePlan(path, b.getAttribute('data-v')); };
+    var mpBox=document.getElementById('mp');
+    if(mpBox) mpBox.querySelectorAll('.subs-chip').forEach(function(b){
+      b.onclick=function(){
+        confirmBox('把這位客戶改回免費版？\n付費功能會立刻鎖住，資料保留。', function(){
+          changePlan(path, 'free');
+        });
+      };
     });
     document.getElementById('mDev').onclick=function(){
       confirmBox('清除這位客戶的裝置紀錄？\n他需要重新登入。', async function(){
@@ -5019,177 +5068,169 @@
 <script>window.LEGAL_APP='crm';</script>
 <script>
 /* ==================== 法律文件（四個 App 共用）====================
-   三份文件：服務條款、隱私權政策、付款與退款說明。
+   三份：服務條款、隱私權政策、付款與退款說明。
    客戶管理另加第四份：客戶資料處理說明。
-   只要改 LEGAL_CFG 一個物件，其餘文字自動帶入。
+   範圍限於：客戶資料隱私、智慧財產權保護、使用規範、付款退款。
    ==================================================================== */
 (function(){
-  var APP = (window.LEGAL_APP || 'cal');           // cal / cook / trv / crm
+  var APP = (window.LEGAL_APP || 'cal');
   var UPDATED = '2026/09/30';
   var MAIL = 'beyunself@hotmail.com';
   var LINE_NAME = '智在生活';
-  var LINE_URL = 'https://line.me/R/ti/p/@373pfdee';
 
   var CFG = {
-    cal:  { name:'生活管家', trial:21, price:'999',
-            what:'行程、待辦、記事、目標追蹤、採購清單與庫存管理' },
-    cook: { name:'食在料理', trial:14, price:'999',
-            what:'食譜查詢、依食材找菜、今日料理規劃、烹調步驟、採購清單與食材庫存' },
-    trv:  { name:'旅遊計畫', trial:14, price:'999',
-            what:'逐日行程安排、交通段銜接、花費彙總與匯率換算、行前準備清單與列印匯出' },
-    crm:  { name:'客戶管理', trial:30, price:'7,200',
-            what:'客戶管理、合約、預約、收款紀錄、營運儀表板與服務追蹤' }
+    cal:  { name:'生活管家', trial:'二十一', price:'999' },
+    cook: { name:'食在料理', trial:'十四',   price:'999' },
+    trv:  { name:'旅遊計畫', trial:'十四',   price:'999' },
+    crm:  { name:'客戶管理', trial:'三十',   price:'7,200' }
   };
   var C = CFG[APP] || CFG.cal;
+  var PRICE_TXT = { cal:'新臺幣 999 元／年', cook:'新臺幣 999 元／年', trv:'新臺幣 999 元／年',
+                    crm:'新臺幣 7,200 元／年（前十五名早鳥價 6,000 元，續約維持同價）' };
+  C.priceTxt = PRICE_TXT[APP] || PRICE_TXT.cal;
 
-  function h(title, body){ return { t:title, b:body }; }
+  var CN = ['','一','二','三','四','五','六','七','八','九','十'];
+  function sec(n, t, body){ return '<h4><span class="lg-n">'+CN[n]+'、</span>'+t+'</h4>'+body; }
   function p(){ return Array.prototype.slice.call(arguments)
     .map(function(s){ return '<p>'+s+'</p>'; }).join(''); }
-  function sec(n, t, body){ return '<h4>'+n+'. '+t+'</h4>'+body; }
+  function ol(){ return '<ol class="lg-ol">' + Array.prototype.slice.call(arguments)
+    .map(function(s){ return '<li>'+s+'</li>'; }).join('') + '</ol>'; }
+  function h(t,b){ return { t:t, b:b }; }
 
-  var CONTACT = p('Email：'+MAIL, '官方 LINE：'+LINE_NAME);
+  var CONTACT = p('電子郵件：'+MAIL, '官方 LINE：'+LINE_NAME);
 
+  /* ---------- 服務條款 ---------- */
   var TERMS =
-    sec(1,'我們提供什麼', p(
-      '智在生活提供以下網頁應用程式：生活管家、食在料理、旅遊計畫、客戶管理。各產品獨立計費，可單獨或組合使用。',
-      '你現在使用的是「'+C.name+'」，提供'+C.what+'功能。',
-      '這些是持續開發中的產品，功能會隨版本調整與增加。')) +
-    sec(2,'你的帳號', p(
-      '用 Email 收登入連結即可使用，不需要設密碼。請保管好你的信箱 —— 能收到信的人就能登入你的帳號。',
-      '付費後同一個帳號最多 3 台裝置，免費版 1 台。共用裝置請記得登出。',
-      '未滿 18 歲請由家長或監護人同意後使用。')) +
-    sec(3,'怎麼使用都可以，除了這幾件事', p(
-      '你可以自由使用所有功能，把資料用在任何你需要的地方。請不要：') +
-      '<ul><li>複製或散布本服務的程式碼</li><li>用程式大量擷取服務內的資料</li>' +
-      '<li>反向工程、拆解或破解</li><li>轉售、出租或分享帳號給他人營利</li>' +
-      '<li>未經同意重製或公開發布服務內容</li></ul>' +
-      p('正常使用不會踩到這些線。')) +
-    sec(4,'誰擁有什麼', p(
-      '你的資料是你的。你隨時可以匯出或要求刪除。',
-      '本服務的程式碼、介面設計、文字、圖片、資料結構與「智在生活」品牌名稱，屬於我們所有。')) +
-    sec(5,'服務可能會變', p(
-      '我們會因維護或升級暫停服務，會盡量事先告知。',
-      '如果要停止營運，我們會提前至少 30 天公告，並提供資料匯出方式。',
-      '建議你定期用「匯出備份」自己留一份。')) +
-    sec(6,'我們的責任範圍', p(
-      '我們盡力讓服務穩定，但無法保證完全不出錯。',
-      '若造成損失，賠償以你當年度已付的費用為上限；但如果是我們故意或重大疏失造成的，不在此限。')) +
-    sec(7,'條款有變動', p(
-      '修改會在服務內公告。公告後你繼續使用，視為同意。')) +
-    sec(8,'聯絡我們', CONTACT);
+    sec(1,'契約之成立與變更', ol(
+      '本條款為使用者與「智在生活」（下稱本服務）間之契約。使用者開始使用本服務，即視為已閱讀並同意本條款全部內容。',
+      '本條款如有修訂，將於本服務內公告；公告後使用者繼續使用者，視為同意修訂後之條款。')) +
+    sec(2,'帳號', ol(
+      '本服務以電子郵件驗證連結辨識使用者身分，不另設密碼。使用者應妥善保管其電子郵件帳號；凡經由該帳號所為之操作，均推定為使用者本人所為。',
+      '完整版之同一帳號至多得於三台裝置登入，免費版為一台。',
+      '使用者於共用裝置使用後應即登出，以避免第三人存取其資料。',
+      '未滿十八歲者，應經法定代理人同意後始得使用本服務。')) +
+    sec(3,'智慧財產權', ol(
+      '本服務之程式碼、使用者介面、視覺設計、文字、圖像、資料結構，及「智在生活」名稱與標識，其著作權及其他智慧財產權均屬本服務所有。未經事前書面同意，不得以任何方式使用。',
+      '使用者自行輸入之內容，其權利歸屬使用者。使用者得隨時匯出，或請求刪除。')) +
+    sec(4,'使用限制',
+      p('使用者不得為下列行為：') +
+      ol('重製、散布、公開傳輸或改作本服務之程式碼或介面設計。',
+         '以自動化程式、網路爬蟲或其他方式大量擷取本服務之資料。',
+         '進行還原工程、反組譯、反編譯，或以其他方式試圖取得原始碼。',
+         '轉售、出租、出借帳號，或以營利為目的提供第三人使用。',
+         '以其他方式侵害本服務之智慧財產權，或妨礙本服務正常運作。') +
+      p('使用者違反前項規定者，本服務得逕行停止其帳號之使用，並保留法律追訴權。')) +
+    sec(5,'服務之提供與變更', ol(
+      '本服務得因維護、升級或不可抗力事由暫停或中斷服務，並儘可能事前公告。',
+      '本服務終止營運時，應於三十日前公告，並提供資料匯出方式。',
+      '使用者應自行定期匯出備份，以保全其資料。')) +
+    sec(6,'責任範圍', ol(
+      '本服務依現狀提供，不保證全無中斷或錯誤。',
+      '本服務就使用者所受損害之賠償責任，以使用者就本服務已支付之當年度費用為限。但因故意或重大過失所致者，不在此限。')) +
+    sec(7,'聯絡方式', CONTACT);
 
+  /* ---------- 隱私權政策 ---------- */
   var PRIVACY =
-    sec(1,'我們蒐集什麼',
-      '<ul><li>你的登入 Email —— 用來辨識帳號、寄登入連結</li>' +
-      '<li>你自己輸入的內容 —— 你在 App 裡建立的各項資料</li>' +
-      '<li>裝置識別碼 —— 用來計算你登入了幾台裝置</li></ul>' +
-      p('我們不蒐集你的通訊錄、位置、照片或其他裝置資訊。我們沒有使用廣告或行為追蹤工具。')) +
-    sec(2,'資料放在哪', p(
-      '儲存於 Google Firebase（Google 提供的雲端資料庫服務）。',
-      '每個帳號的資料以你的 Email 隔離，其他使用者讀不到。')) +
-    sec(3,'誰看得到', p('除了你自己，只有我們在下列情況會存取：') +
-      '<ul><li>你回報問題，需要協助排除故障</li><li>系統異常需要修復</li></ul>' +
-      p('除此之外不會查看，不會用於行銷，不會提供給任何第三人。')) +
-    sec(4,'我們用到的第三方服務',
-      '<ul><li>Google Firebase —— 帳號登入與資料儲存</li>' +
-      '<li>藍新金流 —— 付款處理（我們不會取得你的信用卡號）</li></ul>' +
-      p('這些服務有各自的隱私政策。')) +
-    sec(5,'資料保存多久', p(
-      '帳號存在期間持續保存。',
-      '你可以隨時要求刪除帳號，我們會在 7 天內刪除全部資料。刪除後無法復原，請先自行匯出。')) +
-    sec(6,'你的權利', p(
-      '你可以查詢、更正、匯出或刪除你的資料。大部分在 App 內就能做到，其餘請透過 LINE 或 Email 聯繫。')) +
-    sec(7,'Cookie', p(
-      '我們只使用讓你保持登入狀態的必要儲存，沒有用於追蹤或廣告。')) +
-    sec(8,'聯絡我們', CONTACT);
+    sec(1,'蒐集之個人資料',
+      p('本服務蒐集下列資料：') +
+      ol('使用者之電子郵件位址：用於身分辨識及寄送登入連結。',
+         '使用者自行輸入之內容：用於提供本服務之各項功能。',
+         '裝置識別碼：用於計算同一帳號之登入裝置數量。') +
+      p('本服務不蒐集通訊錄、位置資訊、照片或其他裝置資料，亦未使用任何廣告或行為追蹤工具。')) +
+    sec(2,'資料之儲存', ol(
+      '前條資料儲存於 Google Firebase。',
+      '各帳號之資料以使用者之電子郵件位址區隔，其他使用者無從讀取。')) +
+    sec(3,'資料之存取與利用', ol(
+      '本服務僅於使用者申告問題而有協助排除障礙之必要，或系統異常而有修復之必要時，存取使用者資料。',
+      '除前款情形外，本服務不查閱使用者資料，不作行銷利用，亦不提供予任何第三人。')) +
+    sec(4,'委外之第三方服務',
+      ol('Google Firebase：提供身分驗證及資料儲存。',
+         '藍新金流：提供付款處理。本服務不取得使用者之信用卡號。') +
+      p('前開服務各有其隱私權政策。')) +
+    sec(5,'保存期限', ol(
+      '資料於帳號存續期間持續保存。',
+      '使用者得隨時請求刪除帳號，本服務應於七日內刪除其全部資料。刪除後無法回復，請先自行匯出。')) +
+    sec(6,'使用者之權利', p(
+      '使用者就其個人資料，得行使查詢、閱覽、製給複製本、補充或更正、請求停止蒐集處理利用及請求刪除之權利。多數項目於本服務內即可自行完成，其餘得以電子郵件或官方 LINE 聯繫。')) +
+    sec(7,'Cookie 與本機儲存', p(
+      '本服務僅使用維持登入狀態所必要之本機儲存，未用於追蹤或廣告。')) +
+    sec(8,'聯絡方式', CONTACT);
 
+  /* ---------- 付款與退款 ---------- */
   var PAY =
-    sec(1,'價格',
-      '<table class="lg-t"><tbody>' +
-      '<tr><td>生活管家</td><td>$999／年</td></tr>' +
-      '<tr><td>食在料理</td><td>$999／年</td></tr>' +
-      '<tr><td>旅遊計畫</td><td>$999／年</td></tr>' +
-      '<tr><td>三個組合</td><td>$1,999／年</td></tr>' +
-      '<tr><td>客戶管理</td><td>$7,200／年（前 15 位早鳥 $6,000，續約同價）</td></tr>' +
-      '</tbody></table>' + p('全部為新台幣，年繳。')) +
-    sec(2,'先試用再決定', p('每個產品都有免費試用，期間功能全部開放：') +
-      '<table class="lg-t"><tbody>' +
-      '<tr><td>生活管家</td><td>21 天</td></tr>' +
-      '<tr><td>食在料理</td><td>14 天</td></tr>' +
-      '<tr><td>旅遊計畫</td><td>14 天</td></tr>' +
-      '<tr><td>客戶管理</td><td>30 天</td></tr>' +
-      '</tbody></table>' +
-      p('試用結束會轉成免費版，功能較少但不會到期，你建立的資料都還在。')) +
-    sec(3,'怎麼付款', p(
-      '藍新金流線上刷卡。',
-      '付款時請填寫你登入用的那個 Email —— 這是我們判斷要幫誰開通的唯一依據，填錯會無法開通。')) +
-    sec(4,'多久開通', p(
-      '收到款項後 1 個工作天內完成。開通後重開一次 App 就是完整版。',
-      '超過時間還沒開通，請透過 LINE 或 Email 聯繫。')) +
-    sec(5,'使用期間', p(
-      '從開通日起算一年。',
-      '提前續約會從原到期日往後延長，剩下的天數不會被吃掉。')) +
-    sec(6,'關於退款', p(
-      '<b>我們不提供退款，所以請務必先試用。</b>',
-      '法律上的說明：依「通訊交易解除權合理例外情事適用準則」第 2 條第 5 款，線上數位服務經你事先同意後提供，不適用七日猶豫期。你在付款前會看到一個勾選框，勾選即表示你了解並同意這一點。',
-      '如果因為系統重大問題導致你完全無法使用，而我們在合理時間內修不好，可以個別討論處理方式。')) +
-    sec(7,'聯絡我們', CONTACT);
+    sec(1,'費用',
+      '<table class="lg-t"><tbody><tr><td>'+C.name+'　完整版</td><td>'+C.priceTxt+'</td></tr></tbody></table>' +
+      p('其他產品之方案與費用，請參閱官方網站 handyassist-system.github.io。')) +
+    sec(2,'免費試用', ol(
+      C.name+'提供'+C.trial+'日免費試用，試用期間功能全部開放。',
+      '試用期屆滿後轉為免費版。免費版功能受限但無使用期限，使用者既有資料仍予保留。')) +
+    sec(3,'付款', ol(
+      '本服務採藍新金流線上刷卡付款。',
+      '使用者付款時應填寫其登入本服務所使用之電子郵件位址，作為開通之依據；填寫錯誤者，本服務無從開通。')) +
+    sec(4,'開通與使用期間', ol(
+      '本服務於收訖款項後一個工作日內完成開通。',
+      '方案效期自開通日起算一年。',
+      '於效期屆滿前續約者，自原到期日起算延長，剩餘日數不予扣除。')) +
+    sec(5,'退款', ol(
+      '本服務提供免費試用，使用者應於試用期間確認本服務是否符合其需求。',
+      '依「通訊交易解除權合理例外情事適用準則」第二條第五款，本服務屬非以有形媒介提供之數位內容，經使用者事前同意後提供者，不適用七日猶豫期之規定。使用者於付款前之勾選同意，即為前開事前同意。',
+      '付款並完成開通後，恕不受理退款。',
+      '因本服務重大瑕疵致無法使用，經通知後未能於合理期間內修復者，得個案協商處理。')) +
+    sec(6,'聯絡方式', CONTACT);
 
+  /* ---------- 客戶資料處理（僅客戶管理）---------- */
   var CLIENTDATA =
-    p('你用這套系統管理你自己的客戶資料，以下說明我們各自的責任。') +
-    sec(1,'誰負什麼責任', p(
-      '個人資料保護法上，你是「蒐集者」，我們是「受託處理者」。簡單說：資料是你的，你決定怎麼用；我們只負責幫你安全地存放與處理。')) +
-    sec(2,'你要做的', p(
-      '向你的客戶蒐集資料時，請依個人資料保護法盡告知義務（告訴他們你為什麼要這些資料、會怎麼用）。這一步在你這邊，我們無法代勞。')) +
-    sec(3,'請不要存這些', p(
-      '與服務無關的個人資料，以及下列特種個人資料：') +
-      '<ul><li>病歷、醫療、基因</li><li>性生活、健康檢查</li><li>犯罪前科</li></ul>' +
-      p('這類資料的保護要求更高，本系統不適合存放。例如客戶備註欄請避免寫健康狀況。')) +
-    sec(4,'我們做到的',
-      '<ul><li>你的資料以登入 Email 隔離，其他使用者讀不到</li>' +
-      '<li>僅在協助你排除問題時存取</li>' +
-      '<li>不作行銷、不提供第三人</li></ul>') +
-    sec(5,'萬一外洩', p(
-      '我們知悉後會盡快通知你，並說明已掌握的範圍與影響，讓你能依法進行後續處理。')) +
-    sec(6,'刪除', p(
-      '你可隨時要求刪除帳號與全部客戶資料，7 天內完成。')) +
-    sec(7,'聯絡我們', CONTACT);
+    sec(1,'當事人地位', ol(
+      '就使用者於本服務建立之客戶個人資料，使用者為個人資料保護法所稱之蒐集者，本服務為受託處理者。',
+      '本服務僅於使用者委託之範圍內處理及利用前開資料。')) +
+    sec(2,'使用者之義務', ol(
+      '使用者向其客戶蒐集個人資料時，應依個人資料保護法第八條規定盡告知義務，並確保其蒐集、處理及利用具備合法事由。',
+      '使用者不得於本服務儲存與其營業無關之個人資料。',
+      '使用者不得於本服務儲存病歷、醫療、基因、性生活、健康檢查及犯罪前科等特種個人資料。')) +
+    sec(3,'安全維護', ol(
+      '各帳號之客戶資料以使用者之電子郵件位址區隔，其他使用者無從讀取。',
+      '本服務僅於協助排除障礙所必要時存取，不作行銷利用，亦不提供予任何第三人。')) +
+    sec(4,'事故通知', p(
+      '發生個人資料遭竊取、竄改、毀損、滅失或洩漏之情事時，本服務應於知悉後儘速通知使用者，並提供已掌握之事故範圍及影響資訊，以利使用者依法辦理後續事宜。')) +
+    sec(5,'資料刪除', p(
+      '使用者得隨時請求刪除帳號及其全部客戶資料，本服務應於七日內完成。')) +
+    sec(6,'聯絡方式', CONTACT);
 
-  var DOCS = [
-    h('服務條款', TERMS),
-    h('隱私權政策', PRIVACY),
-    h('付款與退款', PAY)
-  ];
+  var DOCS = [ h('服務條款', TERMS), h('隱私權政策', PRIVACY), h('付款與退款', PAY) ];
   if(APP === 'crm') DOCS.push(h('客戶資料處理', CLIENTDATA));
-
-  var cur = 0;
 
   function css(){
     if(document.getElementById('lgCss')) return;
     var s=document.createElement('style'); s.id='lgCss';
     s.textContent =
-      '#lgWrap{position:fixed;inset:0;background:rgba(20,24,22,.5);z-index:10040;display:none;align-items:flex-end;}'+
+      '#lgWrap{position:fixed;inset:0;background:rgba(18,22,20,.55);z-index:10040;display:none;align-items:flex-end;}'+
       '#lgWrap.on{display:flex;}'+
-      '.lg-box{background:#fff;color:#1F2724;width:100%;max-height:90vh;display:flex;flex-direction:column;border-radius:16px 16px 0 0;overflow:hidden;}'+
-      '.lg-head{padding:16px 18px 0;border-bottom:1px solid #E6E9E4;flex:none;}'+
-      '.lg-title{font-size:16px;font-weight:700;margin-bottom:2px;}'+
-      '.lg-upd{font-size:11.5px;color:#8A928C;margin-bottom:10px;}'+
-      '.lg-tabs{display:flex;gap:4px;overflow-x:auto;-webkit-overflow-scrolling:touch;}'+
+      '.lg-box{background:#FCFCFA;color:#1F2724;width:100%;max-height:92vh;display:flex;flex-direction:column;border-radius:18px 18px 0 0;overflow:hidden;}'+
+      '.lg-head{text-align:center;padding:10px 0 16px;}'+
+      '.lg-logo{width:96px;height:auto;border-radius:12px;display:block;margin:0 auto;}'+
+      '.lg-bn{font-size:17px;font-weight:700;letter-spacing:.06em;line-height:1.3;color:#1F2724;}'+
+      '.lg-bs{font-size:11.5px;color:#8A928C;letter-spacing:.14em;margin-top:4px;}'+
+      '.lg-tabs{display:flex;gap:2px;overflow-x:auto;-webkit-overflow-scrolling:touch;background:#fff;'+
+        'border-bottom:1px solid #EAEDE8;padding:6px 12px 0;flex:none;border-radius:18px 18px 0 0;}'+
       '.lg-tab{flex:none;background:none;border:none;border-bottom:2px solid transparent;color:#6B736D;'+
-        'font-size:13.5px;font-family:inherit;padding:9px 10px;min-height:42px;cursor:pointer;white-space:nowrap;}'+
+        'font-size:13.5px;font-family:inherit;padding:11px 10px;min-height:44px;cursor:pointer;white-space:nowrap;}'+
       '.lg-tab.on{color:#14564A;border-bottom-color:#14564A;font-weight:700;}'+
-      '.lg-body{overflow-y:auto;padding:16px 18px 24px;-webkit-overflow-scrolling:touch;'+
-        'font-size:14px;line-height:1.85;color:#39423C;}'+
-      '.lg-body h4{font-size:14.5px;color:#1F2724;margin:18px 0 6px;font-weight:700;}'+
-      '.lg-body h4:first-child{margin-top:2px;}'+
-      '.lg-body p{margin:0 0 8px;}'+
-      '.lg-body ul{margin:4px 0 10px;padding-left:20px;}'+
-      '.lg-body li{margin-bottom:3px;}'+
-      '.lg-t{width:100%;border-collapse:collapse;margin:6px 0 10px;font-size:13.5px;}'+
-      '.lg-t td{padding:6px 0;border-bottom:1px solid #EDF0EC;}'+
-      '.lg-t td:last-child{text-align:right;color:#14564A;font-weight:600;white-space:nowrap;padding-left:12px;}'+
-      '.lg-foot{flex:none;padding:12px 18px calc(16px + env(safe-area-inset-bottom));border-top:1px solid #E6E9E4;}'+
-      '.lg-close{width:100%;background:#F2F4F1;color:#39423C;border:1px solid #DDE2DA;border-radius:10px;'+
+      '.lg-body{overflow-y:auto;padding:20px 20px 30px;-webkit-overflow-scrolling:touch;'+
+        'font-size:14px;line-height:1.95;color:#3B443E;}'+
+      '.lg-doc{border-top:1px solid #E3E7E1;border-bottom:1px solid #E3E7E1;padding:14px 0;margin-bottom:8px;text-align:center;}'+
+      '.lg-doc-t{font-size:18px;font-weight:700;color:#1F2724;letter-spacing:.02em;}'+
+      '.lg-doc-s{font-size:11.5px;color:#9AA29B;margin-top:5px;letter-spacing:.06em;}'+
+      '.lg-body h4{font-size:15px;color:#1F2724;margin:26px 0 8px;font-weight:700;letter-spacing:.02em;}'+
+      '.lg-n{color:#14564A;}'+
+      '.lg-body p{margin:0 0 10px;}'+
+      '.lg-ol{margin:4px 0 12px;padding:0;list-style:none;counter-reset:lgi;}'+
+      '.lg-ol>li{counter-increment:lgi;position:relative;padding-left:3.1em;margin-bottom:7px;}'+
+      '.lg-ol>li::before{content:"（"counter(lgi,cjk-ideographic)"）";position:absolute;left:0;color:#5D6A62;}'+
+      '.lg-t{width:100%;border-collapse:collapse;margin:8px 0 12px;font-size:13.5px;}'+
+      '.lg-t td{padding:8px 0;border-bottom:1px solid #EDF0EC;}'+
+      '.lg-t td:last-child{text-align:right;color:#14564A;font-weight:600;padding-left:12px;}'+
+      '.lg-foot{flex:none;padding:12px 18px calc(16px + env(safe-area-inset-bottom));border-top:1px solid #EAEDE8;background:#fff;}'+
+      '.lg-close{width:100%;background:#F2F4F1;color:#3B443E;border:1px solid #DDE2DA;border-radius:10px;'+
         'padding:13px;font-size:15px;font-family:inherit;min-height:48px;cursor:pointer;}';
     document.head.appendChild(s);
   }
@@ -5200,11 +5241,7 @@
     var w=document.createElement('div'); w.id='lgWrap';
     w.innerHTML =
       '<div class="lg-box">'+
-        '<div class="lg-head">'+
-          '<div class="lg-title">智在生活 · '+C.name+'</div>'+
-          '<div class="lg-upd">最後更新 '+UPDATED+'</div>'+
-          '<div class="lg-tabs" id="lgTabs"></div>'+
-        '</div>'+
+        '<div class="lg-tabs" id="lgTabs"></div>'+
         '<div class="lg-body" id="lgBody"></div>'+
         '<div class="lg-foot"><button type="button" class="lg-close" id="lgClose">關閉</button></div>'+
       '</div>';
@@ -5220,11 +5257,15 @@
     });
   }
   function show(i){
-    cur=i;
     var tabs=document.querySelectorAll('.lg-tab');
     for(var k=0;k<tabs.length;k++) tabs[k].classList.toggle('on', k===i);
     var body=document.getElementById('lgBody');
-    body.innerHTML = DOCS[i].b;
+    body.innerHTML =
+      '<div class="lg-head">'+
+        '<img class="lg-logo" src="data:image/jpeg;base64,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" alt="智在生活">'+
+      '</div>'+
+      '<div class="lg-doc"><div class="lg-doc-t">'+C.name+'　'+DOCS[i].t+'</div>'+
+      '<div class="lg-doc-s">最後更新 '+UPDATED+'</div></div>' + DOCS[i].b;
     body.scrollTop = 0;
   }
   function open(which){
@@ -5242,10 +5283,407 @@
 
   window.legalDocs = { open:open, close:close, appName:C.name };
 })();
+
+/* ==================== 預覽使用者畫面（四個 App 共用）====================
+   管理員用來看「客戶實際會看到什麼」。
+   共用的是介面（選單、橫幅、結束預覽）；每個 App 只要提供 apply / exit 兩個函式。
+   ==================================================================== */
+(function(){
+  var CFG = null;          // { apply:fn(mode), exit:fn(), modes:[...] }
+  var MODES = {
+    free:  { label:'免費版',   tip:'試用到期後的樣子' },
+    trial: { label:'試用中',   tip:'新客戶第一次進來的樣子' },
+    full:  { label:'完整版',   tip:'付費客戶' }
+  };
+
+  function css(){
+    if(document.getElementById('pvCss')) return;
+    var s=document.createElement('style'); s.id='pvCss';
+    s.textContent =
+      '#pvBar{position:fixed;left:0;right:0;top:0;z-index:10060;background:#B45309;color:#fff;'+
+        'font-size:13px;text-align:center;padding:9px 12px;padding-top:calc(9px + env(safe-area-inset-top,0px));'+
+        'display:none;font-family:inherit;}'+
+      '#pvBar.on{display:block;}'+
+      '#pvBar button{background:rgba(255,255,255,.22);color:#fff;border:none;border-radius:999px;'+
+        'padding:4px 12px;font-size:12.5px;font-family:inherit;margin-left:10px;cursor:pointer;min-height:30px;}'+
+      '#pvWrap{position:fixed;inset:0;background:rgba(18,22,20,.5);z-index:10061;display:none;align-items:flex-end;}'+
+      '#pvWrap.on{display:flex;}'+
+      '.pv-box{background:#fff;color:#1F2724;width:100%;border-radius:16px 16px 0 0;'+
+        'padding:20px 18px calc(22px + env(safe-area-inset-bottom));}'+
+      '.pv-t{font-size:16px;font-weight:700;margin-bottom:3px;}'+
+      '.pv-s{font-size:13px;color:#7b8794;margin-bottom:16px;}'+
+      '.pv-opt{display:block;width:100%;text-align:left;background:#F6F8F7;border:1px solid #E1E7E3;'+
+        'border-radius:11px;padding:13px 15px;margin-bottom:9px;font-family:inherit;cursor:pointer;min-height:56px;}'+
+      '.pv-opt b{display:block;font-size:15px;color:#1F2724;font-weight:700;}'+
+      '.pv-opt span{font-size:12.5px;color:#7b8794;}'+
+      '.pv-cancel{width:100%;background:#fff;color:#7b8794;border:1px solid #DDE2DA;border-radius:10px;'+
+        'padding:12px;font-size:14px;font-family:inherit;margin-top:4px;min-height:46px;cursor:pointer;}';
+    document.head.appendChild(s);
+  }
+
+  function bar(){
+    var b=document.getElementById('pvBar');
+    if(!b){ b=document.createElement('div'); b.id='pvBar'; document.body.appendChild(b); }
+    return b;
+  }
+
+  function open(){
+    css();
+    var w=document.getElementById('pvWrap');
+    if(!w){
+      w=document.createElement('div'); w.id='pvWrap';
+      w.innerHTML='<div class="pv-box">'+
+        '<div class="pv-t">預覽使用者畫面</div>'+
+        '<div class="pv-s">用客戶的角度看一次。預覽期間不會動到你的資料。</div>'+
+        '<div id="pvList"></div>'+
+        '<button type="button" class="pv-cancel" id="pvCancel">取消</button></div>';
+      document.body.appendChild(w);
+      w.addEventListener('click', function(e){ if(e.target===w) close(); });
+      document.getElementById('pvCancel').addEventListener('click', close);
+    }
+    var list=document.getElementById('pvList');
+    list.innerHTML='';
+    (CFG && CFG.modes || ['free','trial','full']).forEach(function(k){
+      var m=MODES[k]; if(!m) return;
+      var b=document.createElement('button');
+      b.type='button'; b.className='pv-opt';
+      b.innerHTML='<b>'+m.label+'</b><span>'+m.tip+'</span>';
+      b.addEventListener('click', function(){ start(k); });
+      list.appendChild(b);
+    });
+    w.classList.add('on');
+  }
+  function close(){ var w=document.getElementById('pvWrap'); if(w) w.classList.remove('on'); }
+
+  function start(mode){
+    if(!CFG || typeof CFG.apply!=='function') return;
+    close();
+    css();
+    var b=bar();
+    b.innerHTML='🧪 '+(MODES[mode]?MODES[mode].label:mode)+'預覽中'+
+                '<button type="button" id="pvEnd">結束預覽</button>';
+    b.classList.add('on');
+    document.getElementById('pvEnd').onclick=stop;
+    try{ CFG.apply(mode); }catch(e){}
+  }
+  function stop(){
+    var b=document.getElementById('pvBar'); if(b) b.classList.remove('on');
+    if(CFG && typeof CFG.exit==='function'){ try{ CFG.exit(); }catch(e){} }
+  }
+
+  window.previewMode = {
+    init: function(cfg){ CFG = cfg; },
+    open: open,
+    stop: stop,
+    active: function(){ var b=document.getElementById('pvBar'); return !!(b && b.classList.contains('on')); }
+  };
+})();
+
+/* 預覽設定：客戶管理 */
+previewMode.init({
+  modes: ['free','trial','full'],
+  apply: function(mode){
+    crmPlan = mode; crmIsAdmin = false;
+    document.body.style.paddingTop = '44px';
+    if(mode === 'trial'){
+      // 新客戶＝試用方案＋空白資料＋首次設定流程，這三件事本來就是同時發生的
+      startPreview();
+      var ob = document.getElementById('previewBar'); if(ob) ob.style.display='none';   // 用共用橫幅就好
+      return;
+    }
+    if(typeof crmApplyPlan==='function') crmApplyPlan();
+    if(typeof renderSettingsSummary==='function') renderSettingsSummary();
+    if(typeof render==='function') render();
+  },
+  exit: function(){ location.reload(); }
+});
+
+/* ==================== 到期提醒（四個 App 共用）====================
+   到期前 7／3／1 天與到期當天各提醒一次，同一天不重複。
+   試用與完整版說法不同：試用強調「還沒買」，完整版強調「續約」。
+   ==================================================================== */
+(function(){
+  var KEY = 'expiryNoticeShown';      // 存 "app|yyyy-mm-dd"，同一天只跳一次
+
+  function ymd(d){
+    return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  }
+  // 用「日曆日」相減，不是毫秒差 —— 否則今天到期會被算成還有 1 天
+  function daysLeft(expiry){
+    if(!expiry) return null;
+    var end = new Date(expiry + 'T00:00:00');
+    if(isNaN(end.getTime())) return null;
+    var today = new Date(); today.setHours(0,0,0,0);
+    return Math.round((end.getTime() - today.getTime()) / 86400000);
+  }
+  function shownToday(app){
+    try{ return localStorage.getItem(KEY) === app + '|' + ymd(new Date()); }catch(e){ return false; }
+  }
+  function markShown(app){
+    try{ localStorage.setItem(KEY, app + '|' + ymd(new Date())); }catch(e){}
+  }
+
+  function css(accent){
+    var el=document.getElementById('exCss');
+    if(el) el.remove();
+    var s=document.createElement('style'); s.id='exCss';
+    s.textContent =
+      '#exWrap{position:fixed;inset:0;background:rgba(18,22,20,.5);z-index:10080;display:none;'+
+        'align-items:center;justify-content:center;padding:20px;}'+
+      '#exWrap.on{display:flex;}'+
+      '.ex-box{background:#fff;color:#1F2724;width:100%;max-width:330px;border-radius:18px;'+
+        'padding:24px 20px 20px;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,.2);}'+
+      '.ex-ico{font-size:40px;line-height:1;margin-bottom:12px;}'+
+      '.ex-t{font-size:18px;font-weight:700;margin-bottom:8px;}'+
+      '.ex-d{font-size:14px;color:#5B6F79;line-height:1.8;margin-bottom:20px;}'+
+      '.ex-d b{color:'+accent+';}'+
+      '.ex-go{width:100%;background:'+accent+';color:#fff;border:none;border-radius:12px;padding:14px;'+
+        'font-size:15.5px;font-weight:700;font-family:inherit;min-height:50px;cursor:pointer;}'+
+      '.ex-later{width:100%;background:none;color:#8A928C;border:none;padding:12px;margin-top:6px;'+
+        'font-size:14px;font-family:inherit;min-height:44px;cursor:pointer;}';
+    document.head.appendChild(s);
+  }
+
+  function close(){ var w=document.getElementById('exWrap'); if(w) w.classList.remove('on'); }
+
+  /* cfg: { app, appName, plan, expiry, isAdmin, accent, onUpgrade } */
+  function check(cfg){
+    cfg = cfg || {};
+    if(cfg.isAdmin) return false;
+    var plan = cfg.plan || 'free';
+    if(plan !== 'trial' && plan !== 'full' && plan !== 'basic' && plan !== 'family') return false;
+
+    var d = daysLeft(cfg.expiry);
+    if(d === null) return false;
+    if(d > 7 || d < 0) return false;                 // 只在最後 7 天內提醒；已過期不在這裡處理
+    if(shownToday(cfg.app)) return false;
+
+    var isTrial = (plan === 'trial');
+    var accent = cfg.accent || '#2B93B8';
+    css(accent);
+
+    var title, desc, btn;
+    if(d === 0){
+      title = isTrial ? '試用今天到期' : '完整版今天到期';
+      desc  = isTrial
+        ? '今天過後會轉成免費版，部分功能會鎖起來。<br><b>你建立的資料都會保留。</b>'
+        : '今天過後會轉成免費版。<br><b>你的資料都會保留，續約就能繼續用。</b>';
+    } else {
+      title = isTrial ? ('試用還有 ' + d + ' 天') : ('完整版還有 ' + d + ' 天到期');
+      desc  = isTrial
+        ? ('試用到 <b>' + cfg.expiry + '</b> 為止。<br>到期後會轉成免費版，部分功能會鎖起來，資料都會保留。')
+        : ('使用到 <b>' + cfg.expiry + '</b> 為止。<br>現在續約會從原到期日往後延長，剩下的天數不會被吃掉。');
+    }
+    btn = isTrial ? '看方案' : '我要續約';
+
+    var w=document.getElementById('exWrap');
+    if(!w){
+      w=document.createElement('div'); w.id='exWrap';
+      w.innerHTML='<div class="ex-box">'+
+        '<div class="ex-ico" id="exIco">⏰</div>'+
+        '<div class="ex-t" id="exT"></div>'+
+        '<div class="ex-d" id="exD"></div>'+
+        '<button type="button" class="ex-go" id="exGo"></button>'+
+        '<button type="button" class="ex-later" id="exLater">稍後再說</button></div>';
+      document.body.appendChild(w);
+      w.addEventListener('click', function(e){ if(e.target===w) close(); });
+      document.getElementById('exLater').addEventListener('click', close);
+    }
+    document.getElementById('exIco').textContent = (d <= 1) ? '⚠️' : '⏰';
+    document.getElementById('exT').textContent = title;
+    document.getElementById('exD').innerHTML = desc;
+    var go=document.getElementById('exGo');
+    go.textContent = btn;
+    go.onclick = function(){ close(); if(typeof cfg.onUpgrade === 'function') cfg.onUpgrade(); };
+    w.classList.add('on');
+    markShown(cfg.app);
+    return true;
+  }
+
+  window.expiryNotice = { check: check, close: close, _daysLeft: daysLeft };
+})();
+
+/* ==================== 確認對話框（四個 App 共用）====================
+   各 App 原本的函式名與參數都保留，內部改成呼叫這裡，所以呼叫端一行都不用動。
+   opts: { title, message, okText, cancelText, danger, accent }
+   回傳 Promise<boolean>
+   ==================================================================== */
+(function(){
+  function css(accent, danger){
+    var el=document.getElementById('cfCss'); if(el) el.remove();
+    var okBg = danger ? '#C0392B' : accent;
+    var s=document.createElement('style'); s.id='cfCss';
+    s.textContent =
+      '#cfWrap{position:fixed;inset:0;background:rgba(18,22,20,.5);z-index:10090;display:none;'+
+        'align-items:center;justify-content:center;padding:20px;}'+
+      '#cfWrap.on{display:flex;}'+
+      '.cf-box{background:#fff;color:#1F2724;width:100%;max-width:330px;border-radius:18px;'+
+        'padding:22px 20px 18px;box-shadow:0 12px 40px rgba(0,0,0,.2);}'+
+      '.cf-t{font-size:16.5px;font-weight:700;margin-bottom:8px;text-align:center;}'+
+      '.cf-m{font-size:14px;color:#5B6F79;line-height:1.8;margin-bottom:20px;text-align:center;'+
+        'white-space:pre-wrap;word-break:break-word;}'+
+      '.cf-btns{display:flex;gap:9px;}'+
+      '.cf-btns button{flex:1;border-radius:12px;padding:13px 10px;font-size:15px;font-weight:700;'+
+        'font-family:inherit;min-height:50px;cursor:pointer;border:1px solid transparent;}'+
+      '.cf-no{background:#fff;color:#5B6F79;border-color:#DDE2DA !important;}'+
+      '.cf-ok{background:'+okBg+';color:#fff;}';
+    document.head.appendChild(s);
+  }
+
+  var resolver = null;
+  function finish(v){
+    var w=document.getElementById('cfWrap'); if(w) w.classList.remove('on');
+    var r=resolver; resolver=null;
+    if(r) r(v);
+  }
+
+  function confirmDialog(opts){
+    opts = opts || {};
+    css(opts.accent || '#2B93B8', !!opts.danger);
+    var w=document.getElementById('cfWrap');
+    if(!w){
+      w=document.createElement('div'); w.id='cfWrap';
+      w.innerHTML='<div class="cf-box">'+
+        '<div class="cf-t" id="cfT"></div>'+
+        '<div class="cf-m" id="cfM"></div>'+
+        '<div class="cf-btns">'+
+          '<button type="button" class="cf-no" id="cfNo"></button>'+
+          '<button type="button" class="cf-ok" id="cfOk"></button>'+
+        '</div></div>';
+      document.body.appendChild(w);
+      w.addEventListener('click', function(e){ if(e.target===w) finish(false); });
+      document.getElementById('cfNo').addEventListener('click', function(){ finish(false); });
+      document.getElementById('cfOk').addEventListener('click', function(){ finish(true); });
+    }
+    var t=document.getElementById('cfT');
+    t.textContent = opts.title || '';
+    t.style.display = opts.title ? 'block' : 'none';
+    var m=document.getElementById('cfM');
+    if(opts.html) m.innerHTML = opts.html; else m.textContent = opts.message || '';
+    document.getElementById('cfNo').textContent = opts.cancelText || '取消';
+    document.getElementById('cfOk').textContent = opts.okText || '確定';
+    w.classList.add('on');
+
+    // 前一個還沒關就被叫第二次 → 前一個視為取消，不要卡住
+    if(resolver){ var prev=resolver; resolver=null; prev(false); }
+    return new Promise(function(res){ resolver = res; });
+  }
+
+  window.confirmDialog = confirmDialog;
+})();
+
+/* ==================== 升級頁（四個 App 共用）====================
+   統一成：比較表 ＋ 付款卡 ＋ 客服。各 App 只傳自己的功能清單與價格。
+   cfg: { app, name, accent, price, per, note, trial, rows:[[功能, 免費版, 完整版], ...],
+          email, lineUrl }
+   ==================================================================== */
+(function(){
+  var CFG = null;
+
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+
+  function css(accent){
+    var el=document.getElementById('upCss'); if(el) el.remove();
+    var s=document.createElement('style'); s.id='upCss';
+    s.textContent =
+      '#upWrap{position:fixed;inset:0;background:rgba(18,22,20,.5);z-index:10030;display:none;align-items:flex-end;}'+
+      '#upWrap.on{display:flex;}'+
+      '.up-box{background:#FCFCFA;color:#1F2724;width:100%;max-height:92vh;display:flex;'+
+        'flex-direction:column;border-radius:18px 18px 0 0;overflow:hidden;}'+
+      '.up-head{padding:18px 18px 14px;background:#fff;border-bottom:1px solid #EAEDE8;flex:none;}'+
+      '.up-t{font-size:18px;font-weight:700;}'+
+      '.up-s{font-size:13px;color:#7b8794;margin-top:4px;}'+
+      '.up-body{overflow-y:auto;padding:16px 18px 24px;-webkit-overflow-scrolling:touch;}'+
+      '.up-cmp{border:1px solid #E3E7E1;border-radius:12px;overflow:hidden;background:#fff;}'+
+      '.up-row{display:grid;grid-template-columns:1fr 66px 74px;align-items:center;gap:6px;'+
+        'padding:11px 13px;border-top:1px solid #EFF2ED;font-size:13.5px;line-height:1.5;}'+
+      '.up-row:first-child{border-top:none;background:#F4F7F4;font-size:12px;font-weight:700;'+
+        'color:#6B736D;letter-spacing:.04em;}'+
+      '.up-row span:nth-child(2),.up-row span:nth-child(3){text-align:center;}'+
+      '.up-no{color:#A9B2AB;}'+
+      '.up-yes{color:'+accent+';font-weight:700;}'+
+      '.up-note{font-size:12.5px;color:#7b8794;margin-top:12px;line-height:1.7;}'+
+      '.up-line{display:block;text-align:center;margin-top:14px;font-size:13.5px;color:'+accent+';'+
+        'text-decoration:underline;}'+
+      '.up-foot{flex:none;padding:10px 18px calc(14px + env(safe-area-inset-bottom));'+
+        'border-top:1px solid #EAEDE8;background:#fff;}'+
+      '.up-close{width:100%;background:#F2F4F1;color:#3B443E;border:1px solid #DDE2DA;border-radius:10px;'+
+        'padding:12px;font-size:15px;font-family:inherit;min-height:46px;cursor:pointer;}';
+    document.head.appendChild(s);
+  }
+
+  function close(){ var w=document.getElementById('upWrap'); if(w) w.classList.remove('on'); }
+
+  /* feat：可選，點了某個鎖住的功能才進來，會在標題下方點名那個功能 */
+  function open(feat){
+    var c = CFG; if(!c) return;
+    css(c.accent);
+    var w=document.getElementById('upWrap');
+    if(!w){
+      w=document.createElement('div'); w.id='upWrap';
+      w.innerHTML='<div class="up-box">'+
+        '<div class="up-head"><div class="up-t" id="upT"></div><div class="up-s" id="upS"></div></div>'+
+        '<div class="up-body" id="upB"></div>'+
+        '<div class="up-foot"><button type="button" class="up-close" id="upClose">關閉</button></div>'+
+      '</div>';
+      document.body.appendChild(w);
+      w.addEventListener('click', function(e){ if(e.target===w) close(); });
+      document.getElementById('upClose').addEventListener('click', close);
+    }
+    document.getElementById('upT').textContent = feat ? ('「'+feat+'」需要完整版') : ('升級 '+c.name+' 完整版');
+    document.getElementById('upS').textContent = c.trial
+      ? ('免費試用 '+c.trial+' 天，期間功能全部開放') : '';
+
+    var rows = '<div class="up-row"><span></span><span>免費版</span><span>完整版</span></div>';
+    (c.rows||[]).forEach(function(r){
+      function cell(v){
+        if(v === true)  return '<span class="up-yes">✓</span>';
+        if(v === false) return '<span class="up-no">—</span>';
+        return '<span class="'+(v==='—'?'up-no':'up-yes')+'">'+esc(v)+'</span>';
+      }
+      rows += '<div class="up-row"><span>'+esc(r[0])+'</span>'+cell(r[1])+cell(r[2])+'</div>';
+    });
+
+    var html = '<div class="up-cmp">'+rows+'</div>';
+    if(c.note) html += '<p class="up-note">'+esc(c.note)+'</p>';
+    html += window.payCardHtml({ app:c.app, email:c.email||'', price:c.price, per:c.per,
+                                 accent:c.accent, note:c.payNote });
+    if(c.lineUrl) html += '<a class="up-line" href="'+c.lineUrl+'" target="_blank" rel="noopener">有問題？聯繫客服</a>';
+
+    document.getElementById('upB').innerHTML = html;
+    document.getElementById('upB').scrollTop = 0;
+    if(window.payCardBind) window.payCardBind();
+    w.classList.add('on');
+  }
+
+  window.upgradeSheet = {
+    init: function(cfg){ CFG = cfg; },
+    open: open,
+    close: close,
+    setEmail: function(e){ if(CFG) CFG.email = e; }
+  };
+})();
+
+/* 升級頁設定：客戶管理 */
+upgradeSheet.init({
+  app:'crm', name:'客戶管理', accent:'#4A7A9B', price:6000, per:500, trial:30,
+  payNote:'早鳥價', lineUrl:LINE_SUPPORT_URL,
+  rows:[
+    ['客戶數', '5 位', '不限'],
+    ['合約管理', false, true],
+    ['預約排程', false, true],
+    ['收款紀錄', false, true],
+    ['營運儀表板', false, true],
+    ['服務追蹤', false, true],
+    ['同帳號裝置數', '1 台', '3 台']
+  ],
+  note:'原價 $7,200，前 15 位早鳥價 $6,000，續約維持同價。超過免費版客戶數的資料不會刪除，只是轉為唯讀。'
+});
 </script>
 
     <!-- Toast 提示 -->
-    <div id="toast" style="display:none;position:fixed;bottom:calc(24px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);background:#2c3e50;color:white;padding:11px 18px;border-radius:999px;font-size:13.5px;line-height:1.5;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,0.3);max-width:84%;text-align:center;"></div>
+    <div id="toast" style="display:none;position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom));transform:translateX(-50%);background:rgba(45,50,56,.94);color:#fff;padding:11px 18px;border-radius:999px;font-size:13.5px;line-height:1.5;z-index:9999;pointer-events:none;max-width:86vw;text-align:center;box-shadow:0 4px 16px rgba(0,0,0,.18);"></div>
 
     <!-- Loading 畫面 -->
     <div id="loading-overlay" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(255,255,255,0.95);z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;">
@@ -5257,7 +5695,7 @@
     <!-- 登入畫面（智在生活 Standard） -->
     <div id="crmLogin" style="display:none;position:fixed;inset:0;background:#FBF8F3;z-index:99998;align-items:center;justify-content:center;padding:24px;">
         <div style="background:#fff;border:1px solid #E7E2DA;padding:32px 26px;border-radius:20px;max-width:360px;width:100%;text-align:center;box-shadow:0 10px 30px rgba(44,62,80,.08);">
-            <div style="font-size:46px;margin-bottom:10px;">🏠</div>
+            <img src="icon-192.png" alt="客戶管理" width="64" height="64" style="width:64px;height:64px;border-radius:14px;display:block;margin:0 auto 12px;">
             <h2 style="color:#2c3e50;margin:0 0 6px;font-size:22px;">客戶管理系統</h2>
             <p style="color:#7f8c8d;font-size:13.5px;margin:0 0 20px;">把服務，變成生意。</p>
             <input id="crmEmailInput" type="email" inputmode="email" autocomplete="email" maxlength="60" placeholder="請輸入 Email"
@@ -5280,7 +5718,7 @@
                 <input id="crmAdminPw" type="password" autocomplete="current-password" placeholder="密碼"
                     style="width:100%;padding:13px 14px;border:1px solid #E7E2DA;border-radius:14px;background:#fff;font-size:15px;margin-bottom:8px;box-sizing:border-box;">
                 <button id="crmAdminBtn" type="button"
-                    style="width:100%;padding:13px;border:none;border-radius:14px;background:#3498db;color:#fff;font-size:15px;font-weight:700;cursor:pointer;">管理員登入</button>
+                    style="width:100%;padding:13px;border:none;border-radius:14px;background:#4A7A9B;color:#fff;font-size:15px;font-weight:700;cursor:pointer;">管理員登入</button>
                 <div id="crmAdminMsg" style="color:#e74c3c;font-size:13px;min-height:16px;margin-top:6px;text-align:center;"></div>
             </div>
         </div>
@@ -5343,7 +5781,7 @@
                 </div>
 
                 <button type="button" onclick="setupNext()"
-                    style="width:100%;margin-top:22px;padding:14px;border:none;border-radius:14px;background:#3498db;color:#fff;font-size:16px;font-weight:700;cursor:pointer;">下一步</button>
+                    style="width:100%;margin-top:22px;padding:14px;border:none;border-radius:14px;background:#4A7A9B;color:#fff;font-size:16px;font-weight:700;cursor:pointer;">下一步</button>
             </div>
 
             <!-- 步驟 2 -->
@@ -5407,7 +5845,7 @@
                     <button type="button" onclick="setupBack()"
                         style="flex:0 0 96px;padding:14px;border:1px solid #E7E2DA;border-radius:14px;background:#fff;color:#7f8c8d;font-size:15px;cursor:pointer;">上一步</button>
                     <button type="button" id="setupGoBtn" onclick="finishSetup()"
-                        style="flex:1;padding:14px;border:none;border-radius:14px;background:#3498db;color:#fff;font-size:16px;font-weight:700;cursor:pointer;">開始使用</button>
+                        style="flex:1;padding:14px;border:none;border-radius:14px;background:#4A7A9B;color:#fff;font-size:16px;font-weight:700;cursor:pointer;">開始使用</button>
                 </div>
             </div>
 
@@ -5415,15 +5853,12 @@
         </div>
     </div>
 
-    <!-- 確認對話框 -->
-    <div id="confirm-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9998;display:none;align-items:center;justify-content:center;">
-        <div style="background:white;padding:24px;border-radius:12px;max-width:320px;width:90%;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,0.3);">
-            <p id="confirm-message" style="margin-bottom:20px;font-size:15px;color:#2c3e50;"></p>
-            <div style="display:flex;gap:10px;justify-content:center;">
-                <button id="confirm-cancel" class="btn btn-secondary">取消</button>
-                <button id="confirm-ok" class="btn btn-danger">確定</button>
-            </div>
-        </div>
-    </div>
+    <nav id="crmNav">
+                <button class="nav-btn active" data-tab="clients"><span class="ic">👥</span>客戶</button>
+                <button class="nav-btn" data-tab="bookings"><span class="ic">📅</span>預約</button>
+                <button class="nav-btn" data-tab="payments"><span class="ic">💰</span>收款</button>
+                <button class="nav-btn" data-tab="contracts"><span class="ic">📄</span>合約</button>
+                <button class="nav-btn" id="crmMoreBtn" type="button"><span class="ic">⋯</span>更多</button>
+            </nav>
 </body>
 </html>
