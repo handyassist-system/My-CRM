@@ -2107,11 +2107,13 @@ input:focus, textarea:focus, select:focus{
         }
         window.crmOpenMore = crmOpenMore;
 
-        document.querySelectorAll('.nav-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                if (this.id === 'crmMoreBtn') { crmOpenMore(); return; }
-                setActiveTab(this.dataset.tab);
-            });
+        // 導覽列的 HTML 在這段腳本「後面」才出現，所以不能在這裡直接綁；
+        // 掛在 document 上做事件委派，元素何時被解析都接得到。
+        document.addEventListener('click', function(e) {
+            var btn = e.target && e.target.closest ? e.target.closest('.nav-btn') : null;
+            if (!btn) return;
+            if (btn.id === 'crmMoreBtn') { crmOpenMore(); return; }
+            if (btn.dataset.tab) setActiveTab(btn.dataset.tab);
         });
         (function(){
             var sb = document.getElementById('crmSetBtn');
