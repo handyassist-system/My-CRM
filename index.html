@@ -597,6 +597,7 @@ input:focus, textarea:focus, select:focus{
   color:#8A928C;cursor:pointer;min-height:56px;-webkit-tap-highlight-color:transparent;}
 #crmNav .nav-btn .ic{font-size:19px;line-height:1;}
 #crmNav .nav-btn.active{color:#4A7A9B;font-weight:700;}
+#crmTrackBtn.hdr-on,#crmStatsBtn.hdr-on,#crmSetBtn.hdr-on{background:rgba(255,255,255,.42) !important;}
 .content{padding-bottom:78px !important;}
 </style>
 </head>
@@ -613,6 +614,8 @@ input:focus, textarea:focus, select:focus{
                style="background:rgba(255,255,255,0.15); color:white; padding:8px 14px; border-radius:8px; text-decoration:none; font-size:13px; font-weight:bold; white-space:nowrap; display:inline-flex; align-items:center; gap:6px;">
                 📅 行事曆
             </a>
+                <button type="button" id="crmTrackBtn" title="客戶追蹤" style="position:relative;background:rgba(255,255,255,.15);color:#fff;border:none;border-radius:8px;padding:8px 12px;font-size:18px;line-height:1;cursor:pointer;">📋<span id="crmTrackBadge" style="display:none;position:absolute;top:-4px;right:-4px;min-width:18px;height:18px;padding:0 4px;background:#e74c3c;color:#fff;border-radius:9px;font-size:11px;font-weight:700;line-height:18px;text-align:center;"></span></button>
+                <button type="button" id="crmStatsBtn" title="業績報表" style="background:rgba(255,255,255,.15);color:#fff;border:none;border-radius:8px;padding:8px 12px;font-size:18px;line-height:1;cursor:pointer;">📊</button>
                 <button type="button" id="crmSetBtn" title="設定" style="background:rgba(255,255,255,.15);color:#fff;border:none;border-radius:8px;padding:8px 12px;font-size:18px;line-height:1;cursor:pointer;">⚙️</button>
         </div>
 
@@ -2063,62 +2066,83 @@ input:focus, textarea:focus, select:focus{
         window.finishSetup = finishSetup;
 
         // ==================== UI 控制 ====================
-        // 報表、追蹤、設定沒有自己的導覽按鈕（收在「更多」和右上齒輪），
-        // 所以找不到按鈕時不能當掉，改成把「更多」標亮
-        var CRM_MORE_TABS = ['dashboard','tracking'];
+        // 底部四個是「要做的事」；追蹤、報表、設定是「看資訊」，收在右上角。
+        // 這三個沒有底部按鈕，改成把對應的右上角圖示標亮。
+        var CRM_HDR_TABS = { tracking:'crmTrackBtn', dashboard:'crmStatsBtn', step1:'crmSetBtn' };
         function setActiveTab(tabName) {
             if (tabName === 'step1') { try { closeSetPage(); } catch (e) {} }
             document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
             document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
+            Object.keys(CRM_HDR_TABS).forEach(function(k){
+                var h = document.getElementById(CRM_HDR_TABS[k]);
+                if (h) h.classList.remove('hdr-on');
+            });
 
             var btn = document.querySelector('[data-tab="' + tabName + '"]');
             if (btn) btn.classList.add('active');
-            else if (CRM_MORE_TABS.indexOf(tabName) >= 0) {
-                var mb = document.getElementById('crmMoreBtn');
-                if (mb) mb.classList.add('active');
+            else if (CRM_HDR_TABS[tabName]) {
+                var h = document.getElementById(CRM_HDR_TABS[tabName]);
+                if (h) h.classList.add('hdr-on');
             }
             var pane = document.querySelector('#' + tabName);
             if (pane) pane.classList.add('active');
         }
 
-        // 「更多」：報表統計與客戶追蹤
-        function crmOpenMore(){
-            var w = document.getElementById('crmMoreSheet');
-            if(!w){
-                w = document.createElement('div');
-                w.id = 'crmMoreSheet';
-                w.style.cssText = 'position:fixed;inset:0;background:rgba(18,22,20,.5);z-index:10020;display:flex;align-items:flex-end;';
-                w.innerHTML = '<div style="background:#fff;width:100%;border-radius:16px 16px 0 0;padding:18px 18px calc(20px + env(safe-area-inset-bottom));">'
-                    + '<div style="font-size:16px;font-weight:700;margin-bottom:14px;">更多</div>'
-                    + '<button type="button" class="set-row" data-go="dashboard"><span class="set-ico">\uD83D\uDCCA</span><span class="set-name">報表統計</span><span class="set-val"></span><span class="set-arrow">\u203a</span></button>'
-                    + '<button type="button" class="set-row" data-go="tracking"><span class="set-ico">\uD83D\uDD0D</span><span class="set-name">客戶追蹤</span><span class="set-val"></span><span class="set-arrow">\u203a</span></button>'
-                    + '<button type="button" class="subs-ghost" data-go="">關閉</button></div>';
-                document.body.appendChild(w);
-                w.addEventListener('click', function(e){
-                    if(e.target === w){ w.style.display='none'; return; }
-                    var t = e.target.closest('[data-go]');
-                    if(!t) return;
-                    w.style.display='none';
-                    var go = t.getAttribute('data-go');
-                    if(go) setActiveTab(go);
+        /* 📋 追蹤的紅點：沿用追蹤頁本來的門檻，不另外定義一套，
+           免得紅點說有 3 位、點進去卻看到別的數字。
+           兩種都要警示：太久沒預約（紅燈天數）、可排時數快用完。 */
+        function crmTrackAlertCount(){
+            try{
+                var cfg = SVC() || {};
+                var redDays = cfg.trackRed || 90;
+                var today = new Date(); today.setHours(0,0,0,0);
+                var n = 0;
+                store.getClients()
+                     .filter(function(c){ return (c.serviceStatus || '服務中') === '服務中'; })
+                     .forEach(function(client){
+                    var contracts = store.getContractsByClient(client.id);
+                    var live = contracts.filter(function(c){ return (c.contractStatus || '進行中') === '進行中'; });
+                    var done = contracts.reduce(function(acc, c){
+                        return acc.concat(store.getBookingsByContract(c.id).filter(function(b){ return b.status === '完成'; }));
+                    }, []).sort(function(a,b){ return new Date(b.bookingDate) - new Date(a.bookingDate); });
+                    var overdue = false;
+                    if(done.length){
+                        var days = Math.floor((today - new Date(done[0].bookingDate)) / 86400000);
+                        overdue = days >= redDays;
+                    }
+                    var lowHours = live.some(function(c){
+                        var u = contractHours(c).usable;
+                        return u > 0 && u < 3;
+                    });
+                    if(overdue || lowHours) n++;
                 });
-            }
-            w.style.display = 'flex';
+                return n;
+            }catch(e){ return 0; }
         }
-        window.crmOpenMore = crmOpenMore;
+        function crmUpdateTrackBadge(){
+            var b = document.getElementById('crmTrackBadge');
+            if(!b) return;
+            var n = crmTrackAlertCount();
+            if(n > 0){ b.textContent = n > 99 ? '99+' : String(n); b.style.display = 'block'; }
+            else { b.style.display = 'none'; }
+        }
+        window.crmUpdateTrackBadge = crmUpdateTrackBadge;
 
         // 導覽列的 HTML 在這段腳本「後面」才出現，所以不能在這裡直接綁；
         // 掛在 document 上做事件委派，元素何時被解析都接得到。
         document.addEventListener('click', function(e) {
             var btn = e.target && e.target.closest ? e.target.closest('.nav-btn') : null;
             if (!btn) return;
-            if (btn.id === 'crmMoreBtn') { crmOpenMore(); return; }
             if (btn.dataset.tab) setActiveTab(btn.dataset.tab);
         });
-        (function(){
-            var sb = document.getElementById('crmSetBtn');
-            if (sb) sb.addEventListener('click', function(){ setActiveTab('step1'); });
-        })();
+        // 右上角三個圖示：追蹤、報表、設定。元素在這段腳本前面就存在，
+        // 不過一併走委派，日後搬動位置也不會失效。
+        document.addEventListener('click', function(e) {
+            if (!e.target || !e.target.closest) return;
+            if (e.target.closest('#crmTrackBtn')) { setActiveTab('tracking'); try{ renderTrackingList(); }catch(x){} return; }
+            if (e.target.closest('#crmStatsBtn')) { setActiveTab('dashboard'); return; }
+            if (e.target.closest('#crmSetBtn'))   { setActiveTab('step1'); return; }
+        });
 
         // ==================== 系統設定 ====================
         function initStep1() {
@@ -2969,15 +2993,15 @@ input:focus, textarea:focus, select:focus{
                                 <div style="flex: 1;">
                                     <h4>${client.clientName}${alertIcon}${statusBadge}</h4>
                                     <p>時數: ${contract.totalHours}h + 贈送 ${bonusHours}h | 單價: ${contract.hourlyRate} 元/h${contract.cooperationMethod === '公司派' ? ` | 收款費率: ${paymentRate} 元/h` : ''}</p>
-                                    <p>我方使用: ${usedHours}h${preUsedNote} | 剩餘: <strong style="${remainingStyle}">${remainingHours}h</strong></p>
-                                    ${H.booked > 0 ? `<p style="font-size:12.5px;color:#e67e22;">其中 ${H.booked}h 已排未做，還能再排 ${H.usable}h</p>` : ''}
+                                    ${contract.signDate ? `<p>簽約 ${contract.signDate}${contract.expireDate ? ` ｜ 到期 ${contract.expireDate}` : ''}</p>` : ''}
                                 </div>
                                 <button class="btn btn-sm btn-secondary" style="margin-left: 10px;" onclick="toggleExpand('${expandId}')">展開</button>
                             </div>
                             <div id="${expandId}" style="display: none; margin-top: 10px; padding-top: 10px; border-top: 1px solid #ecf0f1;">
                                 <p>合約總價: <strong>NT$${(contract.totalPrice || 0).toLocaleString()}</strong></p>
                                 <p>類型: ${contract.contractType} | 合作: ${contract.cooperationMethod}</p>
-                                ${contract.signDate ? `<p>簽約日: ${contract.signDate}${contract.expireDate ? ` | 到期日: ${contract.expireDate}` : ''}</p>` : ''}
+                                <p>我方使用: ${usedHours}h${preUsedNote} | 剩餘: <strong style="${remainingStyle}">${remainingHours}h</strong></p>
+                                ${H.booked > 0 ? `<p style="font-size:12.5px;color:#e67e22;">其中 ${H.booked}h 已排未做，還能再排 ${H.usable}h</p>` : ''}
                                 ${contract.notes ? `<p><strong>備註:</strong> ${contract.notes}` : ''}
                                 <div class="list-item-actions" style="margin-top: 10px;">
                                     ${!isEnded ? `<button class="btn btn-sm btn-secondary" onclick="editContract('${contract.id}')">編輯</button>` : ''}
@@ -4356,6 +4380,7 @@ input:focus, textarea:focus, select:focus{
             renderDashboard();
             renderTrackingList();
             attachSearchListeners();
+            crmUpdateTrackBadge();
         }
 
         // ==================== 初始化 ====================
@@ -5857,10 +5882,9 @@ upgradeSheet.init({
 
     <nav id="crmNav">
                 <button class="nav-btn active" data-tab="clients"><span class="ic">👥</span>客戶</button>
+                <button class="nav-btn" data-tab="contracts"><span class="ic">📄</span>合約</button>
                 <button class="nav-btn" data-tab="bookings"><span class="ic">📅</span>預約</button>
                 <button class="nav-btn" data-tab="payments"><span class="ic">💰</span>收款</button>
-                <button class="nav-btn" data-tab="contracts"><span class="ic">📄</span>合約</button>
-                <button class="nav-btn" id="crmMoreBtn" type="button"><span class="ic">⋯</span>更多</button>
             </nav>
 </body>
 </html>
