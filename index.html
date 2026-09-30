@@ -2,11 +2,14 @@
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>客戶管理系統</title>
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#3498db">
+    <meta name="theme-color" content="#4A7A9B">
     <link rel="apple-touch-icon" href="icon-192.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
 
@@ -16,13 +19,26 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <style>
         * {
+            -webkit-tap-highlight-color: transparent;
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
+        /* ── 智在生活共用命名（四個 App 都用這組名字，值各自不同）── */
+        :root{
+            --primary:#3498db;
+            --primary-d:#2980b9;
+            --danger:#e74c3c;
+            --ink:#2E2E33;
+            --sub:#7f8c8d;
+            --line:#bdc3c7;
+            --surface:#FFFFFF;
+            --bg:#FBF8F3;
+        }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "PingFang TC", "Noto Sans TC", sans-serif;
+            font-family: 'Noto Sans TC',-apple-system,BlinkMacSystemFont,"PingFang TC","Microsoft JhengHei",sans-serif;
             background-color: #FBF8F3;   /* 智在生活標準底色 */
             color: #2E2E33;
             padding: 10px;
@@ -196,9 +212,10 @@
             width: 100%;
             padding: 8px 10px;
             border: 1px solid #bdc3c7;
-            border-radius: 4px;
-            font-size: 14px;
-            font-family: Arial, sans-serif;
+            border-radius: 10px;
+            font-size: 16px;          /* 16px：小於 16px 時 iPhone 會自動放大整個畫面 */
+            font-family: inherit;     /* 跟全站同一套中文字體 */
+            min-height: 44px;
         }
 
         textarea {
@@ -227,13 +244,14 @@
             font-weight: normal;
         }
 
-        button.btn, label.btn {
+        button.btn, label.btn, a.btn {
+            min-height: 44px;
             display: inline-block;
             padding: 10px 20px;
             margin-right: 10px;
             margin-top: 10px;
             border: none;
-            border-radius: 4px;
+            border-radius: 10px;
             cursor: pointer;
             font-size: 14px;
             font-weight: bold;
@@ -267,7 +285,7 @@
             background-color: #c0392b;
         }
 
-        button.btn-secondary, label.btn-secondary {
+        button.btn-secondary, label.btn-secondary, a.btn-secondary {
             background-color: #95a5a6;
             color: white;
         }
@@ -276,9 +294,11 @@
             background-color: #7f8c8d;
         }
 
-        button.btn-sm {
-            padding: 6px 12px;
-            font-size: 12px;
+        button.btn-sm, a.btn-sm {
+            min-height: 36px;
+            padding: 7px 14px;
+            border-radius: 8px;
+            font-size: 12.5px;
             margin-top: 5px;
             margin-bottom: 5px;
         }
@@ -287,7 +307,7 @@
             border: 1px solid #ecf0f1;
             padding: 12px;
             margin-bottom: 10px;
-            border-radius: 4px;
+            border-radius: 10px;
             background-color: #f9f9f9;
         }
 
@@ -308,14 +328,19 @@
 
         .empty-state {
             text-align: center;
-            padding: 40px 20px;
-            color: #7f8c8d;
+            padding: 44px 20px;
+            color: var(--sub);
+            font-size: 14px;
+            font-weight: 600;
+            line-height: 1.6;
         }
+        .empty-state .eico { display:block; font-size:40px; margin-bottom:10px; opacity:.85; font-weight:400; }
+        .empty-state .esub { display:block; font-size:12.5px; color:#95a5a6; font-weight:400; margin-top:6px; }
 
         .alert {
             padding: 12px 15px;
             margin-bottom: 15px;
-            border-radius: 4px;
+            border-radius: 10px;
             font-size: 14px;
         }
 
@@ -411,7 +436,7 @@
         .info-box {
             background-color: #ecf0f1;
             padding: 12px;
-            border-radius: 4px;
+            border-radius: 10px;
             margin-bottom: 15px;
             border-left: 4px solid #3498db;
         }
@@ -468,7 +493,7 @@
         .step-indicator {
             background-color: #ecf0f1;
             padding: 15px;
-            border-radius: 4px;
+            border-radius: 10px;
             margin-bottom: 20px;
             font-size: 14px;
         }
@@ -476,6 +501,59 @@
         .step-indicator strong {
             color: #2c3e50;
         }
+/* ==================== 訂閱管理（跨 App）==================== */
+#subsPage{position:fixed;inset:0;background:#f5f6f8;z-index:10000;display:none;flex-direction:column;}
+#subsPage.on{display:flex;}
+.subs-head{background:#fff;border-bottom:1px solid #e5e7eb;padding:calc(10px + env(safe-area-inset-top)) 12px 10px;display:flex;align-items:center;gap:8px;flex:none;}
+.subs-back{background:none;border:none;font-size:16px;color:#4A7A9B;padding:6px 4px;min-height:44px;cursor:pointer;font-family:inherit;}
+.subs-title{font-size:16px;font-weight:700;color:#2c3e50;flex:1;}
+.subs-count{font-size:12px;color:#95a5a6;}
+.subs-tools{background:#fff;border-bottom:1px solid #e5e7eb;padding:0 12px 10px;flex:none;}
+.subs-search{width:100%;font-size:16px;font-family:inherit;padding:10px 12px;border:1px solid #dfe3e8;border-radius:10px;background:#f7f8fa;}
+.subs-search:focus{outline:none;border-color:#4A7A9B;background:#fff;}
+.subs-tabs{display:flex;gap:6px;overflow-x:auto;margin-top:10px;-webkit-overflow-scrolling:touch;}
+.subs-tab{flex:none;border:1px solid #dfe3e8;background:#fff;color:#5a6a78;border-radius:999px;padding:7px 14px;font-size:13px;font-family:inherit;min-height:36px;cursor:pointer;white-space:nowrap;}
+.subs-tab.on{background:#4A7A9B;border-color:#4A7A9B;color:#fff;font-weight:600;}
+.subs-body{flex:1;overflow-y:auto;padding:12px 12px 100px;-webkit-overflow-scrolling:touch;}
+.subs-card{background:#fff;border-radius:12px;padding:12px 14px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,.05);}
+.subs-email{font-size:14px;font-weight:600;color:#2c3e50;word-break:break-all;margin-bottom:2px;}
+.subs-key{font-size:11px;color:#b0b8bf;word-break:break-all;margin-bottom:8px;}
+.subs-line{display:flex;align-items:center;gap:8px;padding:9px 0;border-top:1px solid #f0f2f4;min-height:44px;cursor:pointer;}
+.subs-line:first-of-type{border-top:none;}
+.subs-ico{font-size:15px;width:20px;text-align:center;flex:none;}
+.subs-app{font-size:13px;color:#5a6a78;width:66px;flex:none;}
+.subs-stat{font-size:13px;flex:1;}
+.subs-arrow{color:#c8cfd6;font-size:16px;flex:none;}
+.subs-none{color:#c0c7ce;}
+.subs-ok{color:#2c3e50;}
+.subs-warn{color:#c87d1e;font-weight:600;}
+.subs-bad{color:#c0392b;font-weight:600;}
+.subs-gray{color:#95a5a6;}
+.subs-empty{text-align:center;color:#95a5a6;padding:48px 20px;font-size:14px;line-height:1.8;}
+.subs-fab{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom));background:#4A7A9B;color:#fff;border:none;border-radius:999px;padding:14px 28px;font-size:15px;font-weight:600;font-family:inherit;box-shadow:0 4px 14px rgba(74,122,155,.35);z-index:10001;cursor:pointer;min-height:48px;}
+/* 第二層表單 */
+#subsSheet{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:10002;display:none;align-items:flex-end;}
+#subsSheet.on{display:flex;}
+.subs-sheet{background:#fff;width:100%;max-height:88vh;overflow-y:auto;border-radius:16px 16px 0 0;padding:18px 18px calc(22px + env(safe-area-inset-bottom));-webkit-overflow-scrolling:touch;}
+.subs-sh-title{font-size:16px;font-weight:700;color:#2c3e50;margin-bottom:2px;word-break:break-all;}
+.subs-sh-sub{font-size:13px;color:#7b8794;margin-bottom:16px;}
+.subs-label{font-size:12px;color:#7b8794;margin:14px 0 6px;}
+.subs-input{width:100%;font-size:16px;font-family:inherit;padding:11px 12px;border:1px solid #dfe3e8;border-radius:10px;}
+.subs-input:focus{outline:none;border-color:#4A7A9B;box-shadow:0 0 0 3px rgba(74,122,155,.12);}
+.subs-chips{display:flex;gap:8px;flex-wrap:wrap;}
+.subs-chip{border:1px solid #dfe3e8;background:#fff;color:#5a6a78;border-radius:10px;padding:9px 14px;font-size:13px;font-family:inherit;min-height:42px;cursor:pointer;}
+.subs-chip.on{background:#4A7A9B;border-color:#4A7A9B;color:#fff;font-weight:600;}
+.subs-calc{background:#f3f6f8;border-radius:10px;padding:10px 12px;font-size:13px;color:#2c3e50;margin-top:14px;}
+.subs-calc b{color:#4A7A9B;}
+.subs-primary{width:100%;background:#4A7A9B;color:#fff;border:none;border-radius:10px;padding:14px;font-size:15px;font-weight:600;font-family:inherit;margin-top:18px;min-height:50px;cursor:pointer;}
+.subs-primary:disabled{background:#c8cfd6;}
+.subs-ghost{width:100%;background:#fff;color:#7b8794;border:1px solid #dfe3e8;border-radius:10px;padding:12px;font-size:14px;font-family:inherit;margin-top:10px;min-height:46px;cursor:pointer;}
+.subs-danger{width:100%;background:#fff;color:#c0392b;border:1px solid #f0c8c2;border-radius:10px;padding:12px;font-size:14px;font-family:inherit;margin-top:10px;min-height:46px;cursor:pointer;}
+.subs-row2{display:flex;align-items:center;gap:10px;padding:11px 0;border-top:1px solid #f0f2f4;font-size:14px;color:#2c3e50;}
+.subs-row2 span:first-child{color:#7b8794;font-size:13px;width:52px;flex:none;}
+.subs-row2 .v{flex:1;}
+.subs-mini{border:1px solid #dfe3e8;background:#fff;color:#5a6a78;border-radius:8px;padding:6px 12px;font-size:12px;font-family:inherit;min-height:34px;cursor:pointer;}
+
     </style>
 </head>
 <body>
@@ -519,9 +597,11 @@
                     <button type="button" class="set-row" onclick="openSetPage('backup')"><span class="set-ico">📦</span><span class="set-name">資料備份</span><span class="set-val" id="sv-backup"></span><span class="set-arrow">›</span></button>
                     <button type="button" class="set-row" onclick="openSetPage('app')"><span class="set-ico">📱</span><span class="set-name">應用程式</span><span class="set-val" id="sv-app"></span><span class="set-arrow">›</span></button>
                     <div class="set-gap"></div>
+                    <button type="button" class="set-row" id="set-upgrade" onclick="openCrmUpgrade()"><span class="set-ico">⭐</span><span class="set-name">升級完整版</span><span class="set-val" id="sv-plan"></span><span class="set-arrow">›</span></button>
                     <button type="button" class="set-row" onclick="openSetPage('account')"><span class="set-ico">👤</span><span class="set-name">帳號</span><span class="set-val" id="sv-account"></span><span class="set-arrow">›</span></button>
                     <button type="button" class="set-row" onclick="openSetPage('support')"><span class="set-ico">💬</span><span class="set-name">支援與條款</span><span class="set-val" id="sv-support"></span><span class="set-arrow">›</span></button>
                     <div class="set-gap" id="set-admin-gap" style="display:none;"></div>
+                    <button type="button" class="set-row" id="set-admin-subs" style="display:none;" onclick="subsAdmin.open()"><span class="set-ico">🔑</span><span class="set-name">訂閱管理</span><span class="set-val">管理員</span><span class="set-arrow">›</span></button>
                     <button type="button" class="set-row" id="set-admin-preview" style="display:none;" onclick="startPreview()"><span class="set-ico">🔧</span><span class="set-name">預覽新使用者畫面</span><span class="set-val">管理員</span><span class="set-arrow">›</span></button>
                     <p style="text-align:center;color:#95a5a6;font-size:12px;margin-top:22px;">客戶管理系統 <span id="crmVerTagFoot">v1.0</span></p>
                 </div>
@@ -671,9 +751,9 @@
 <!-- 資料備份 -->
                 <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ecf0f1;">
                     <div style="display:flex; gap:10px;">
-                        <button class="btn btn-secondary" style="flex:1; margin:0;" onclick="exportData()">📥 匯出備份</button>
+                        <button class="btn btn-secondary" style="flex:1; margin:0;" onclick="exportData()">📤 匯出備份</button>
                         <label class="btn btn-secondary" style="flex:1; margin:0; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; text-align:center;">
-                            📤 匯入還原
+                            📥 匯入還原
                             <input type="file" id="import-file" accept=".json" style="display:none;">
                         </label>
                     </div>
@@ -719,8 +799,8 @@
                 </div>
 
                 <div style="display:flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
-                    <input type="text" id="client-search" placeholder="🔍 搜尋客戶姓名或電話..." style="flex: 1; min-width: 150px; padding: 8px 10px; border: 1px solid #bdc3c7; border-radius: 4px;">
-                    <select id="client-status-filter" style="padding: 8px 10px; border: 1px solid #bdc3c7; border-radius: 4px;">
+                    <input type="text" id="client-search" placeholder="🔍 搜尋客戶姓名或電話..." style="flex: 1; min-width: 150px; padding: 10px 12px; border: 1px solid #bdc3c7; border-radius: 10px;">
+                    <select id="client-status-filter" style="padding: 10px 12px; border: 1px solid #bdc3c7; border-radius: 10px;">
                         <option value="服務中">服務中</option>
                         <option value="已終止">已終止</option>
                         <option value="">全部</option>
@@ -740,8 +820,8 @@
                 </div>
 
                 <div style="display:flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
-                    <input type="text" id="contract-search" placeholder="🔍 搜尋客戶姓名..." style="flex: 1; min-width: 150px; padding: 8px 10px; border: 1px solid #bdc3c7; border-radius: 4px;">
-                    <select id="contract-status-filter" style="padding: 8px 10px; border: 1px solid #bdc3c7; border-radius: 4px;">
+                    <input type="text" id="contract-search" placeholder="🔍 搜尋客戶姓名..." style="flex: 1; min-width: 150px; padding: 10px 12px; border: 1px solid #bdc3c7; border-radius: 10px;">
+                    <select id="contract-status-filter" style="padding: 10px 12px; border: 1px solid #bdc3c7; border-radius: 10px;">
                         <option value="進行中">進行中</option>
                         <option value="已結束">已結束</option>
                         <option value="">全部</option>
@@ -761,8 +841,8 @@
                 </div>
 
                 <div style="display:flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
-                    <input type="text" id="booking-search" placeholder="🔍 搜尋客戶姓名..." style="flex: 1; min-width: 150px; padding: 8px 10px; border: 1px solid #bdc3c7; border-radius: 4px;">
-                    <select id="booking-status-filter" style="padding: 8px 10px; border: 1px solid #bdc3c7; border-radius: 4px;">
+                    <input type="text" id="booking-search" placeholder="🔍 搜尋客戶姓名..." style="flex: 1; min-width: 150px; padding: 10px 12px; border: 1px solid #bdc3c7; border-radius: 10px;">
+                    <select id="booking-status-filter" style="padding: 10px 12px; border: 1px solid #bdc3c7; border-radius: 10px;">
                         <option value="未開始">未完成</option>
                         <option value="完成">已完成</option>
                         <option value="">全部</option>
@@ -786,8 +866,8 @@
                 </div>
 
                 <div style="display:flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
-                    <input type="text" id="payment-search" placeholder="🔍 搜尋客戶姓名..." style="flex: 1; min-width: 150px; padding: 8px 10px; border: 1px solid #bdc3c7; border-radius: 4px;">
-                    <select id="payment-status-filter" style="padding: 8px 10px; border: 1px solid #bdc3c7; border-radius: 4px;">
+                    <input type="text" id="payment-search" placeholder="🔍 搜尋客戶姓名..." style="flex: 1; min-width: 150px; padding: 10px 12px; border: 1px solid #bdc3c7; border-radius: 10px;">
+                    <select id="payment-status-filter" style="padding: 10px 12px; border: 1px solid #bdc3c7; border-radius: 10px;">
                         <option value="未收">未收款</option>
                         <option value="已收">已收款</option>
                         <option value="">全部</option>
@@ -802,10 +882,10 @@
             <div id="dashboard" class="tab-pane">
                 <h2>業績報表</h2>
                 <div style="display:flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
-                    <select id="dash-year" onchange="renderDashboard()" style="padding: 8px 10px; border: 1px solid #bdc3c7; border-radius: 4px;">
+                    <select id="dash-year" onchange="renderDashboard()" style="padding: 10px 12px; border: 1px solid #bdc3c7; border-radius: 10px;">
                         <option value="">全部年份</option>
                     </select>
-                    <select id="dash-month" onchange="renderDashboard()" style="padding: 8px 10px; border: 1px solid #bdc3c7; border-radius: 4px;">
+                    <select id="dash-month" onchange="renderDashboard()" style="padding: 10px 12px; border: 1px solid #bdc3c7; border-radius: 10px;">
                         <option value="">全部月份</option>
                     </select>
                 </div>
@@ -1206,8 +1286,44 @@
         // 以後要賣給其他業者時，結構不用再動
         const FB_ROOT = 'servicecrm_v6';
         var FB_KEY = null;                       // 登入後才會設定
-        function crmEmailKey(e){ return String(e||'').toLowerCase().replace(/[.#$\[\]]/g,'_'); }
-        function setCrmPath(email){ FB_KEY = FB_ROOT + '/' + crmEmailKey(email); }
+        // Email 正規化：gmail 的加號後綴與點號視為同一個帳號，避免換寫法重複試用
+        function normEmail(e){
+          var v = String(e||"").trim().toLowerCase();
+          var at = v.lastIndexOf("@");
+          if(at < 1) return v;
+          var user = v.slice(0, at), host = v.slice(at+1);
+          if(host === "gmail.com" || host === "googlemail.com"){
+            user = user.split("+")[0].replace(/\./g, "");
+            host = "gmail.com";
+          }
+          return user + "@" + host;
+        }
+        // 資料路徑的 key 必須跟 Firebase 規則一致：
+        //   $key == auth.token.email.toLowerCase().replace('.', '_')
+        // 所以這裡「不能」做 Gmail 正規化，否則含點的 Gmail 會讀寫全被拒。
+        function crmEmailKey(e){ return String(e||"").toLowerCase().replace(/[.#$\[\]]/g,"_"); }
+        function setCrmPath(email){
+            FB_KEY = FB_ROOT + '/' + crmEmailKey(email);
+            try { localStorage.removeItem('servicecrm_data'); } catch(e){}   // 舊版單一快取無法判斷屬於誰，一律丟棄
+        }
+
+        /* 本機快取必須跟帳號綁在一起。
+           舊版用單一 key 'servicecrm_data'，同一台瀏覽器換帳號時，
+           新帳號會讀到前一個人的資料，雲端是空的時候還會被上傳進去。 */
+        function crmCacheKey(){ return FB_KEY ? ('servicecrm_data_' + FB_KEY.split('/')[1]) : null; }
+        function crmCacheGet(){
+            var k = crmCacheKey(); if(!k) return null;
+            try { return localStorage.getItem(k); } catch(e){ return null; }
+        }
+        function crmCacheSet(v){
+            var k = crmCacheKey(); if(!k) return;
+            try { localStorage.setItem(k, v); } catch(e){}
+        }
+        function crmCacheClear(){
+            var k = crmCacheKey();
+            try { if(k) localStorage.removeItem(k); } catch(e){}
+            try { localStorage.removeItem('servicecrm_data'); } catch(e){}
+        }
 
         // ==================== 服務設定（每個帳號自己的規則）====================
         function defaultCrmSettings() {
@@ -1330,7 +1446,7 @@
             }
 
             initData() {
-                let data = localStorage.getItem('servicecrm_data');
+                let data = crmCacheGet();
                 if (!data) {
                     this.data = {
                         providerName: '',
@@ -1380,7 +1496,7 @@
 
             save() {
                 if (typeof PREVIEW !== 'undefined' && PREVIEW) return;   // 預覽模式：不存任何東西
-                localStorage.setItem('servicecrm_data', JSON.stringify(this.data));
+                crmCacheSet(JSON.stringify(this.data));
                 if (!this._firebaseReady) {
                     console.warn('Firebase 未就緒，跳過雲端儲存');
                     return;
@@ -1413,7 +1529,7 @@
                     const snapshot = await db.ref(FB_KEY).get();
                     if (snapshot.exists()) {
                         this.data = snapshot.val();
-                        localStorage.setItem('servicecrm_data', JSON.stringify(this.data));
+                        crmCacheSet(JSON.stringify(this.data));
                         this.applyCompatibility();
                     } else {
                         this.initData();
@@ -1630,24 +1746,135 @@
         // 拿掉原本寫在公開資料庫裡的授權碼，改用 Firebase 帳號驗證。
         // 從行事曆連過來時，同網域的登入狀態會自動沿用，使用者不會有感覺。
         const ADMIN_EMAIL = 'mp65p@hotmail.com';
-        const ALLOWED_EMAILS = [ADMIN_EMAIL];          // 之後要賣，改成查方案即可
-        const CRM_APP_VER = 'v1.0', CRM_BUILD_ID = '0926-7';
+        function isCrmAdminEmail(e){ return String(e||'').toLowerCase() === ADMIN_EMAIL.toLowerCase(); }
+        // 只用於「這個信箱用過試用沒」的比對，不可當資料路徑
+        function crmTrialEmailKey(e){ return normEmail(e).replace(/[.#$\[\]]/g,'_'); }
+        const CRM_APP_VER = 'v1.0', CRM_BUILD_ID = '0929-1';
         const CRM_EMAIL_FOR_SIGNIN = 'crmEmailForSignIn';
         const LINE_SUPPORT_URL = 'https://line.me/R/ti/p/@373pfdee';
         var crmUserEmail = null;
 
+        // ==================== 方案與試用（智在生活共用規則）====================
+        const CRM_SUBS_PATH = 'crm_subscribers/';
+        const CRM_TRIAL_DAYS = 30;             // CRM：30 天試用
+        const CRM_FREE_CLIENT_QUOTA = 5;       // 免費版累計可建 5 位客戶
+        const CRM_VERIFY_TIMEOUT = 8000;
+        const CRM_PLAN_LABEL = { trial:'試用中', free:'免費版', basic:'完整版', full:'完整版', family:'完整版' };
+
+        var crmPlan = 'free', crmExpiry = '', crmClientsCreated = 0, crmIsAdmin = false;
+        var CRM_READONLY = false;
+
+        function crmIsPaid(p){ return p==='basic'||p==='full'||p==='family'; }
+        function crmDeviceLimit(p){ if(crmIsPaid(p)||p==='trial') return 3; return 1; }
+
+        function _crmDevId(){
+            var k='crm_dev_id', v=null;
+            try{ v=localStorage.getItem(k); }catch(e){}
+            if(!v){ v='d'+Date.now().toString(36)+Math.random().toString(36).slice(2,8);
+                    try{ localStorage.setItem(k,v); }catch(e){} }
+            return v;
+        }
+        function _crmYmd(ts){ var d=new Date(ts); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+        function _crmTimeout(p, ms){ return Promise.race([p, new Promise((_,rj)=>setTimeout(()=>rj(new Error('timeout')), ms))]); }
+
+        // 還能不能再建客戶（累計計算，刪掉不退還）
+        function crmCanAddClient(){
+            if(crmIsAdmin || crmIsPaid(crmPlan) || crmPlan==='trial') return true;
+            return crmClientsCreated < CRM_FREE_CLIENT_QUOTA;
+        }
+        // 超過額度 → 全部唯讀
+        function crmOverQuota(){
+            return !crmIsAdmin && !crmIsPaid(crmPlan) && crmPlan!=='trial'
+                   && crmClientsCreated > CRM_FREE_CLIENT_QUOTA;
+        }
+        // 任何會改資料的動作先問這個
+        function crmBlocked(){
+            if(!CRM_READONLY) return false;
+            showToast('🔒 升級完整版即可繼續編輯');
+            return true;
+        }
+        async function crmBumpClients(){
+            crmClientsCreated += 1;
+            if(!crmUserEmail) return;
+            try{ await db.ref(CRM_SUBS_PATH + crmEmailKey(crmUserEmail) + '/clientsCreated').set(crmClientsCreated); }catch(e){}
+        }
+
+        async function crmVerify(email){
+            crmIsAdmin = isCrmAdminEmail(email);
+            if(crmIsAdmin) return { ok:true, plan:'full', expiry:'', clientsCreated:0 };
+            var key = crmEmailKey(email), now = Date.now(), snap;
+            try{ snap = await _crmTimeout(db.ref(CRM_SUBS_PATH+key).once('value'), CRM_VERIFY_TIMEOUT); }
+            catch(e){ return { ok:true, plan:'free', expiry:'', clientsCreated:0, offline:true }; }
+            var sub = snap.val();
+            if(!sub){
+                // 這台裝置用過試用了嗎？用過就直接給免費版
+                var used=false;
+                try{ var t=await _crmTimeout(db.ref('trial_devices/crm/'+_crmDevId()).once('value'), CRM_VERIFY_TIMEOUT); used=!!t.val(); }catch(e){}
+                if(!used){ try{ var e2=await _crmTimeout(db.ref('trial_devices/crm/e_'+crmTrialEmailKey(email)).once('value'), CRM_VERIFY_TIMEOUT); used=!!e2.val(); }catch(e){} }
+                if(used){
+                    var recF={ email:email, plan:'free', expiry:'', status:'active', deviceLimit:1, clientsCreated:0, createdAt:now, lastSeen:now, devices:{} };
+                    try{ await db.ref(CRM_SUBS_PATH+key).set(recF); }catch(e){}
+                    return { ok:true, plan:'free', expiry:'', clientsCreated:0, trialUsedOnDevice:true };
+                }
+                var expTs = now + CRM_TRIAL_DAYS*86400000;
+                var rec = { email:email, plan:'trial', expiry:_crmYmd(expTs), status:'active',
+                            deviceLimit:crmDeviceLimit('trial'), clientsCreated:0, createdAt:now, lastSeen:now, devices:{} };
+                try{ await db.ref(CRM_SUBS_PATH+key).set(rec); }catch(e){}
+                try{ await db.ref('trial_devices/crm/'+_crmDevId()).set({ firstTrialAt:now }); }catch(e){}
+                try{ await db.ref('trial_devices/crm/e_'+crmTrialEmailKey(email)).set({ firstTrialAt:now }); }catch(e){}
+                return { ok:true, plan:'trial', expiry:rec.expiry, clientsCreated:0, newTrial:true };
+            }
+            if(sub.status === 'disabled') return { ok:false, msg:'此帳號已停用，請聯繫客服' };
+            try{ db.ref(CRM_SUBS_PATH+key+'/lastSeen').set(now); }catch(e){}
+            var expMs = sub.expiry ? Date.parse(sub.expiry+'T23:59:59') : 0;
+            var expired = expMs && now > expMs;
+            return { ok:true, plan: expired ? 'free' : (sub.plan||'free'),
+                     expiry: sub.expiry||'', clientsCreated: Number(sub.clientsCreated||0), expired: !!expired };
+        }
+
+        function crmApplyPlan(){
+            CRM_READONLY = crmOverQuota();
+            var bar = document.getElementById('crmRoBar');
+            if(CRM_READONLY){
+                if(!bar){
+                    bar = document.createElement('div');
+                    bar.id = 'crmRoBar';
+                    bar.style.cssText = 'position:sticky;top:0;z-index:900;background:#FDF3E3;border-bottom:1px solid #F0DFC0;'
+                        + 'padding:10px 14px;font-size:13px;color:#8A6112;display:flex;align-items:center;gap:10px;line-height:1.5';
+                    bar.innerHTML = '<span style="flex:1">🔒 唯讀中，升級完整版可繼續新增與編輯</span>'
+                        + '<a href="' + LINE_SUPPORT_URL + '" target="_blank" rel="noopener" '
+                        + 'style="flex:0 0 auto;background:#06C755;color:#fff;padding:7px 14px;border-radius:8px;text-decoration:none;font-weight:700;font-size:12.5px">升級</a>';
+                    document.body.insertBefore(bar, document.body.firstChild);
+                }
+                bar.style.display = 'flex';
+            } else if(bar){ bar.style.display = 'none'; }
+        }
+
+        function crmShowQuotaSheet(){
+            showConfirm('免費版可以建立 ' + CRM_FREE_CLIENT_QUOTA + ' 位客戶，已經用完了。\n\n升級完整版後不限客戶數，現有資料都會保留。',
+                function(){ window.open(LINE_SUPPORT_URL, '_blank', 'noopener'); }, '聯繫客服升級');
+        }
+
         function crmAllowed(email){
-            return ALLOWED_EMAILS.indexOf(String(email||'').toLowerCase()) >= 0;
+            return true;   // 改成查方案，不再用白名單
         }
         function renderCrmVerTag(){
             var el = document.getElementById('crmVerTag');
-            if (el) el.textContent = CRM_APP_VER + (crmUserEmail === ADMIN_EMAIL ? ' · ' + CRM_BUILD_ID : '');
+            if (el) el.textContent = CRM_APP_VER + (isCrmAdminEmail(crmUserEmail) ? ' · ' + CRM_BUILD_ID : '');
             var em = document.getElementById('crm-account-email');
             if (em) em.textContent = crmUserEmail || '—';
             var pl = document.getElementById('crm-account-plan');
-            if (pl) pl.textContent = (crmUserEmail === ADMIN_EMAIL) ? '管理員' : '';
+            if (pl) {
+                if (crmIsAdmin) pl.textContent = '管理員';
+                else {
+                    var t = CRM_PLAN_LABEL[crmPlan] || '免費版';
+                    if (crmExpiry) t += '　·　到期 ' + crmExpiry;
+                    if (crmPlan === 'free') t += '　·　已建 ' + crmClientsCreated + '/' + CRM_FREE_CLIENT_QUOTA + ' 位客戶';
+                    pl.textContent = t;
+                }
+            }
             var vf = document.getElementById('crmVerTagFoot');
-            if (vf) vf.textContent = CRM_APP_VER + (crmUserEmail === ADMIN_EMAIL ? ' · ' + CRM_BUILD_ID : '');
+            if (vf) vf.textContent = CRM_APP_VER + (isCrmAdminEmail(crmUserEmail) ? ' · ' + CRM_BUILD_ID : '');
         }
         function showCrmLogin(msg){
             var lg = document.getElementById('crmLogin');
@@ -1675,6 +1902,7 @@
         // 舊資料搬到自己的帳號底下（只跑一次，你不用做任何事）
         async function crmMigrateIfNeeded(){
             if (!FB_KEY) return;
+            if (!crmIsAdmin) return;   // 根層舊資料是管理員的，其他人不該搬
             try {
                 var mine = await db.ref(FB_KEY).get();
                 if (mine.exists()) return;                        // 已經搬過了
@@ -1690,13 +1918,24 @@
             } catch(e){ console.warn('搬遷略過', e); }
         }
         async function crmEnter(email){
-            crmUserEmail = String(email).toLowerCase();
+            crmUserEmail = String(email).toLowerCase();   // 路徑用原始小寫，跟規則一致
             setCrmPath(crmUserEmail);
             hideCrmLogin();
             document.getElementById('loading-overlay').style.display = 'flex';
+            var res = await crmVerify(crmUserEmail);
+            if(!res.ok){ document.getElementById('loading-overlay').style.display='none'; showCrmLogin(res.msg||'無法使用'); return; }
+            crmPlan = res.plan; crmExpiry = res.expiry || ''; crmClientsCreated = Number(res.clientsCreated||0);
             await crmMigrateIfNeeded();
             await store.loadFromFirebase();
+            // 舊帳號沒有計數 → 用現有客戶數補上，避免既有使用者一登入就被鎖
+            if(!crmIsAdmin && !crmClientsCreated && store.data.clients && store.data.clients.length){
+                crmClientsCreated = store.data.clients.length;
+                try{ await db.ref(CRM_SUBS_PATH+crmEmailKey(crmUserEmail)+'/clientsCreated').set(crmClientsCreated); }catch(e){}
+            }
+            crmApplyPlan();
             document.getElementById('loading-overlay').style.display = 'none';
+            if(res.newTrial) showConfirm('已開啟 ' + CRM_TRIAL_DAYS + ' 天全功能免費試用，到 ' + res.expiry + ' 為止。\n\n試用期間不限客戶數，所有功能都能用。', function(){}, '開始使用');
+            else if(res.expired) showConfirm('訂閱已到期。\n\n現有資料都看得到、也能匯出備份，升級後可繼續新增與編輯。', function(){ window.open(LINE_SUPPORT_URL,'_blank','noopener'); }, '聯繫客服');
             renderCrmVerTag();
             initStep1();
             initBookingTimeOptions();
@@ -1755,8 +1994,54 @@
                 msg.textContent = '登入失敗，請確認 Email 與密碼';
             }
         }
+        function ensureUpgradeShell(){
+            if(document.getElementById('crmUpgrade')) return;
+            var d=document.createElement('div');
+            d.id='crmUpgrade';
+            d.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9990;display:none;align-items:flex-end;';
+            d.addEventListener('click', function(e){ if(e.target===d) closeCrmUpgrade(); });
+            var inner=document.createElement('div');
+            inner.id='crmUpgradeBody';
+            inner.style.cssText='background:#fff;width:100%;max-height:90vh;overflow-y:auto;border-radius:16px 16px 0 0;padding:20px 18px calc(24px + env(safe-area-inset-bottom));-webkit-overflow-scrolling:touch;';
+            d.appendChild(inner);
+            document.body.appendChild(d);
+        }
+        function openCrmUpgrade(){
+            ensureUpgradeShell();
+            var rows = [
+                ['客戶數', '5 位', '不限'],
+                ['合約管理', '\u2014', '\u2705'],
+                ['預約排程', '\u2014', '\u2705'],
+                ['收款紀錄', '\u2014', '\u2705'],
+                ['營運儀表板', '\u2014', '\u2705'],
+                ['服務追蹤', '\u2014', '\u2705'],
+                ['同帳號裝置數', '1 台', '3 台']
+            ];
+            var html = '<div style="font-size:18px;font-weight:700;color:#2c3e50;margin-bottom:4px">\u2b50 \u5347\u7d1a\u5b8c\u6574\u7248</div>'
+                + '<div style="font-size:13px;color:#7b8794;margin-bottom:16px">\u5ba2\u6236\u3001\u5408\u7d04\u3001\u9810\u7d04\u3001\u6536\u6b3e\uff0c\u4e00\u500b\u7cfb\u7d71\u7ba1\u5b8c</div>'
+                + '<div style="border:1px solid #e5e7eb;border-radius:12px;overflow:hidden">'
+                + '<div style="display:grid;grid-template-columns:1fr 70px 70px;background:#f3f6f8;padding:9px 12px;font-size:12px;font-weight:700;color:#5a6a78">'
+                  + '<span></span><span style="text-align:center">\u514d\u8cbb</span><span style="text-align:center">\u5b8c\u6574\u7248</span></div>';
+            rows.forEach(function(r){
+                html += '<div style="display:grid;grid-template-columns:1fr 70px 70px;padding:10px 12px;font-size:13.5px;color:#2c3e50;border-top:1px solid #f0f2f4">'
+                     + '<span>' + r[0] + '</span>'
+                     + '<span style="text-align:center;color:#9aa4ad">' + r[1] + '</span>'
+                     + '<span style="text-align:center">' + r[2] + '</span></div>';
+            });
+            html += '</div>';
+            html += payCardHtml({ app:'crm', email: crmUserEmail || '', price:6000, per:500, accent:'#4A7A9B', note:'\u65e9\u9ce5\u50f9' });
+            html += '<div style="text-align:center;color:#9aa4ad;font-size:12px;margin-top:8px">\u539f\u50f9 $7,200\uff0c\u524d 15 \u4f4d\u65e9\u9ce5\u50f9 $6,000\uff0c\u7e8c\u7d04\u540c\u50f9</div>';
+            html += '<button type="button" class="subs-ghost" onclick="closeCrmUpgrade()">\u95dc\u9589</button>';
+            document.getElementById('crmUpgradeBody').innerHTML = html;
+            document.getElementById('crmUpgrade').style.display = 'flex';
+            payCardBind();
+        }
+        function closeCrmUpgrade(){ var el=document.getElementById('crmUpgrade'); if(el) el.style.display='none'; }
+        window.openCrmUpgrade = openCrmUpgrade;
+        window.closeCrmUpgrade = closeCrmUpgrade;
+
         function crmLogout(){
-            try { localStorage.removeItem('servicecrm_data'); } catch(e){}
+            crmCacheClear();
             var go = function(){ location.reload(); };
             try { if (auth) { auth.signOut().then(go, go); return; } } catch(e){}
             go();
@@ -1892,7 +2177,7 @@
             const name = prompt('夥伴姓名', oldName);
             if (name === null) return;
             const t = name.trim();
-            if (!t) { showToast('名稱不能空白'); return; }
+            if (!t) { showToast('請輸入名稱'); return; }
             const p = (store.data.partners || []).find(x => x.id === id);
             if (!p) return;
             p.name = t;
@@ -1947,7 +2232,7 @@
             const st = store.getServiceType(typeId);
             if (!st) return;
             const t = (document.getElementById('edit-service-name').value || '').trim();
-            if (!t) { showToast('名稱不能空白'); return; }
+            if (!t) { showToast('請輸入名稱'); return; }
             if (store.getServiceTypes().some(x => x.id !== typeId && x.typeName === t)) {
                 showToast('已經有同名的服務了'); return;
             }
@@ -2000,6 +2285,7 @@
         }
 
         function saveServiceSettings() {
+            if (crmBlocked()) return;
             const num = function (id, min, max, fallback) {
                 const el = document.getElementById(id);
                 let v = parseInt(el && el.value, 10);
@@ -2115,9 +2401,15 @@
             put('sv-app', '');
             put('sv-support', '');
 
-            const isAdmin = (crmUserEmail === ADMIN_EMAIL) && !PREVIEW;
+            const isAdmin = (isCrmAdminEmail(crmUserEmail)) && !PREVIEW;
             const ar = document.getElementById('set-admin-preview');
             const ag = document.getElementById('set-admin-gap');
+            var svp = document.getElementById('sv-plan');
+            if (svp) svp.textContent = crmIsAdmin ? '管理員' : (CRM_PLAN_LABEL[crmPlan] || '免費版');
+            var upRow = document.getElementById('set-upgrade');
+            if (upRow) upRow.style.display = (crmIsAdmin || crmIsPaid(crmPlan)) ? 'none' : 'flex';
+            const asb = document.getElementById('set-admin-subs');
+            if (asb) asb.style.display = isAdmin ? 'flex' : 'none';
             if (ar) ar.style.display = isAdmin ? 'flex' : 'none';
             if (ag) ag.style.display = isAdmin ? 'block' : 'none';
         }
@@ -2257,7 +2549,7 @@
         function deleteServiceType(typeId, typeName) {
             const hasClients = store.data.clients.some(c => c.serviceTypeId === typeId);
             if (hasClients) {
-                showToast(`❌ 「${typeName}」還有客戶資料，無法刪除`);
+                showToast('還有客戶使用此服務項目，無法刪除');
                 return;
             }
             showConfirm(`確定刪除「${typeName}」服務類型嗎？`, () => {
@@ -2326,7 +2618,7 @@
             }
 
             if (clients.length === 0) {
-                clientsList.innerHTML = '<div class="empty-state">尚無客戶' + (searchValue ? '（搜尋無結果）' : '，點擊「+ 新增客戶」開始建立') + '</div>';
+                clientsList.innerHTML = '<div class="empty-state">' + (searchValue ? '<span class="eico">🔍</span>找不到符合的客戶<span class="esub">換個姓名或電話試試</span>' : '<span class="eico">👥</span>尚無客戶<span class="esub">點「+ 新增客戶」開始建立</span>') + '</div>';
             } else {
                 clientsList.innerHTML = clients.map((client) => {
                     const expandId = `client-expand-${client.id}`;
@@ -2486,11 +2778,11 @@
 
         document.getElementById('client-form').addEventListener('submit', function(e) {
             e.preventDefault();
-
+            if (crmBlocked()) return;
             try {
                 // 檢查是否選擇了服務類型
                 if (!store.data.selectedServiceType) {
-                    showToast('❌ 請先在 ⚙️ 設定 建立服務項目');
+                    showToast('請先到設定建立服務項目');
                     return;
                 }
 
@@ -2505,11 +2797,11 @@
                 const clientSource = document.querySelector('input[name="client-source"]:checked');
                 const homeType = document.querySelector('input[name="client-home-type"]:checked');
 
-                if (!clientName) { showToast('❌ 請填寫客戶姓名'); return; }
-                if (!phone) { showToast('❌ 請填寫聯絡電話'); return; }
-                if (SVC().companyDispatch && !clientSource) { showToast('❌ 請選擇客戶來源'); return; }
-                if (fields === 'home' && !homeType) { showToast('❌ 請選擇住家類型'); return; }
-                if (!address) { showToast('❌ 請填寫服務地址'); return; }
+                if (!clientName) { showToast('請輸入客戶姓名'); return; }
+                if (!phone) { showToast('請輸入聯絡電話'); return; }
+                if (SVC().companyDispatch && !clientSource) { showToast('請選擇客戶來源'); return; }
+                if (fields === 'home' && !homeType) { showToast('請選擇住家類型'); return; }
+                if (!address) { showToast('請輸入服務地址'); return; }
 
                 const client = {
                     serviceTypeId: store.data.selectedServiceType,
@@ -2539,7 +2831,10 @@
                     store.save();
                     showToast('✅ 客戶已更新');
                 } else {
+                    if (!crmCanAddClient()) { crmShowQuotaSheet(); return; }
                     store.addClient(client);
+                    crmBumpClients();
+                    crmApplyPlan();
                     showToast('✅ 客戶已建立');
                 }
 
@@ -2547,7 +2842,7 @@
                 updateAllTabs();
             } catch (error) {
                 console.error('客戶建立錯誤:', error);
-                showToast('❌ 發生錯誤：' + error.message);
+                showToast(failMsg('儲存', error));
             }
         });
 
@@ -2584,7 +2879,7 @@
             }
 
             if (contracts.length === 0) {
-                contractsList.innerHTML = '<div class="empty-state">尚無合約' + (searchValue ? '（搜尋無結果）' : '，點擊「+ 新增合約」開始建立') + '</div>';
+                contractsList.innerHTML = '<div class="empty-state">' + (searchValue ? '<span class="eico">🔍</span>找不到符合的合約<span class="esub">換個客戶姓名試試</span>' : '<span class="eico">📄</span>尚無合約<span class="esub">點「+ 新增合約」開始建立</span>') + '</div>';
             } else {
                 contractsList.innerHTML = contracts.map(contract => {
                     const client = store.getClient(contract.clientId);
@@ -2764,6 +3059,7 @@
 
         document.getElementById('contract-form').addEventListener('submit', function(e) {
             e.preventDefault();
+            if (crmBlocked()) return;
 
             const clientId = document.getElementById('contract-modal').dataset.clientId ||
                              document.getElementById('contract-client-id-hidden').value;
@@ -2917,7 +3213,7 @@
             }
 
             if (bookings.length === 0) {
-                bookingsList.innerHTML = '<div class="empty-state">尚無預約' + (searchValue ? '（搜尋無結果）' : '') + '</div>';
+                bookingsList.innerHTML = '<div class="empty-state">' + (searchValue ? '<span class="eico">🔍</span>找不到符合的預約<span class="esub">換個客戶姓名試試</span>' : '<span class="eico">📅</span>尚無預約<span class="esub">點「+ 新增預約」安排第一筆</span>') + '</div>';
             } else {
                 bookingsList.innerHTML = bookings.map(booking => {
                     const contract = store.getContract(booking.contractId);
@@ -3051,6 +3347,7 @@
 
         document.getElementById('booking-form').addEventListener('submit', function(e) {
             e.preventDefault();
+            if (crmBlocked()) return;
 
             const contractId = document.getElementById('booking-modal').dataset.contractId;
             const bookingId = document.getElementById('booking-modal').dataset.bookingId;
@@ -3061,7 +3358,7 @@
 
             if (serviceHours > H.usable) {
                 const extra = H.booked > 0 ? `（已完成 ${H.used}h、已排未做 ${H.booked}h）` : '';
-                showToast(`❌ 最多只能再排 ${H.usable} 小時${extra}`);
+                showToast(`最多只能再排 ${H.usable} 小時${extra}`);
                 return;
             }
 
@@ -3184,6 +3481,7 @@
 
         document.getElementById('booking-status-form').addEventListener('submit', function(e) {
             e.preventDefault();
+            if (crmBlocked()) return;
 
             const bookingId = document.getElementById('booking-status-modal').dataset.bookingId;
             const prevStatus = document.getElementById('booking-status-modal').dataset.prevStatus;
@@ -3196,7 +3494,7 @@
                 // 刪除預約
                 store.data.bookings = store.data.bookings.filter(b => b.id !== bookingId);
                 store.save();
-                showToast('🗑️ 預約已刪除，收款記錄一併移除');
+                showToast('✅ 預約已刪除，收款記錄一併移除');
                 closeBookingStatusModal();
                 updateAllTabs();
                 return;
@@ -3282,7 +3580,7 @@
             }
 
             if (payments.length === 0) {
-                paymentsList.innerHTML = '<div class="empty-state">尚無收款紀錄' + (searchValue || statusFilter ? '（篩選無結果）' : '，請在預約管理中將預約狀態改為「完成」') + '</div>';
+                paymentsList.innerHTML = '<div class="empty-state">' + (searchValue || statusFilter ? '<span class="eico">🔍</span>找不到符合的收款紀錄<span class="esub">試著調整搜尋或篩選</span>' : '<span class="eico">💰</span>尚無收款紀錄<span class="esub">在預約管理把預約標成「完成」就會自動產生</span>') + '</div>';
             } else {
                 paymentsList.innerHTML = payments.map(payment => {
                     const modCount = payment.modificationHistory ? payment.modificationHistory.length : 0;
@@ -3355,6 +3653,7 @@
 
         document.getElementById('payment-form').addEventListener('submit', function(e) {
             e.preventDefault();
+            if (crmBlocked()) return;
 
             const bookingId = document.getElementById('payment-booking').value;
             const paymentId = document.getElementById('payment-modal').dataset.paymentId;
@@ -3472,7 +3771,7 @@
             payment.modificationHistory.forEach((mod, index) => {
                 const timestamp = new Date(mod.timestamp).toLocaleString('zh-TW');
                 historyHtml += `
-                    <div style="margin-bottom: 15px; padding: 10px; background-color: #f0f0f0; border-radius: 4px;">
+                    <div style="margin-bottom: 15px; padding: 10px; background-color: #f0f0f0; border-radius: 10px;">
                         <p><strong>修改 #${index + 1} - ${timestamp}</strong></p>
                         <p>狀態：${mod.originalStatus} → <span style="color: #e74c3c;"><strong>${mod.newStatus}</strong></span></p>
                         <p>金額：NT$${mod.originalAmount.toLocaleString()} → NT$${mod.newAmount.toLocaleString()}</p>
@@ -3679,7 +3978,11 @@
                 }
 
                 const st = store.getServiceType(client.serviceTypeId);
-                return { client, lastBooking, lastDate, daysDiff, monthsDiff, level, stName: st?.typeName || '' };
+                // 追蹤的重點是「合約買了沒在用」，所以要把剩餘時數一起帶出來
+                const liveC = contracts.filter(c => (c.contractStatus || '進行中') === '進行中');
+                const remainH = liveC.reduce((sum, c) => sum + contractHours(c).remain, 0);
+                return { client, lastBooking, lastDate, daysDiff, monthsDiff, level,
+                         stName: st?.typeName || '', remainH: liveC.length ? remainH : null };
             });
 
             const filtered = filterVal ? clientData.filter(d => d.level === filterVal) : clientData;
@@ -3691,7 +3994,7 @@
             });
 
             if (filtered.length === 0) {
-                container.innerHTML = '<div class="empty-state">此分類沒有客戶</div>';
+                container.innerHTML = '<div class="empty-state"><span class="eico">👥</span>此分類沒有客戶<span class="esub">換一個分類看看</span></div>';
                 return;
             }
 
@@ -3722,11 +4025,14 @@
                                     最後服務：${timeText}
                                     ${dateText ? `<span style="color:#7f8c8d;">（${dateText}）</span>` : ''}
                                 </p>
-                                ${d.stName ? `<p style="font-size:12px;color:#7f8c8d;">${d.stName}</p>` : ''}
+                                ${(d.stName || d.remainH !== null) ? `<p style="font-size:12px;color:#7f8c8d;">${d.stName}${(d.stName && d.remainH !== null) ? ' ｜ ' : ''}${d.remainH !== null ? `<span style="color:${d.remainH > 0 ? '#c0392b' : '#7f8c8d'};font-weight:${d.remainH > 0 ? 'bold' : 'normal'};">合約還剩 ${d.remainH}h</span>` : ''}</p>` : ''}
                             </div>
                             <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
                                 <span style="font-size:11px;background:white;padding:2px 8px;border-radius:10px;color:${cfg.border};border:1px solid ${cfg.border};">${cfg.label}</span>
-                                <button class="btn btn-sm btn-secondary" onclick="openClientDetailModal('${d.client.id}')">查看</button>
+                                <div style="display:flex;gap:6px;">
+                                    ${d.client.phone ? `<a class="btn btn-sm btn-secondary" style="text-decoration:none;display:inline-block;" href="tel:${String(d.client.phone).replace(/[^0-9+]/g,'')}">📞 撥號</a>` : ''}
+                                    <button class="btn btn-sm btn-secondary" onclick="openClientDetailModal('${d.client.id}')">查看</button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -3813,15 +4119,16 @@
 
         // ==================== 刪除功能 ====================
         function deleteClient(clientId, clientName) {
+            if (crmBlocked()) return;
             // 檢查是否有關聯的合約
             const relatedContracts = store.getContracts().filter(c => c.clientId === clientId);
             
             if (relatedContracts.length > 0) {
-                showToast(`⚠️ 無法刪除！\n\n客戶「${clientName}」有 ${relatedContracts.length} 份合約\n\n請先刪除相關合約，再刪除客戶。`);
+                showToast(`${clientName}還有 ${relatedContracts.length} 份合約，請先刪除合約`);
                 return;
             }
 
-            showConfirm(`確定要刪除客戶「${clientName}」嗎？此操作無法復原！`, () => {
+            showConfirm(`確定要刪除客戶「${clientName}」嗎？此操作無法復原。`, () => {
                 const index = store.data.clients.findIndex(c => c.id === clientId);
                 if (index > -1) {
                     store.data.clients.splice(index, 1);
@@ -3833,16 +4140,17 @@
         }
 
         function deleteContract(contractId, clientName) {
+            if (crmBlocked()) return;
             // 檢查是否有關聯的預約
             const relatedBookings = store.getBookings().filter(b => b.contractId === contractId);
             
             if (relatedBookings.length > 0) {
-                showToast(`⚠️ 無法刪除！\n\n合約有 ${relatedBookings.length} 個預約\n\n請先刪除相關預約，再刪除合約。`);
+                showToast(`這份合約還有 ${relatedBookings.length} 個預約，請先刪除預約`);
                 return;
             }
 
             const contract = store.getContract(contractId);
-            if (confirm(`⚠️ 確定要刪除「${clientName}」的合約嗎？\n金額: NT$${contract.totalPrice.toLocaleString()}\n\n此操作無法復原！`)) {
+            showConfirm(`確定要刪除「${clientName}」的合約嗎？金額 NT$${contract.totalPrice.toLocaleString()}，此操作無法復原。`, () => {
                 const index = store.data.contracts.findIndex(c => c.id === contractId);
                 if (index > -1) {
                     store.data.contracts.splice(index, 1);
@@ -3850,23 +4158,24 @@
                     showToast('✅ 合約已刪除');
                     updateAllTabs();
                 }
-            }
+            });
         }
 
         function deleteBooking(bookingId, clientName) {
+            if (crmBlocked()) return;
             // 檢查是否有關聯的收款
             const relatedPayments = store.data.payments.filter(p => p.bookingId === bookingId);
             
             const booking = store.getBooking(bookingId);
-            let confirmMsg = `⚠️ 確定要刪除「${clientName}」的預約嗎？\n日期: ${booking.bookingDate} ${booking.bookingTime}\n時數: ${booking.serviceHours}h`;
+            let confirmMsg = `確定要刪除「${clientName}」${booking.bookingDate} ${booking.bookingTime} 的預約嗎？時數 ${booking.serviceHours}h。`;
             
             if (relatedPayments.length > 0) {
-                confirmMsg += `\n\n⚠️ 同時刪除 ${relatedPayments.length} 筆相關收款紀錄`;
+                confirmMsg += `同時會刪除 ${relatedPayments.length} 筆相關收款紀錄。`;
             }
             
-            confirmMsg += `\n\n此操作無法復原！`;
+            confirmMsg += `此操作無法復原。`;
 
-            if (confirm(confirmMsg)) {
+            showConfirm(confirmMsg, () => {
                 // 刪除相關的 Payment 記錄
                 relatedPayments.forEach(payment => {
                     const paymentIndex = store.data.payments.findIndex(p => p.id === payment.id);
@@ -3884,7 +4193,7 @@
                 store.save();
                 showToast('✅ 預約及相關收款已刪除');
                 updateAllTabs();
-            }
+            });
         }
 
         function attachSearchListeners() {
@@ -3909,9 +4218,9 @@
 
         // ==================== 資料備份 ====================
         function exportData() {
-            const data = localStorage.getItem('servicecrm_data');
+            const data = crmCacheGet();
             if (!data || JSON.parse(data).clients?.length === 0) {
-                showToast('⚠️ 目前沒有資料可以匯出');
+                showToast('目前沒有資料可以匯出');
                 return;
             }
             const blob = new Blob([data], { type: 'application/json' });
@@ -3938,17 +4247,17 @@
                     try {
                         const data = JSON.parse(e.target.result);
                         if (!data.clients || !data.contracts || !data.bookings || !data.payments) {
-                            showToast('❌ 檔案格式錯誤');
+                            showToast('這不是本 App 的備份檔');
                             return;
                         }
-                        localStorage.setItem('servicecrm_data', JSON.stringify(data));
+                        crmCacheSet(JSON.stringify(data));
                         db.ref(FB_KEY).set(data).catch(err => console.error('Firebase同步失敗:', err));
                         store.initData();
                         store.applyCompatibility();
                         updateAllTabs();
-                        showToast(`✅ 匯入成功！客戶${data.clients.length}位・合約${data.contracts.length}份・預約${data.bookings.length}筆`);
+                        showToast(`✅ 匯入成功：客戶${data.clients.length}位・合約${data.contracts.length}份・預約${data.bookings.length}筆`);
                     } catch(err) {
-                        showToast('❌ 檔案讀取失敗，請確認是正確的 JSON 備份檔案');
+                        showToast('匯入失敗，請確認是本 App 的備份檔');
                     }
                 };
                 reader.readAsText(fileRef);
@@ -3956,22 +4265,32 @@
         }
 
         // ==================== UI 工具 ====================
-        function showToast(msg, duration = 2500) {
+        function failMsg(act, err){
+            var code = String((err && (err.code || err.message)) || "");
+            if((typeof navigator!=="undefined" && navigator.onLine===false)
+               || /unavailable|network|timeout|deadline|offline/i.test(code)) return act+"失敗，請檢查網路連線";
+            if(/permission|denied|unauthenticated|auth/i.test(code)) return act+"失敗，請重新登入再試一次";
+            return act+"失敗，請稍後再試";
+        }
+        function showToast(msg, duration) {
             const t = document.getElementById('toast');
+            if (!t) return;
             t.textContent = msg;
             t.style.display = 'block';
             clearTimeout(t._timer);
-            t._timer = setTimeout(() => { t.style.display = 'none'; }, duration);
+            t._timer = setTimeout(() => { t.style.display = 'none'; }, duration || 1800);
         }
 
-        function showConfirm(msg, onOk) {
+        function showConfirm(msg, onOk, okText) {
             const overlay = document.getElementById('confirm-overlay');
             document.getElementById('confirm-message').textContent = msg;
             overlay.style.display = 'flex';
             const ok = document.getElementById('confirm-ok');
             const cancel = document.getElementById('confirm-cancel');
-            const cleanup = () => { overlay.style.display = 'none'; ok.onclick = null; cancel.onclick = null; };
-            ok.onclick = () => { cleanup(); onOk(); };
+            const _label = ok.textContent;
+            if (okText) ok.textContent = okText;
+            const cleanup = () => { overlay.style.display = 'none'; ok.textContent = _label; ok.onclick = null; cancel.onclick = null; };
+            ok.onclick = () => { cleanup(); if (onOk) onOk(); };
             cancel.onclick = () => { cleanup(); };
         }
 
@@ -4104,29 +4423,6 @@
                 showToast('已複製連結，貼給朋友就可以了');
             }catch(e){ if (e && e.name === 'AbortError') return; prompt('複製這個連結：', CRM_APP_URL); }
         }
-        var CRM_TERMS_HTML =
-            '<h3 style="margin:0 0 12px">📄 服務條款與隱私政策</h3>' +
-            '<div style="text-align:left;font-size:13.5px;line-height:1.75;max-height:60vh;overflow:auto">' +
-            '<p><b>1. 服務內容</b><br>本系統提供到府服務業者的客戶、合約、預約與收款管理，資料儲存於 Google Firebase。</p>' +
-            '<p><b>2. 帳號</b><br>以 Email 登入連結驗證身分，每個帳號的資料各自獨立，其他人看不到。</p>' +
-            '<p><b>3. 付款</b><br>付款採藍新金流線上付款。完成付款後，我們將於 1～2 個工作天內開通；若逾期未開通，請透過官方 LINE 聯繫，會優先處理。數位服務一經開通恕不退費，特殊情形請與客服協商。</p>' +
-            '<p><b>4. 資料與隱私</b><br>僅蒐集登入 Email 與您自行輸入的營業資料，不會提供給第三方。您可隨時聯繫客服刪除帳號與資料，也可自行在設定頁匯出備份。</p>' +
-            '<p><b>5. 服務變更與備份</b><br>我們得因維護或不可抗力暫停服務，並儘可能事先公告。仍強烈建議定期使用「匯出備份」。</p>' +
-            '<p><b>6. 聯絡方式</b><br>LINE 客服：@373pfdee</p>' +
-            '</div>';
-        function crmShowTerms(){
-            if (document.getElementById('crmTermsSheet')) return;
-            var d = document.createElement('div');
-            d.id = 'crmTermsSheet';
-            d.setAttribute('style','position:fixed;inset:0;z-index:9996;background:rgba(44,62,80,.5);display:flex;align-items:center;justify-content:center;padding:20px');
-            d.innerHTML = '<div style="width:100%;max-width:360px;background:#fff;border-radius:18px;padding:24px 20px;">' +
-                CRM_TERMS_HTML +
-                '<button id="crmTermsClose" class="btn btn-secondary" style="width:100%;margin-top:14px">關閉</button></div>';
-            document.body.appendChild(d);
-            var close = function(){ var el = document.getElementById('crmTermsSheet'); if (el) el.remove(); };
-            document.getElementById('crmTermsClose').addEventListener('click', close);
-            d.addEventListener('click', function(e){ if (e.target === d) close(); });
-        }
 
         // PWA：註冊 Service Worker（離線快取＋偵測新版）
         if ('serviceWorker' in navigator){
@@ -4157,12 +4453,8 @@
         }
 
         // ===== 手機返回鍵（智在生活 Standard，五支 App 同一套）=====
-        function crmToast(msg){
-            var el = document.getElementById('toast');
-            if (!el) return;
-            el.textContent = msg; el.style.display = 'block';
-            clearTimeout(el._t); el._t = setTimeout(function(){ el.style.display = 'none'; }, 1800);
-        }
+        // crmToast 保留舊名字供既有呼叫使用，實際走同一個 showToast
+        function crmToast(msg){ showToast(msg, 1800); }
         function appHandleBack(){
             var cf = document.getElementById('confirm-overlay');
             if (cf && cf.style.display === 'flex') { cf.style.display = 'none'; return true; }   // 確認視窗
@@ -4215,7 +4507,17 @@
             var ib = document.getElementById('crmInstallBtn'); if (ib) ib.addEventListener('click', crmInstall);
             var sb = document.getElementById('crmShareBtn');   if (sb) sb.addEventListener('click', crmShare);
             var pb = document.getElementById('crmSupportBtn'); if (pb) pb.addEventListener('click', function(){ window.open(LINE_SUPPORT_URL, '_blank', 'noopener'); });
-            var tb = document.getElementById('crmTermsBtn');   if (tb) tb.addEventListener('click', crmShowTerms);
+            var tb = document.getElementById('crmTermsBtn');   if (tb) tb.addEventListener('click', function(){ legalDocs.open('terms'); });
+            // 登入前同意：沒勾就不能登入
+            var agr = document.getElementById('crmAgree');
+            var lgb = document.getElementById('crmLoginBtn');
+            var agl = document.getElementById('crmAgreeLink');
+            if (agl) agl.addEventListener('click', function(){ legalDocs.open('terms'); });
+            if (agr && lgb) agr.addEventListener('change', function(){
+                lgb.disabled = !agr.checked;
+                lgb.style.background = agr.checked ? '#4A7A9B' : '#C8CFD6';
+                lgb.style.cursor = agr.checked ? 'pointer' : 'not-allowed';
+            });
             var ap = document.getElementById('crmAdminPw');
             if (ap) ap.addEventListener('keydown', function(e){ if (e.key === 'Enter') crmAdminLogin(); });
 
@@ -4232,9 +4534,718 @@
                 showCrmLogin('');
             }
         });
-    </script>
+/* ==================== 訂閱管理（跨 App 共用模組）====================
+   四個 App 共用同一份程式碼，只有 SUBS_APPS 這張表要一致。
+   權限由 Firebase 規則擋（只認 mp65p@hotmail.com），前端只是介面。
+   ==================================================================== */
+(function(){
+  var SUBS_APPS = [
+    { id:'cal',  icon:'📅', name:'行事曆',   path:'subscribers/' },
+    { id:'cook', icon:'🍳', name:'食在料理', path:'jiachangzhu_subscribers/' },
+    { id:'trv',  icon:'✈️', name:'旅遊計畫', path:'travel_subscribers/' },
+    { id:'crm',  icon:'👥', name:'客戶管理', path:'crm_subscribers/' }
+  ];
+  var PLAN_TXT = { trial:'試用', full:'完整版', basic:'完整版', family:'完整版', free:'免費版' };
+  function devLimit(p){ return (p==='full'||p==='basic'||p==='family'||p==='trial') ? 3 : 1; }
+
+  var S = { data:{}, tab:'all', q:'', loading:false, sel:null, selApp:null,
+            addPlan:'full', addMonths:12, addApp:'crm' };
+
+  /* ---------- 小工具 ---------- */
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+  // 必須跟 Firebase 規則一致：email.toLowerCase().replace('.','_')
+  function eKey(e){ return String(e||'').toLowerCase().replace(/[.#$\[\]]/g,'_'); }
+  function isMail(e){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(e||'').trim()); }
+  function ymd(ts){ var d=new Date(ts);
+    return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+  function slash(s){ return String(s||'').replace(/-/g,'/'); }
+  function addMonths(ts, m){ var d=new Date(ts); var day=d.getDate();
+    d.setMonth(d.getMonth()+m);
+    if(d.getDate()<day) d.setDate(0);   // 1/31 +1月 → 2/28，不要跳到 3/3
+    return d.getTime(); }
+  function toast(msg){
+    var t=document.getElementById('subsToast');
+    if(!t){ t=document.createElement('div'); t.id='subsToast';
+      t.style.cssText='position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom));background:rgba(32,38,44,.94);color:#fff;padding:11px 20px;border-radius:999px;font-size:13.5px;z-index:10005;opacity:0;transition:opacity .2s;pointer-events:none;max-width:86vw;text-align:center;';
+      document.body.appendChild(t); }
+    t.textContent=msg; t.style.opacity='1';
+    clearTimeout(t._tm); t._tm=setTimeout(function(){ t.style.opacity='0'; }, 2000);
+  }
+  function fail(act, err){
+    if(!navigator.onLine) return act+'失敗，請確認網路後再試';
+    var c=(err&&(err.code||err.message))||'';
+    if(/permission|denied|auth/i.test(c)) return act+'失敗，請重新登入後再試';
+    return act+'失敗，請稍後再試';
+  }
+  function confirmBox(msg, onOk){
+    if(window.showConfirm) return window.showConfirm(msg, onOk);
+    if(window.askConfirm){ var r=window.askConfirm(msg); if(r&&r.then){ r.then(function(ok){ if(ok) onOk(); }); return; } }
+    if(confirm(msg)) onOk();
+  }
+
+  /* ---------- 狀態判讀 ---------- */
+  function stat(sub){
+    if(!sub) return null;
+    var now=Date.now();
+    var exp = sub.expiry ? Date.parse(sub.expiry+'T23:59:59') : 0;
+    var expired = !!(exp && now>exp);
+    var days = exp ? Math.ceil((exp-now)/86400000) : null;
+    return { plan: expired?'free':(sub.plan||'free'), rawPlan:sub.plan||'free',
+             expiry:sub.expiry||'', expired:expired, days:days,
+             disabled: sub.status==='disabled', raw:sub };
+  }
+  function statHtml(st){
+    if(!st) return '<span class="subs-stat subs-none">－</span>';
+    if(st.disabled) return '<span class="subs-stat subs-gray">已停用</span>';
+    var name = PLAN_TXT[st.rawPlan]||st.rawPlan;
+    if(st.expired) return '<span class="subs-stat subs-bad">已過期 · 過期 '+Math.abs(st.days)+' 天</span>';
+    if(st.days==null) return '<span class="subs-stat subs-gray">'+name+'</span>';
+    if(st.days<=7)  return '<span class="subs-stat subs-bad">'+name+' · 剩 '+st.days+' 天</span>';
+    if(st.days<=30) return '<span class="subs-stat subs-warn">'+name+' · 剩 '+st.days+' 天</span>';
+    return '<span class="subs-stat subs-ok">'+name+' · '+slash(st.expiry)+'</span>';
+  }
+
+  /* ---------- 讀取 ---------- */
+  async function load(){
+    S.loading=true; render();
+    var out={};
+    for(var i=0;i<SUBS_APPS.length;i++){
+      var a=SUBS_APPS[i];
+      try{ var snap=await firebase.database().ref(a.path).once('value'); out[a.id]=snap.val()||{}; }
+      catch(e){ out[a.id]=null; }
+    }
+    S.data=out; S.loading=false; render();
+  }
+  function rows(){
+    var map={};
+    SUBS_APPS.forEach(function(a){
+      var d=S.data[a.id]; if(!d) return;
+      Object.keys(d).forEach(function(k){
+        if(!map[k]) map[k]={ key:k, email:'', apps:{} };
+        var s=d[k]||{};
+        if(!map[k].email) map[k].email = s.email || k;
+        map[k].apps[a.id]=s;
+      });
+    });
+    var arr=Object.keys(map).map(function(k){ return map[k]; });
+    // 篩選
+    var q=S.q.trim().toLowerCase();
+    if(q) arr=arr.filter(function(r){ return (r.email+' '+r.key).toLowerCase().indexOf(q)>=0; });
+    if(S.tab==='soon'){
+      arr=arr.filter(function(r){
+        return SUBS_APPS.some(function(a){
+          var st=stat(r.apps[a.id]);
+          return st && !st.disabled && st.days!=null && st.days<=30 && st.days>-30;
+        });
+      });
+      arr.sort(function(x,y){ return minDays(x)-minDays(y); });
+    } else if(S.tab!=='all'){
+      arr=arr.filter(function(r){ return !!r.apps[S.tab]; });
+      arr.sort(function(x,y){ return String(x.email).localeCompare(String(y.email)); });
+    } else {
+      arr.sort(function(x,y){ return String(x.email).localeCompare(String(y.email)); });
+    }
+    return arr;
+  }
+  function minDays(r){
+    var m=99999;
+    SUBS_APPS.forEach(function(a){ var st=stat(r.apps[a.id]);
+      if(st && st.days!=null && st.days<m) m=st.days; });
+    return m;
+  }
+
+  /* ---------- 畫面 ---------- */
+  function render(){
+    var body=document.getElementById('subsBody'); if(!body) return;
+    var cnt=document.getElementById('subsCount');
+    document.querySelectorAll('.subs-tab').forEach(function(b){
+      b.classList.toggle('on', b.getAttribute('data-tab')===S.tab); });
+
+    if(S.loading){ body.innerHTML='<div class="subs-empty">載入中…</div>'; if(cnt) cnt.textContent=''; return; }
+
+    var bad=SUBS_APPS.filter(function(a){ return S.data[a.id]===null; });
+    var warn = bad.length ? '<div class="subs-empty" style="padding:14px;color:#c0392b;font-size:13px">'+
+      esc(bad.map(function(a){return a.name;}).join('、'))+' 讀取失敗，請確認網路或 Firebase 規則</div>' : '';
+
+    var arr=rows();
+    if(cnt) cnt.textContent='共 '+arr.length+' 位';
+    if(!arr.length){
+      body.innerHTML = warn + '<div class="subs-empty">📭<br>'+
+        (S.q ? '找不到「'+esc(S.q)+'」' : S.tab==='soon' ? '沒有快到期的客戶' : '還沒有客戶')+
+        '<br><span style="font-size:13px">'+(S.q?'換個關鍵字試試':'有人付款後，按下面的「新增客戶」')+'</span></div>';
+      return;
+    }
+    var only = (S.tab==='all'||S.tab==='soon') ? null : S.tab;
+    body.innerHTML = warn + arr.map(function(r){
+      var lines = SUBS_APPS.filter(function(a){ return !only || a.id===only; }).map(function(a){
+        var st=stat(r.apps[a.id]);
+        return '<div class="subs-line" data-k="'+esc(r.key)+'" data-a="'+a.id+'">'+
+               '<span class="subs-ico">'+a.icon+'</span>'+
+               '<span class="subs-app">'+a.name+'</span>'+
+               statHtml(st)+
+               '<span class="subs-arrow">›</span></div>';
+      }).join('');
+      return '<div class="subs-card"><div class="subs-email">'+esc(r.email)+'</div>'+
+             '<div class="subs-key">'+esc(r.key)+'</div>'+lines+'</div>';
+    }).join('');
+
+    body.querySelectorAll('.subs-line').forEach(function(el){
+      el.onclick=function(){ openManage(el.getAttribute('data-k'), el.getAttribute('data-a')); };
+    });
+  }
+
+  /* ---------- 新增 ---------- */
+  function openAdd(){
+    S.addPlan='full'; S.addMonths=12; S.addApp = (S.tab!=='all'&&S.tab!=='soon') ? S.tab : 'crm';
+    sheet(addHtml());
+    wireAdd();
+  }
+  function addHtml(){
+    return '<div class="subs-sh-title">新增客戶</div>'+
+      '<div class="subs-sh-sub">有人付款後用這個開通</div>'+
+      '<div class="subs-label">哪個 App</div>'+
+      '<div class="subs-chips" id="ax">'+SUBS_APPS.map(function(a){
+        return '<button type="button" class="subs-chip'+(a.id===S.addApp?' on':'')+'" data-v="'+a.id+'">'+a.icon+' '+a.name+'</button>';
+      }).join('')+'</div>'+
+      '<div class="subs-label">客戶 Email</div>'+
+      '<input type="email" class="subs-input" id="aEmail" placeholder="linda@gmail.com" autocomplete="off" inputmode="email">'+
+      '<div class="subs-label">方案</div>'+
+      '<div class="subs-chips" id="ap">'+
+        '<button type="button" class="subs-chip on" data-v="full">完整版</button>'+
+        '<button type="button" class="subs-chip" data-v="trial">試用</button>'+
+        '<button type="button" class="subs-chip" data-v="free">免費版</button>'+
+      '</div>'+
+      '<div class="subs-label">期間</div>'+
+      '<div class="subs-chips" id="am">'+
+        '<button type="button" class="subs-chip on" data-v="12">一年</button>'+
+        '<button type="button" class="subs-chip" data-v="24">兩年</button>'+
+        '<button type="button" class="subs-chip" data-v="1">一個月</button>'+
+      '</div>'+
+      '<div class="subs-calc" id="aCalc"></div>'+
+      '<button type="button" class="subs-primary" id="aGo">確定新增</button>'+
+      '<button type="button" class="subs-ghost" onclick="subsAdmin.closeSheet()">取消</button>';
+  }
+  function wireAdd(){
+    var em=document.getElementById('aEmail');
+    function chips(id, set){
+      var box=document.getElementById(id); if(!box) return;
+      box.querySelectorAll('.subs-chip').forEach(function(b){
+        b.onclick=function(){
+          box.querySelectorAll('.subs-chip').forEach(function(x){ x.classList.remove('on'); });
+          b.classList.add('on'); set(b.getAttribute('data-v')); calc();
+        };
+      });
+    }
+    chips('ax', function(v){ S.addApp=v; });
+    chips('ap', function(v){ S.addPlan=v; });
+    chips('am', function(v){ S.addMonths=Number(v); });
+    if(em) em.addEventListener('input', calc);
+    calc();
+    document.getElementById('aGo').onclick=doAdd;
+
+    function calc(){
+      var c=document.getElementById('aCalc'); if(!c) return;
+      var v=(em&&em.value||'').trim().toLowerCase();
+      var mp=document.getElementById('am');
+      if(mp) mp.style.display = (S.addPlan==='free') ? 'none' : 'flex';
+      var expTxt = (S.addPlan==='free') ? '不到期' : slash(ymd(addMonths(Date.now(), S.addMonths)));
+      c.innerHTML = '資料位置　<b>'+(v?esc(eKey(v)):'—')+'</b><br>到期日　　<b>'+expTxt+'</b>';
+    }
+  }
+  async function doAdd(){
+    var em=document.getElementById('aEmail'), btn=document.getElementById('aGo');
+    var v=(em&&em.value||'').trim().toLowerCase();
+    if(!isMail(v)){ toast('Email 格式不對，請檢查'); if(em) em.focus(); return; }
+    var app=SUBS_APPS.filter(function(a){ return a.id===S.addApp; })[0];
+    var key=eKey(v), now=Date.now();
+    var free = S.addPlan==='free';
+    var rec={ email:v, plan:S.addPlan, expiry: free?'':ymd(addMonths(now,S.addMonths)),
+              status:'active', deviceLimit:devLimit(S.addPlan), createdAt:now, lastSeen:now };
+    btn.disabled=true; btn.textContent='處理中…';
+    try{
+      var ref=firebase.database().ref(app.path+key);
+      var snap=await ref.once('value');
+      if(snap.val()){ // 已存在 → 只改方案與到期，不動 devices / clientsCreated
+        await ref.update({ plan:rec.plan, expiry:rec.expiry, status:'active', deviceLimit:rec.deviceLimit });
+        toast('已更新　'+app.name+'　'+(PLAN_TXT[S.addPlan]||S.addPlan));
+      } else {
+        rec.devices={}; if(app.id==='crm') rec.clientsCreated=0;
+        await ref.set(rec);
+        toast('已新增　'+app.name+'　'+(PLAN_TXT[S.addPlan]||S.addPlan));
+      }
+      closeSheet(); await load();
+    }catch(e){ toast(fail('新增', e)); btn.disabled=false; btn.textContent='確定新增'; }
+  }
+
+  /* ---------- 管理單一客戶 ---------- */
+  function openManage(key, appId){
+    S.sel=key; S.selApp=appId;
+    var app=SUBS_APPS.filter(function(a){ return a.id===appId; })[0];
+    var sub=(S.data[appId]||{})[key];
+    var st=stat(sub);
+    var email=(sub&&sub.email)||key;
+
+    if(!sub){
+      sheet('<div class="subs-sh-title">'+esc(email)+'</div>'+
+        '<div class="subs-sh-sub">'+app.icon+' '+app.name+'　尚未開通</div>'+
+        '<button type="button" class="subs-primary" id="mNew">開通完整版一年</button>'+
+        '<button type="button" class="subs-ghost" onclick="subsAdmin.closeSheet()">關閉</button>');
+      document.getElementById('mNew').onclick=function(){
+        S.addApp=appId; S.addPlan='full'; S.addMonths=12;
+        sheet(addHtml()); wireAdd();
+        var e=document.getElementById('aEmail'); if(e){ e.value=email; e.dispatchEvent(new Event('input')); }
+      };
+      return;
+    }
+    var used=Object.keys(sub.devices||{}).length;
+    sheet(
+      '<div class="subs-sh-title">'+esc(email)+'</div>'+
+      '<div class="subs-sh-sub">'+app.icon+' '+app.name+'　'+
+        (st.expiry ? (PLAN_TXT[st.rawPlan]||st.rawPlan)+' · '+slash(st.expiry) : (PLAN_TXT[st.rawPlan]||st.rawPlan))+
+        '</div>'+
+      '<button type="button" class="subs-primary" id="mRenew">續約一年</button>'+
+      '<div class="subs-label">改方案</div>'+
+      '<div class="subs-chips" id="mp">'+
+        ['full','trial','free'].map(function(p){
+          return '<button type="button" class="subs-chip'+(st.rawPlan===p?' on':'')+'" data-v="'+p+'">'+PLAN_TXT[p]+'</button>';
+        }).join('')+
+      '</div>'+
+      '<div class="subs-label">延長</div>'+
+      '<div class="subs-chips" id="me">'+
+        '<button type="button" class="subs-chip" data-v="1">＋1 月</button>'+
+        '<button type="button" class="subs-chip" data-v="12">＋1 年</button>'+
+        '<button type="button" class="subs-chip" data-v="ask">自訂…</button>'+
+      '</div>'+
+      '<div class="subs-row2"><span>裝置</span><span class="v">'+used+' / '+(sub.deviceLimit||devLimit(st.rawPlan))+'</span>'+
+        '<button type="button" class="subs-mini" id="mDev">清除</button></div>'+
+      '<div class="subs-row2"><span>狀態</span><span class="v">'+(st.disabled?'已停用':'啟用中')+'</span>'+
+        '<button type="button" class="subs-mini" id="mTog">'+(st.disabled?'恢復':'停用')+'</button></div>'+
+      '<button type="button" class="subs-ghost" onclick="subsAdmin.closeSheet()">關閉</button>'+
+      '<button type="button" class="subs-danger" id="mDel">刪除此 App 的訂閱</button>'
+    );
+
+    var path=app.path+key;
+    document.getElementById('mRenew').onclick=function(){ extend(path, 12); };
+    document.getElementById('me').querySelectorAll('.subs-chip').forEach(function(b){
+      b.onclick=function(){
+        var v=b.getAttribute('data-v');
+        if(v==='ask'){ var m=prompt('延長幾個月？','12'); if(m===null) return;
+          m=parseInt(m,10); if(!m||m<1){ toast('請輸入 1 以上的數字'); return; } extend(path, m); }
+        else extend(path, Number(v));
+      };
+    });
+    document.getElementById('mp').querySelectorAll('.subs-chip').forEach(function(b){
+      b.onclick=function(){ changePlan(path, b.getAttribute('data-v')); };
+    });
+    document.getElementById('mDev').onclick=function(){
+      confirmBox('清除這位客戶的裝置紀錄？\n他需要重新登入。', async function(){
+        try{ await firebase.database().ref(path+'/devices').remove(); toast('已清除裝置'); closeSheet(); await load(); }
+        catch(e){ toast(fail('清除', e)); }
+      });
+    };
+    document.getElementById('mTog').onclick=async function(){
+      var next = st.disabled ? 'active' : 'disabled';
+      try{ await firebase.database().ref(path+'/status').set(next);
+        toast(next==='disabled'?'已停用':'已恢復'); closeSheet(); await load(); }
+      catch(e){ toast(fail('更新', e)); }
+    };
+    document.getElementById('mDel').onclick=function(){
+      confirmBox('確定刪除「'+email+'」在'+app.name+'的訂閱嗎？\n此動作無法復原。', async function(){
+        try{ await firebase.database().ref(path).remove(); toast('已刪除'); closeSheet(); await load(); }
+        catch(e){ toast(fail('刪除', e)); }
+      });
+    };
+  }
+
+  // 續約：從「原到期日」往後加，已過期才從今天算，剩餘天數不會被吃掉
+  async function extend(path, months){
+    try{
+      var snap=await firebase.database().ref(path+'/expiry').once('value');
+      var cur=snap.val(), now=Date.now();
+      var base = cur ? Math.max(Date.parse(cur+'T23:59:59'), now) : now;
+      var next = ymd(addMonths(base, months));
+      await firebase.database().ref(path).update({ expiry:next, status:'active' });
+      toast('已延長至 '+slash(next));
+      closeSheet(); await load();
+    }catch(e){ toast(fail('續約', e)); }
+  }
+  async function changePlan(path, plan){
+    try{
+      var up={ plan:plan, deviceLimit:devLimit(plan) };
+      if(plan==='free') up.expiry='';
+      await firebase.database().ref(path).update(up);
+      toast('已改成 '+(PLAN_TXT[plan]||plan));
+      closeSheet(); await load();
+    }catch(e){ toast(fail('修改', e)); }
+  }
+
+  /* ---------- 容器 ---------- */
+  function sheet(html){
+    var w=document.getElementById('subsSheet');
+    w.querySelector('.subs-sheet').innerHTML=html;
+    w.classList.add('on');
+  }
+  function closeSheet(){ var w=document.getElementById('subsSheet'); if(w) w.classList.remove('on'); }
+
+  function mount(){
+    if(document.getElementById('subsPage')) return;
+    var tabs='<button type="button" class="subs-tab on" data-tab="all">全部</button>'+
+      '<button type="button" class="subs-tab" data-tab="soon">⚠️ 快到期</button>'+
+      SUBS_APPS.map(function(a){ return '<button type="button" class="subs-tab" data-tab="'+a.id+'">'+a.icon+' '+a.name+'</button>'; }).join('');
+    var d=document.createElement('div');
+    d.innerHTML=
+      '<div id="subsPage">'+
+        '<div class="subs-head"><button type="button" class="subs-back" onclick="subsAdmin.close()">‹ 返回</button>'+
+          '<span class="subs-title">訂閱管理</span><span class="subs-count" id="subsCount"></span></div>'+
+        '<div class="subs-tools">'+
+          '<input type="search" class="subs-search" id="subsQ" placeholder="搜尋 Email" autocomplete="off">'+
+          '<div class="subs-tabs">'+tabs+'</div>'+
+        '</div>'+
+        '<div class="subs-body" id="subsBody"></div>'+
+        '<button type="button" class="subs-fab" onclick="subsAdmin.add()">＋ 新增客戶</button>'+
+      '</div>'+
+      '<div id="subsSheet" onclick="if(event.target===this)subsAdmin.closeSheet()"><div class="subs-sheet"></div></div>';
+    while(d.firstChild) document.body.appendChild(d.firstChild);
+    document.getElementById('subsQ').addEventListener('input', function(e){ S.q=e.target.value; render(); });
+    document.querySelectorAll('.subs-tab').forEach(function(b){
+      b.onclick=function(){ S.tab=b.getAttribute('data-tab'); render(); };
+    });
+  }
+
+  window.subsAdmin={
+    open: function(){ mount(); document.getElementById('subsPage').classList.add('on'); load(); },
+    close: function(){ closeSheet(); var p=document.getElementById('subsPage'); if(p) p.classList.remove('on'); },
+    add: openAdd,
+    closeSheet: closeSheet,
+    _s: S
+  };
+})();
+
+    /* ==================== 付款說明卡（四個 App 共用）====================
+   藍新「快速收款連結」拿到後，把該 App 的 url 填進 PAY_LINKS 即可，
+   其餘都不用動。留空時會顯示「請聯繫客服」。
+   ==================================================================== */
+(function(){
+  var PAY_LINKS = {
+    cal:  '',   // 行事曆   $999／年
+    cook: '',   // 食在料理 $799／年
+    trv:  '',   // 旅遊計畫 $999／年
+    crm:  ''    // 客戶管理 $6,000／年（早鳥）
+  };
+  var LINE_URL = 'https://lin.ee/DwhMLJm';
+
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+
+  function tip(msg){
+    var t=document.getElementById('payTip');
+    if(!t){ t=document.createElement('div'); t.id='payTip';
+      t.style.cssText='position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom));background:rgba(32,38,44,.94);color:#fff;padding:11px 20px;border-radius:999px;font-size:13.5px;z-index:10050;opacity:0;transition:opacity .2s;pointer-events:none;';
+      document.body.appendChild(t); }
+    t.textContent=msg; t.style.opacity='1';
+    clearTimeout(t._tm); t._tm=setTimeout(function(){ t.style.opacity='0'; },1800);
+  }
+
+  /* opts: { app:'crm', email:'...', price:6000, per:500, accent:'#4A7A9B', note:'早鳥價' } */
+  window.payCardHtml = function(opts){
+    var o=opts||{}, ac=o.accent||'#E8735C';
+    var mail=o.email||'';
+    var per = o.per ? '<div style="color:#6B7280;font-size:13px;margin-top:4px">平均每月約 $'+o.per+'</div>' : '';
+    var badge = o.note ? '<span style="background:'+ac+';color:#fff;font-size:11.5px;font-weight:800;padding:3px 10px;border-radius:999px;margin-left:8px;vertical-align:middle">'+esc(o.note)+'</span>' : '';
+    return '<div id="payCard" data-app="'+esc(o.app||'')+'" data-ac="'+ac+'" style="border:2px solid '+ac+';border-radius:16px;padding:18px;margin-top:18px;background:#fff">'+
+      '<div style="font-size:15px;font-weight:800;color:#2E2E33">完整版'+badge+'</div>'+
+      '<div style="display:flex;align-items:baseline;gap:8px;margin-top:8px">'+
+        '<span style="font-size:34px;font-weight:900;color:'+ac+';letter-spacing:-.5px">$'+Number(o.price||0).toLocaleString()+'</span>'+
+        '<span style="color:#8A8A93;font-size:14px">/年</span></div>'+ per +
+      '<div style="background:#F6F7F9;border-radius:12px;padding:13px;margin-top:15px">'+
+        '<div style="font-size:12px;color:#7b8794;margin-bottom:6px">你的帳號</div>'+
+        '<div style="display:flex;align-items:center;gap:8px">'+
+          '<div id="payMail" style="flex:1;font-size:14px;font-weight:700;color:#2E2E33;word-break:break-all">'+esc(mail||'（請先登入）')+'</div>'+
+          (mail?'<button type="button" id="payCopy" style="flex:none;border:1px solid #dfe3e8;background:#fff;color:#5a6a78;border-radius:8px;padding:7px 12px;font-size:12px;font-family:inherit;min-height:36px">複製</button>':'')+
+        '</div>'+
+        '<div style="font-size:12.5px;color:#B45309;line-height:1.65;margin-top:10px">⚠️ 付款時「電子郵件」欄請填上面這個信箱，我們才知道要幫誰開通。</div>'+
+      '</div>'+
+      '<label for="payAgree" style="display:flex;gap:9px;align-items:flex-start;margin-top:15px;font-size:12.5px;line-height:1.65;color:#39423C;cursor:pointer">'+
+        '<input type="checkbox" id="payAgree" style="flex:none;width:18px;height:18px;margin-top:1px;accent-color:'+ac+'">'+
+        '<span>我了解本服務提供免費試用，並同意付款開通後不適用七日猶豫期、恕不退費。'+
+          '<a href="javascript:void(0)" id="payTerms" style="color:'+ac+';text-decoration:underline">付款與退款說明</a></span>'+
+      '</label>'+
+      '<button type="button" id="payGo" disabled style="width:100%;border:none;background:#C8CFD6;color:#fff;border-radius:12px;padding:15px;font-size:16px;font-weight:800;margin-top:12px;min-height:50px;font-family:inherit;cursor:not-allowed">前往付款</button>'+
+      '<div style="text-align:center;color:#8A8A93;font-size:12px;margin-top:10px;line-height:1.7">付款後 1 個工作天內完成開通<br>有問題可隨時聯繫客服</div>'+
+    '</div>';
+  };
+
+  // 插入 payCardHtml 之後呼叫，綁定按鈕
+  window.payCardBind = function(){
+    var card=document.getElementById('payCard'); if(!card) return;
+    var app=card.getAttribute('data-app');
+    var mail=(document.getElementById('payMail')||{}).textContent||'';
+    var cp=document.getElementById('payCopy');
+    if(cp) cp.onclick=function(){
+      var done=function(){ tip('已複製　'+mail); };
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(mail).then(done, fallback);
+      } else fallback();
+      function fallback(){
+        var ta=document.createElement('textarea'); ta.value=mail;
+        ta.style.cssText='position:fixed;opacity:0'; document.body.appendChild(ta);
+        ta.select(); try{ document.execCommand('copy'); done(); }catch(e){ tip('複製失敗，請手動選取'); }
+        document.body.removeChild(ta);
+      }
+    };
+    var chk=document.getElementById('payAgree');
+    var go=document.getElementById('payGo');
+    var tl=document.getElementById('payTerms');
+    if(tl) tl.onclick=function(){ if(window.legalDocs) legalDocs.open('pay'); };
+    // 沒勾選就不能付款 —— 這個勾選是「事先同意放棄猶豫期」的證明，不是裝飾
+    var accent = card.getAttribute('data-ac') || '#14564A';
+    if(chk && go) chk.onchange=function(){
+      go.disabled = !chk.checked;
+      go.style.background = chk.checked ? accent : '#C8CFD6';
+      go.style.cursor = chk.checked ? 'pointer' : 'not-allowed';
+    };
+    if(go) go.onclick=function(){
+      if(go.disabled) return;
+      var url=PAY_LINKS[app];
+      if(url){ window.open(url,'_blank','noopener'); return; }
+      tip('付款連結準備中，先幫你開客服');
+      setTimeout(function(){ window.open(LINE_URL,'_blank','noopener'); }, 700);
+    };
+  };
+})();
+
+</script>
+<script>window.LEGAL_APP='crm';</script>
+<script>
+/* ==================== 法律文件（四個 App 共用）====================
+   三份文件：服務條款、隱私權政策、付款與退款說明。
+   客戶管理另加第四份：客戶資料處理說明。
+   只要改 LEGAL_CFG 一個物件，其餘文字自動帶入。
+   ==================================================================== */
+(function(){
+  var APP = (window.LEGAL_APP || 'cal');           // cal / cook / trv / crm
+  var UPDATED = '2026/09/30';
+  var MAIL = 'beyunself@hotmail.com';
+  var LINE_NAME = '智在生活';
+  var LINE_URL = 'https://line.me/R/ti/p/@373pfdee';
+
+  var CFG = {
+    cal:  { name:'生活管家', trial:21, price:'999',
+            what:'行程、待辦、記事、目標追蹤、採購清單與庫存管理' },
+    cook: { name:'食在料理', trial:14, price:'999',
+            what:'食譜查詢、依食材找菜、今日料理規劃、烹調步驟、採購清單與食材庫存' },
+    trv:  { name:'旅遊計畫', trial:14, price:'999',
+            what:'逐日行程安排、交通段銜接、花費彙總與匯率換算、行前準備清單與列印匯出' },
+    crm:  { name:'客戶管理', trial:30, price:'7,200',
+            what:'客戶管理、合約、預約、收款紀錄、營運儀表板與服務追蹤' }
+  };
+  var C = CFG[APP] || CFG.cal;
+
+  function h(title, body){ return { t:title, b:body }; }
+  function p(){ return Array.prototype.slice.call(arguments)
+    .map(function(s){ return '<p>'+s+'</p>'; }).join(''); }
+  function sec(n, t, body){ return '<h4>'+n+'. '+t+'</h4>'+body; }
+
+  var CONTACT = p('Email：'+MAIL, '官方 LINE：'+LINE_NAME);
+
+  var TERMS =
+    sec(1,'我們提供什麼', p(
+      '智在生活提供以下網頁應用程式：生活管家、食在料理、旅遊計畫、客戶管理。各產品獨立計費，可單獨或組合使用。',
+      '你現在使用的是「'+C.name+'」，提供'+C.what+'功能。',
+      '這些是持續開發中的產品，功能會隨版本調整與增加。')) +
+    sec(2,'你的帳號', p(
+      '用 Email 收登入連結即可使用，不需要設密碼。請保管好你的信箱 —— 能收到信的人就能登入你的帳號。',
+      '付費後同一個帳號最多 3 台裝置，免費版 1 台。共用裝置請記得登出。',
+      '未滿 18 歲請由家長或監護人同意後使用。')) +
+    sec(3,'怎麼使用都可以，除了這幾件事', p(
+      '你可以自由使用所有功能，把資料用在任何你需要的地方。請不要：') +
+      '<ul><li>複製或散布本服務的程式碼</li><li>用程式大量擷取服務內的資料</li>' +
+      '<li>反向工程、拆解或破解</li><li>轉售、出租或分享帳號給他人營利</li>' +
+      '<li>未經同意重製或公開發布服務內容</li></ul>' +
+      p('正常使用不會踩到這些線。')) +
+    sec(4,'誰擁有什麼', p(
+      '你的資料是你的。你隨時可以匯出或要求刪除。',
+      '本服務的程式碼、介面設計、文字、圖片、資料結構與「智在生活」品牌名稱，屬於我們所有。')) +
+    sec(5,'服務可能會變', p(
+      '我們會因維護或升級暫停服務，會盡量事先告知。',
+      '如果要停止營運，我們會提前至少 30 天公告，並提供資料匯出方式。',
+      '建議你定期用「匯出備份」自己留一份。')) +
+    sec(6,'我們的責任範圍', p(
+      '我們盡力讓服務穩定，但無法保證完全不出錯。',
+      '若造成損失，賠償以你當年度已付的費用為上限；但如果是我們故意或重大疏失造成的，不在此限。')) +
+    sec(7,'條款有變動', p(
+      '修改會在服務內公告。公告後你繼續使用，視為同意。')) +
+    sec(8,'聯絡我們', CONTACT);
+
+  var PRIVACY =
+    sec(1,'我們蒐集什麼',
+      '<ul><li>你的登入 Email —— 用來辨識帳號、寄登入連結</li>' +
+      '<li>你自己輸入的內容 —— 你在 App 裡建立的各項資料</li>' +
+      '<li>裝置識別碼 —— 用來計算你登入了幾台裝置</li></ul>' +
+      p('我們不蒐集你的通訊錄、位置、照片或其他裝置資訊。我們沒有使用廣告或行為追蹤工具。')) +
+    sec(2,'資料放在哪', p(
+      '儲存於 Google Firebase（Google 提供的雲端資料庫服務）。',
+      '每個帳號的資料以你的 Email 隔離，其他使用者讀不到。')) +
+    sec(3,'誰看得到', p('除了你自己，只有我們在下列情況會存取：') +
+      '<ul><li>你回報問題，需要協助排除故障</li><li>系統異常需要修復</li></ul>' +
+      p('除此之外不會查看，不會用於行銷，不會提供給任何第三人。')) +
+    sec(4,'我們用到的第三方服務',
+      '<ul><li>Google Firebase —— 帳號登入與資料儲存</li>' +
+      '<li>藍新金流 —— 付款處理（我們不會取得你的信用卡號）</li></ul>' +
+      p('這些服務有各自的隱私政策。')) +
+    sec(5,'資料保存多久', p(
+      '帳號存在期間持續保存。',
+      '你可以隨時要求刪除帳號，我們會在 7 天內刪除全部資料。刪除後無法復原，請先自行匯出。')) +
+    sec(6,'你的權利', p(
+      '你可以查詢、更正、匯出或刪除你的資料。大部分在 App 內就能做到，其餘請透過 LINE 或 Email 聯繫。')) +
+    sec(7,'Cookie', p(
+      '我們只使用讓你保持登入狀態的必要儲存，沒有用於追蹤或廣告。')) +
+    sec(8,'聯絡我們', CONTACT);
+
+  var PAY =
+    sec(1,'價格',
+      '<table class="lg-t"><tbody>' +
+      '<tr><td>生活管家</td><td>$999／年</td></tr>' +
+      '<tr><td>食在料理</td><td>$999／年</td></tr>' +
+      '<tr><td>旅遊計畫</td><td>$999／年</td></tr>' +
+      '<tr><td>三個組合</td><td>$1,999／年</td></tr>' +
+      '<tr><td>客戶管理</td><td>$7,200／年（前 15 位早鳥 $6,000，續約同價）</td></tr>' +
+      '</tbody></table>' + p('全部為新台幣，年繳。')) +
+    sec(2,'先試用再決定', p('每個產品都有免費試用，期間功能全部開放：') +
+      '<table class="lg-t"><tbody>' +
+      '<tr><td>生活管家</td><td>21 天</td></tr>' +
+      '<tr><td>食在料理</td><td>14 天</td></tr>' +
+      '<tr><td>旅遊計畫</td><td>14 天</td></tr>' +
+      '<tr><td>客戶管理</td><td>30 天</td></tr>' +
+      '</tbody></table>' +
+      p('試用結束會轉成免費版，功能較少但不會到期，你建立的資料都還在。')) +
+    sec(3,'怎麼付款', p(
+      '藍新金流線上刷卡。',
+      '付款時請填寫你登入用的那個 Email —— 這是我們判斷要幫誰開通的唯一依據，填錯會無法開通。')) +
+    sec(4,'多久開通', p(
+      '收到款項後 1 個工作天內完成。開通後重開一次 App 就是完整版。',
+      '超過時間還沒開通，請透過 LINE 或 Email 聯繫。')) +
+    sec(5,'使用期間', p(
+      '從開通日起算一年。',
+      '提前續約會從原到期日往後延長，剩下的天數不會被吃掉。')) +
+    sec(6,'關於退款', p(
+      '<b>我們不提供退款，所以請務必先試用。</b>',
+      '法律上的說明：依「通訊交易解除權合理例外情事適用準則」第 2 條第 5 款，線上數位服務經你事先同意後提供，不適用七日猶豫期。你在付款前會看到一個勾選框，勾選即表示你了解並同意這一點。',
+      '如果因為系統重大問題導致你完全無法使用，而我們在合理時間內修不好，可以個別討論處理方式。')) +
+    sec(7,'聯絡我們', CONTACT);
+
+  var CLIENTDATA =
+    p('你用這套系統管理你自己的客戶資料，以下說明我們各自的責任。') +
+    sec(1,'誰負什麼責任', p(
+      '個人資料保護法上，你是「蒐集者」，我們是「受託處理者」。簡單說：資料是你的，你決定怎麼用；我們只負責幫你安全地存放與處理。')) +
+    sec(2,'你要做的', p(
+      '向你的客戶蒐集資料時，請依個人資料保護法盡告知義務（告訴他們你為什麼要這些資料、會怎麼用）。這一步在你這邊，我們無法代勞。')) +
+    sec(3,'請不要存這些', p(
+      '與服務無關的個人資料，以及下列特種個人資料：') +
+      '<ul><li>病歷、醫療、基因</li><li>性生活、健康檢查</li><li>犯罪前科</li></ul>' +
+      p('這類資料的保護要求更高，本系統不適合存放。例如客戶備註欄請避免寫健康狀況。')) +
+    sec(4,'我們做到的',
+      '<ul><li>你的資料以登入 Email 隔離，其他使用者讀不到</li>' +
+      '<li>僅在協助你排除問題時存取</li>' +
+      '<li>不作行銷、不提供第三人</li></ul>') +
+    sec(5,'萬一外洩', p(
+      '我們知悉後會盡快通知你，並說明已掌握的範圍與影響，讓你能依法進行後續處理。')) +
+    sec(6,'刪除', p(
+      '你可隨時要求刪除帳號與全部客戶資料，7 天內完成。')) +
+    sec(7,'聯絡我們', CONTACT);
+
+  var DOCS = [
+    h('服務條款', TERMS),
+    h('隱私權政策', PRIVACY),
+    h('付款與退款', PAY)
+  ];
+  if(APP === 'crm') DOCS.push(h('客戶資料處理', CLIENTDATA));
+
+  var cur = 0;
+
+  function css(){
+    if(document.getElementById('lgCss')) return;
+    var s=document.createElement('style'); s.id='lgCss';
+    s.textContent =
+      '#lgWrap{position:fixed;inset:0;background:rgba(20,24,22,.5);z-index:10040;display:none;align-items:flex-end;}'+
+      '#lgWrap.on{display:flex;}'+
+      '.lg-box{background:#fff;color:#1F2724;width:100%;max-height:90vh;display:flex;flex-direction:column;border-radius:16px 16px 0 0;overflow:hidden;}'+
+      '.lg-head{padding:16px 18px 0;border-bottom:1px solid #E6E9E4;flex:none;}'+
+      '.lg-title{font-size:16px;font-weight:700;margin-bottom:2px;}'+
+      '.lg-upd{font-size:11.5px;color:#8A928C;margin-bottom:10px;}'+
+      '.lg-tabs{display:flex;gap:4px;overflow-x:auto;-webkit-overflow-scrolling:touch;}'+
+      '.lg-tab{flex:none;background:none;border:none;border-bottom:2px solid transparent;color:#6B736D;'+
+        'font-size:13.5px;font-family:inherit;padding:9px 10px;min-height:42px;cursor:pointer;white-space:nowrap;}'+
+      '.lg-tab.on{color:#14564A;border-bottom-color:#14564A;font-weight:700;}'+
+      '.lg-body{overflow-y:auto;padding:16px 18px 24px;-webkit-overflow-scrolling:touch;'+
+        'font-size:14px;line-height:1.85;color:#39423C;}'+
+      '.lg-body h4{font-size:14.5px;color:#1F2724;margin:18px 0 6px;font-weight:700;}'+
+      '.lg-body h4:first-child{margin-top:2px;}'+
+      '.lg-body p{margin:0 0 8px;}'+
+      '.lg-body ul{margin:4px 0 10px;padding-left:20px;}'+
+      '.lg-body li{margin-bottom:3px;}'+
+      '.lg-t{width:100%;border-collapse:collapse;margin:6px 0 10px;font-size:13.5px;}'+
+      '.lg-t td{padding:6px 0;border-bottom:1px solid #EDF0EC;}'+
+      '.lg-t td:last-child{text-align:right;color:#14564A;font-weight:600;white-space:nowrap;padding-left:12px;}'+
+      '.lg-foot{flex:none;padding:12px 18px calc(16px + env(safe-area-inset-bottom));border-top:1px solid #E6E9E4;}'+
+      '.lg-close{width:100%;background:#F2F4F1;color:#39423C;border:1px solid #DDE2DA;border-radius:10px;'+
+        'padding:13px;font-size:15px;font-family:inherit;min-height:48px;cursor:pointer;}';
+    document.head.appendChild(s);
+  }
+
+  function mount(){
+    css();
+    if(document.getElementById('lgWrap')) return;
+    var w=document.createElement('div'); w.id='lgWrap';
+    w.innerHTML =
+      '<div class="lg-box">'+
+        '<div class="lg-head">'+
+          '<div class="lg-title">智在生活 · '+C.name+'</div>'+
+          '<div class="lg-upd">最後更新 '+UPDATED+'</div>'+
+          '<div class="lg-tabs" id="lgTabs"></div>'+
+        '</div>'+
+        '<div class="lg-body" id="lgBody"></div>'+
+        '<div class="lg-foot"><button type="button" class="lg-close" id="lgClose">關閉</button></div>'+
+      '</div>';
+    document.body.appendChild(w);
+    w.addEventListener('click', function(e){ if(e.target===w) close(); });
+    document.getElementById('lgClose').addEventListener('click', close);
+    var tabs=document.getElementById('lgTabs');
+    DOCS.forEach(function(d,i){
+      var b=document.createElement('button');
+      b.type='button'; b.className='lg-tab'; b.textContent=d.t;
+      b.addEventListener('click', function(){ show(i); });
+      tabs.appendChild(b);
+    });
+  }
+  function show(i){
+    cur=i;
+    var tabs=document.querySelectorAll('.lg-tab');
+    for(var k=0;k<tabs.length;k++) tabs[k].classList.toggle('on', k===i);
+    var body=document.getElementById('lgBody');
+    body.innerHTML = DOCS[i].b;
+    body.scrollTop = 0;
+  }
+  function open(which){
+    mount();
+    var i = 0;
+    if(typeof which === 'number') i = which;
+    else if(which === 'privacy') i = 1;
+    else if(which === 'pay') i = 2;
+    else if(which === 'clientdata') i = 3;
+    if(i >= DOCS.length) i = 0;
+    show(i);
+    document.getElementById('lgWrap').classList.add('on');
+  }
+  function close(){ var w=document.getElementById('lgWrap'); if(w) w.classList.remove('on'); }
+
+  window.legalDocs = { open:open, close:close, appName:C.name };
+})();
+</script>
+
     <!-- Toast 提示 -->
-    <div id="toast" style="display:none;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#2c3e50;color:white;padding:12px 24px;border-radius:8px;font-size:14px;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,0.3);max-width:80%;text-align:center;"></div>
+    <div id="toast" style="display:none;position:fixed;bottom:calc(24px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);background:#2c3e50;color:white;padding:11px 18px;border-radius:999px;font-size:13.5px;line-height:1.5;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,0.3);max-width:84%;text-align:center;"></div>
 
     <!-- Loading 畫面 -->
     <div id="loading-overlay" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(255,255,255,0.95);z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;">
@@ -4251,11 +5262,15 @@
             <p style="color:#7f8c8d;font-size:13.5px;margin:0 0 20px;">把服務，變成生意。</p>
             <input id="crmEmailInput" type="email" inputmode="email" autocomplete="email" maxlength="60" placeholder="請輸入 Email"
                 style="width:100%;padding:15px;border:1px solid #E7E2DA;border-radius:14px;background:#fff;font-size:16px;text-align:center;box-sizing:border-box;">
-            <button id="crmLoginBtn" type="button"
-                style="width:100%;margin-top:14px;padding:14px;border:none;border-radius:14px;background:#3498db;color:#fff;font-size:16px;font-weight:700;cursor:pointer;">登入</button>
+            <button id="crmLoginBtn" type="button" disabled
+                style="width:100%;margin-top:14px;padding:14px;border:none;border-radius:14px;background:#C8CFD6;color:#fff;font-size:16px;font-weight:700;cursor:not-allowed;">登入</button>
+            <label for="crmAgree" style="display:flex;gap:9px;align-items:flex-start;margin-top:14px;text-align:left;font-size:12.5px;line-height:1.6;color:#5a6a78;cursor:pointer;">
+                <input type="checkbox" id="crmAgree" style="flex:none;width:18px;height:18px;margin-top:1px;accent-color:#4A7A9B;">
+                <span>我已閱讀並同意 <a href="javascript:void(0)" id="crmAgreeLink" style="color:#4A7A9B;text-decoration:underline;">服務條款與隱私權政策</a></span>
+            </label>
             <div id="crmLoginMsg" style="color:#e74c3c;font-size:13px;min-height:16px;margin-top:8px;line-height:1.6;"></div>
             <div style="margin-top:12px;font-size:12px;line-height:1.8;color:#7f8c8d;text-align:left;background:#FBF8F3;border:1px solid #E7E2DA;border-radius:12px;padding:10px 12px;">
-                👨‍👩‍👧 從「智能行事曆」點進來會自動登入，不用再輸入一次
+                👨‍👩‍👧 從「生活管家」點進來會自動登入，不用再輸入一次
             </div>
             <button id="crmAdminToggle" type="button"
                 style="width:100%;margin-top:18px;padding:8px;background:none;border:none;color:#95a5a6;font-size:12.5px;opacity:.75;cursor:pointer;">🔧 管理員登入</button>
