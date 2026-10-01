@@ -563,17 +563,6 @@
   border-radius:18px !important; padding:15px !important; overflow:visible !important;
   box-shadow:0 2px 10px rgba(46,46,51,.06) !important; margin-bottom:14px !important;
 }
-.set-row{
-  width:100% !important; display:flex !important; align-items:center !important; gap:10px !important;
-  padding:12px !important; border-radius:12px !important;
-  border:1px solid #E7E2DA !important; border-bottom:1px solid #E7E2DA !important;
-  background:#FBF8F3 !important; color:#2E2E33 !important;
-  font-size:14px !important; font-weight:600 !important; font-family:inherit !important;
-  text-align:left !important; min-height:48px !important; cursor:pointer;
-  margin-bottom:8px !important;
-}
-.set-row:last-child{ margin-bottom:0 !important; }
-.set-row:active{ background:#F1ECE3 !important; }
 .set-gap{ height:10px !important; margin:0 !important; background:none !important; border:none !important; }
 .set-arrow{ margin-left:auto !important; color:#B9B3A8 !important; }
 
@@ -599,6 +588,62 @@ input:focus, textarea:focus, select:focus{
 #crmNav .nav-btn.active{color:#4A7A9B;font-weight:700;}
 #crmTrackBtn.hdr-on,#crmStatsBtn.hdr-on,#crmSetBtn.hdr-on{background:rgba(255,255,255,.42) !important;}
 .content{padding-bottom:78px !important;}
+
+/* ===== 底部導覽：四個 App 同一套規格（高度 58px、圖示 21px、字 11.5px、反白加底色）===== */
+#crmNav{
+  position:fixed; left:0; right:0; bottom:0; box-sizing:border-box;
+  max-width:520px; margin:0 auto; z-index:40; display:flex; align-items:stretch;
+  background:#fff; border-top:1px solid #E7E2DA;
+  padding:5px 8px calc(5px + env(safe-area-inset-bottom));
+}
+#crmNav .nav-btn{
+  flex:1 1 0; min-width:0; box-sizing:border-box;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px;
+  padding:6px 2px; min-height:48px;
+  background:none; border:none; border-radius:12px;
+  color:#8A928C; font-family:inherit; font-size:11.5px; font-weight:600;
+  line-height:1.25; white-space:nowrap; cursor:pointer; -webkit-tap-highlight-color:transparent;
+}
+#crmNav .nav-btn .ic{ font-size:21px; line-height:1; }
+#crmNav .nav-btn.active{ color:#4A7A9B; background:#E8EFF4; font-weight:700; }
+#crmNav .nav-btn:active{ opacity:.65; }
+
+/* ===== 設定列表：四個 App 同一套規格（列高 52、圖示 18、名稱 15、狀態值 13）=====
+   三個 App 的 class 名稱不同（.set-row／.settings-row，內層 .ic/.tx/.ar 與
+   .set-ico/.set-name/.set-val/.set-arrow），這裡一次涵蓋，不動既有標籤。 */
+.set-row, .settings-row{
+  display:flex; align-items:center; gap:10px; width:100%; box-sizing:border-box;
+  min-height:52px; padding:14px; margin:0;
+  background:none; border:none; border-bottom:1px solid #ECEFF1; border-radius:0;
+  font-family:inherit; font-size:15px; font-weight:500; color:#2c3e50;
+  text-align:left; cursor:pointer; -webkit-tap-highlight-color:transparent;
+}
+.set-row:last-child, .settings-row:last-child{ border-bottom:none; }
+.set-row:active, .settings-row:active{ background:#F5F7F8; }
+.set-row .ic, .set-row .set-ico, .settings-row .settings-row-icon{
+  flex:0 0 auto; width:24px; text-align:center; font-size:18px; line-height:1;
+}
+.set-row .tx, .set-row .set-name, .settings-row .settings-row-label{
+  flex:0 0 auto; white-space:nowrap;
+}
+.set-row .set-val{
+  flex:1 1 auto; min-width:0; text-align:right; font-size:13px; font-weight:400;
+  color:#95a5a6; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+.set-row .ar, .set-row .set-arrow{
+  flex:0 0 auto; margin-left:auto; font-size:19px; line-height:1; color:#95a5a6;
+}
+.set-gap{ height:14px; background:none; border:none; }
+
+  /* 危險動作（登出）不給箭頭：它不是「進入某頁」，而是當下就執行 */
+  .set-row.danger .ar, .set-row.danger .set-arrow{ display:none; }
+  .set-row.danger, .settings-row.danger{ color:#C0392B; font-weight:700; }
+  /* 管理員項目不另外加底色，跟其他 App 一致 */
+  .settings-row.admin{ background:none; border-color:inherit; }
+  /* 食在料理原本沒有箭頭，用 CSS 補上，標籤不用改 */
+  .settings-row:not(.danger)::after{
+    content:"›"; margin-left:auto; font-size:19px; line-height:1; color:#95a5a6; flex:0 0 auto;
+  }
 </style>
 </head>
 <body>
@@ -812,16 +857,6 @@ input:focus, textarea:focus, select:focus{
                 <div>
                     <button class="btn btn-secondary" style="width:100%" id="crmInstallBtn">📲 安裝到手機桌面</button>
                     <button class="btn btn-secondary" style="width:100%;margin-top:8px" id="crmShareBtn">🔗 分享這個 App</button>
-                </div>
-                </div>
-
-                <div class="setpg" id="setpg-account">
-                    <div class="setpg-head"><button type="button" class="setpg-back" onclick="closeSetPage()">‹ 返回</button><span class="setpg-title">帳號</span></div>
-<!-- 帳號 -->
-                <div>
-                    <p id="crm-account-email" style="font-size:14px;font-weight:bold;color:#2c3e50;word-break:break-all;margin:0 0 4px;">—</p>
-                    <p id="crm-account-plan" style="font-size:12.5px;color:#7f8c8d;margin:0 0 12px;"></p>
-                    <button class="btn btn-secondary" style="width:100%" onclick="crmLogout()">🚪 登出</button>
                 </div>
                 </div>
 
@@ -1966,36 +2001,45 @@ input:focus, textarea:focus, select:focus{
             } catch(e){ console.warn('搬遷略過', e); }
         }
         async function crmEnter(email){
-            crmUserEmail = String(email).toLowerCase();   // 路徑用原始小寫，跟規則一致
-            setCrmPath(crmUserEmail);
-            hideCrmLogin();
-            document.getElementById('loading-overlay').style.display = 'flex';
-            var res = await crmVerify(crmUserEmail);
-            if(!res.ok){ document.getElementById('loading-overlay').style.display='none'; showCrmLogin(res.msg||'無法使用'); return; }
-            crmPlan = res.plan; crmExpiry = res.expiry || ''; crmClientsCreated = Number(res.clientsCreated||0);
-            setTimeout(function(){
-              expiryNotice.check({ app:'crm', appName:'客戶管理', plan:crmPlan, expiry:crmExpiry,
-                isAdmin:crmIsAdmin, accent:'#4A7A9B',
-                onUpgrade:function(){ openCrmUpgrade(); } });
-            }, 900);
-            await crmMigrateIfNeeded();
-            await store.loadFromFirebase();
-            // 舊帳號沒有計數 → 用現有客戶數補上，避免既有使用者一登入就被鎖
-            if(!crmIsAdmin && !crmClientsCreated && store.data.clients && store.data.clients.length){
-                crmClientsCreated = store.data.clients.length;
-                try{ await db.ref(CRM_SUBS_PATH+crmEmailKey(crmUserEmail)+'/clientsCreated').set(crmClientsCreated); }catch(e){}
-            }
-            crmApplyPlan();
-            document.getElementById('loading-overlay').style.display = 'none';
-            if(res.newTrial) showConfirm('已開啟 ' + CRM_TRIAL_DAYS + ' 天全功能免費試用，到 ' + res.expiry + ' 為止。\n\n試用期間不限客戶數，所有功能都能用。', function(){}, '開始使用');
-            else if(res.expired) showConfirm('訂閱已到期。\n\n現有資料都看得到、也能匯出備份，升級後可繼續新增與編輯。', function(){ window.open(LINE_SUPPORT_URL,'_blank','noopener'); }, '聯繫客服');
-            renderCrmVerTag();
-            initStep1();
-            initBookingTimeOptions();
-            updateAllTabs();
-            if (needsSetup()) showSetupPage(); else setActiveTab('clients');
-            var importFile = document.getElementById('import-file');
-            if (importFile) importFile.addEventListener('change', function(e){ importData(e); });
+          // 整段包起來：驗證之後的任何一步出錯，也要把登入畫面放回來
+          // 並說明原因，不能讓使用者只看到一片空白。
+          try{
+                crmUserEmail = String(email).toLowerCase();   // 路徑用原始小寫，跟規則一致
+                setCrmPath(crmUserEmail);
+                hideCrmLogin();
+                document.getElementById('loading-overlay').style.display = 'flex';
+                var res = await crmVerify(crmUserEmail);
+                if(!res.ok){ document.getElementById('loading-overlay').style.display='none'; showCrmLogin(res.msg||'無法使用'); return; }
+                crmPlan = res.plan; crmExpiry = res.expiry || ''; crmClientsCreated = Number(res.clientsCreated||0);
+                setTimeout(function(){
+                  expiryNotice.check({ app:'crm', appName:'客戶管理', plan:crmPlan, expiry:crmExpiry,
+                    isAdmin:crmIsAdmin, accent:'#4A7A9B',
+                    onUpgrade:function(){ openCrmUpgrade(); } });
+                }, 900);
+                await crmMigrateIfNeeded();
+                await store.loadFromFirebase();
+                // 舊帳號沒有計數 → 用現有客戶數補上，避免既有使用者一登入就被鎖
+                if(!crmIsAdmin && !crmClientsCreated && store.data.clients && store.data.clients.length){
+                    crmClientsCreated = store.data.clients.length;
+                    try{ await db.ref(CRM_SUBS_PATH+crmEmailKey(crmUserEmail)+'/clientsCreated').set(crmClientsCreated); }catch(e){}
+                }
+                crmApplyPlan();
+                document.getElementById('loading-overlay').style.display = 'none';
+                if(res.newTrial) showConfirm('已開啟 ' + CRM_TRIAL_DAYS + ' 天全功能免費試用，到 ' + res.expiry + ' 為止。\n\n試用期間不限客戶數，所有功能都能用。', function(){}, '開始使用');
+                else if(res.expired) showConfirm('訂閱已到期。\n\n現有資料都看得到、也能匯出備份，升級後可繼續新增與編輯。', function(){ window.open(LINE_SUPPORT_URL,'_blank','noopener'); }, '聯繫客服');
+                renderCrmVerTag();
+                initStep1();
+                initBookingTimeOptions();
+                updateAllTabs();
+                if (needsSetup()) showSetupPage(); else setActiveTab('clients');
+                var importFile = document.getElementById('import-file');
+                if (importFile) importFile.addEventListener('change', function(e){ importData(e); });
+        
+          }catch(err){
+            try{ document.getElementById("loading-overlay").style.display="none"; }catch(e){}
+            showCrmLogin("進入失敗："+((err&&err.message)?err.message:"未知錯誤"));
+            try{ console.error("crmEnter 失敗", err); }catch(e){}
+          }
         }
         // 收信登入（直接開 CRM 網址、還沒登入時才用得到）
         async function crmSendLink(){
@@ -4534,8 +4578,7 @@ input:focus, textarea:focus, select:focus{
         // crmToast 保留舊名字供既有呼叫使用，實際走同一個 showToast
         function crmToast(msg){ showToast(msg, 1800); }
         function appHandleBack(){
-            var cf = document.getElementById('cfWrap');
-            if (cf && cf.classList.contains('on')) { document.getElementById('cfNo').click(); return true; }   // 確認視窗
+            if (window.closeTopSharedOverlay && closeTopSharedOverlay()) return true;   // 確認視窗／條款／升級／訂閱等共用彈窗
             var open = document.querySelectorAll('.modal.show');
             if (open.length) { open[open.length - 1].classList.remove('show'); return true; }    // 彈窗
             if (PREVIEW) { endPreview(); return true; }                                        // 預覽中 → 先結束預覽
@@ -5530,6 +5573,77 @@ previewMode.init({
   window.expiryNotice = { check: check, close: close, _daysLeft: daysLeft };
 })();
 
+/* ==================== 返回鍵：先關最上層彈窗（四個 App 共用）====================
+   共用模組的彈窗都是後來才加的，各 App 原本的返回鍵不認得它們，
+   按下去會「穿過」彈窗去關底下的設定頁或分頁。這裡依 z-index 由高到低
+   檢查，有開著的就關掉並回報 true，讓呼叫端知道這次返回已經處理掉了。
+   ==================================================================== */
+(function(){
+  var LAYERS = [
+    { id:'cfWrap',    z:10090, close:function(){ var b=document.getElementById('cfNo'); if(b) b.click(); } },
+    { id:'exWrap',    z:10080, close:function(){ if(window.expiryNotice) expiryNotice.close(); } },
+    { id:'bkWrap',    z:10070, close:function(w){ w.classList.remove('on'); } },
+    { id:'pvWrap',    z:10061, close:function(w){ w.classList.remove('on'); } },
+    { id:'lgWrap',    z:10040, close:function(){ if(window.legalDocs) legalDocs.close(); } },
+    { id:'upWrap',    z:10030, close:function(){ if(window.upgradeSheet) upgradeSheet.close(); } },
+    { id:'subsSheet', z:10002, close:function(w){ w.classList.remove('on'); } }
+  ];
+  window.closeTopSharedOverlay = function(){
+    for(var i=0;i<LAYERS.length;i++){
+      var w = document.getElementById(LAYERS[i].id);
+      if(w && w.classList.contains('on')){
+        try{ LAYERS[i].close(w); }catch(e){ try{ w.classList.remove('on'); }catch(e2){} }
+        return true;
+      }
+    }
+    return false;
+  };
+})();
+
+/* ==================== 載入指示（四個 App 共用）====================
+   網路慢的時候畫面不能完全靜止，否則使用者會重複點按鈕或以為當掉。
+   appLoading.show("訊息") / appLoading.hide()；重複呼叫 show 只會換訊息。
+   ==================================================================== */
+(function(){
+  function css(){
+    if(document.getElementById('ldCss')) return;
+    var s=document.createElement('style'); s.id='ldCss';
+    s.textContent =
+      '#ldWrap{position:fixed;inset:0;z-index:10095;display:none;flex-direction:column;'+
+        'align-items:center;justify-content:center;gap:14px;background:rgba(252,252,250,.94);'+
+        '-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);}'+
+      '#ldWrap.on{display:flex;}'+
+      '#ldWrap .ld-sp{width:34px;height:34px;border-radius:50%;'+
+        'border:3px solid rgba(90,100,95,.18);border-top-color:var(--ld-ac,#5B6F79);'+
+        'animation:ldSpin .8s linear infinite;}'+
+      '#ldWrap .ld-tx{font-size:14px;color:#5B6F79;font-family:inherit;letter-spacing:.02em;}'+
+      '@keyframes ldSpin{to{transform:rotate(360deg)}}'+
+      '@media (prefers-reduced-motion:reduce){#ldWrap .ld-sp{animation-duration:2.4s}}';
+    document.head.appendChild(s);
+  }
+  css();   // 立刻注入：CRM 有一顆寫在 HTML 裡的載入遮罩也要用到 .ld-sp
+  function el(){
+    var w=document.getElementById('ldWrap');
+    if(!w){
+      w=document.createElement('div'); w.id='ldWrap';
+      w.setAttribute('role','status'); w.setAttribute('aria-live','polite');
+      w.innerHTML='<div class="ld-sp"></div><div class="ld-tx" id="ldTx">載入中…</div>';
+      document.body.appendChild(w);
+    }
+    return w;
+  }
+  window.appLoading = {
+    show: function(msg, accent){
+      var w=el();
+      if(accent) w.style.setProperty('--ld-ac', accent);
+      var t=document.getElementById('ldTx'); if(t) t.textContent = msg || '載入中…';
+      w.classList.add('on');
+    },
+    hide: function(){ var w=document.getElementById('ldWrap'); if(w) w.classList.remove('on'); },
+    visible: function(){ var w=document.getElementById('ldWrap'); return !!(w && w.classList.contains('on')); }
+  };
+})();
+
 /* ==================== 確認對話框（四個 App 共用）====================
    各 App 原本的函式名與參數都保留，內部改成呼叫這裡，所以呼叫端一行都不用動。
    opts: { title, message, okText, cancelText, danger, accent }
@@ -5713,10 +5827,9 @@ upgradeSheet.init({
     <div id="toast" style="display:none;position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom));transform:translateX(-50%);background:rgba(45,50,56,.94);color:#fff;padding:11px 18px;border-radius:999px;font-size:13.5px;line-height:1.5;z-index:9999;pointer-events:none;max-width:86vw;text-align:center;box-shadow:0 4px 16px rgba(0,0,0,.18);"></div>
 
     <!-- Loading 畫面 -->
-    <div id="loading-overlay" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(255,255,255,0.95);z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;">
-        <div style="font-size:40px;margin-bottom:16px;">🔄</div>
-        <p style="font-size:16px;color:#2c3e50;font-weight:bold;">載入資料中...</p>
-        <p style="font-size:13px;color:#7f8c8d;margin-top:8px;">連線至雲端資料庫</p>
+    <div id="loading-overlay" style="position:fixed;inset:0;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:rgba(252,252,250,.94);">
+        <div class="ld-sp" style="--ld-ac:#4A7A9B"></div>
+        <p style="font-size:14px;color:#5B6F79;margin:0;">載入資料中…</p>
     </div>
 
     <!-- 登入畫面（智在生活 Standard） -->
