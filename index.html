@@ -644,6 +644,16 @@ input:focus, textarea:focus, select:focus{
   .settings-row:not(.danger)::after{
     content:"›"; margin-left:auto; font-size:19px; line-height:1; color:#95a5a6; flex:0 0 auto;
   }
+
+/* 設定頁不顯示底部選單，用左上角返回鍵離開，跟另外三支 App 一致 */
+body:has(#step1.tab-pane.active) #crmNav{ display:none; }
+body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
+
+/* 設定列表的卡片外框：跟生活管家、旅遊、食在料理同一個規格 */
+.set-list{
+  background:#fff; border:1px solid #E3DED4; border-radius:16px;
+  overflow:hidden; margin:0 0 14px; box-shadow:0 2px 10px rgba(46,46,51,.06);
+}
 </style>
 </head>
 <body>
@@ -673,26 +683,33 @@ input:focus, textarea:focus, select:focus{
             <!-- 系統設定 -->
             <div id="step1" class="tab-pane">
                 <div id="set-menu">
-                    <h2 style="margin-bottom:14px;">⚙️ 設定</h2>
+                    <button type="button" id="crmSetBack" class="setpg-back" style="margin:0 0 12px;" onclick="setActiveTab('clients')">‹ 返回</button>
                     <div class="set-acc" id="crmAccCard"><div class="em" id="acc-em">—</div><div class="pl" id="acc-pl">—</div><div class="ex" id="acc-ex"></div></div>
-                    <button type="button" class="set-row" id="set-upgrade" onclick="openCrmUpgrade()"><span class="set-ico">⭐</span><span class="set-name">升級完整版</span><span class="set-val" id="sv-plan"></span><span class="set-arrow">›</span></button>
-                    <div class="set-gap"></div>
-                    <button type="button" class="set-row" onclick="openSetPage('basic')"><span class="set-ico">🏠</span><span class="set-name">店家資料</span><span class="set-val" id="sv-basic"></span><span class="set-arrow">›</span></button>
-                    <button type="button" class="set-row" onclick="openSetPage('service')"><span class="set-ico">🧰</span><span class="set-name">服務項目</span><span class="set-val" id="sv-service"></span><span class="set-arrow">›</span></button>
-                    <button type="button" class="set-row" onclick="openSetPage('partner')"><span class="set-ico">👥</span><span class="set-name">代班人員</span><span class="set-val" id="sv-partner"></span><span class="set-arrow">›</span></button>
-                    <button type="button" class="set-row" onclick="openSetPage('svcset')"><span class="set-ico">🛠️</span><span class="set-name">收費與規則</span><span class="set-val" id="sv-svcset"></span><span class="set-arrow">›</span></button>
-                    <div class="set-gap"></div>
-                    <button type="button" class="set-row" onclick="openSetPage('backup')"><span class="set-ico">📦</span><span class="set-name">資料備份</span><span class="set-val" id="sv-backup"></span><span class="set-arrow">›</span></button>
-                    <button type="button" class="set-row" onclick="document.getElementById('crmInstallBtn').click()"><span class="set-ico">📲</span><span class="set-name">安裝到手機桌面</span><span class="set-val" id="sv-app"></span><span class="set-arrow">›</span></button>
-                    <button type="button" class="set-row" onclick="document.getElementById('crmShareBtn').click()"><span class="set-ico">🔗</span><span class="set-name">分享這個 App</span><span class="set-val"></span><span class="set-arrow">›</span></button>
-                    <div class="set-gap"></div>
-                    <button type="button" class="set-row" onclick="openSetPage('support')"><span class="set-ico">💬</span><span class="set-name">聯繫客服</span><span class="set-val" id="sv-support"></span><span class="set-arrow">›</span></button>
-                    <button type="button" class="set-row" onclick="legalDocs.open('terms')"><span class="set-ico">📄</span><span class="set-name">服務條款與隱私政策</span><span class="set-val"></span><span class="set-arrow">›</span></button>
-                    <div class="set-gap" id="set-admin-gap" style="display:none;"></div>
-                    <button type="button" class="set-row" id="set-admin-subs" style="display:none;" onclick="subsAdmin.open()"><span class="set-ico">🔑</span><span class="set-name">訂閱管理</span><span class="set-val"></span><span class="set-arrow">›</span></button>
-                    <button type="button" class="set-row" id="set-admin-preview" style="display:none;" onclick="previewMode.open()"><span class="set-ico">🧪</span><span class="set-name">預覽使用者畫面</span><span class="set-val"></span><span class="set-arrow">›</span></button>
-                    <div class="set-gap"></div>
-                    <button type="button" class="set-row" onclick="crmLogout()"><span class="set-ico">🚪</span><span class="set-name">登出</span><span class="set-val"></span><span class="set-arrow">›</span></button>
+                    <div class="set-list" id="set-upgrade-card">
+                        <button type="button" class="set-row" id="set-upgrade" onclick="openCrmUpgrade()"><span class="set-ico">⭐</span><span class="set-name">升級完整版</span><span class="set-val" id="sv-plan"></span><span class="set-arrow">›</span></button>
+                    </div>
+                    <div class="set-list">
+                        <button type="button" class="set-row" onclick="openSetPage('basic')"><span class="set-ico">🏠</span><span class="set-name">店家資料</span><span class="set-val" id="sv-basic"></span><span class="set-arrow">›</span></button>
+                        <button type="button" class="set-row" onclick="openSetPage('service')"><span class="set-ico">🧰</span><span class="set-name">服務項目</span><span class="set-val" id="sv-service"></span><span class="set-arrow">›</span></button>
+                        <button type="button" class="set-row" onclick="openSetPage('partner')"><span class="set-ico">👥</span><span class="set-name">代班人員</span><span class="set-val" id="sv-partner"></span><span class="set-arrow">›</span></button>
+                        <button type="button" class="set-row" onclick="openSetPage('svcset')"><span class="set-ico">🛠️</span><span class="set-name">收費與規則</span><span class="set-val" id="sv-svcset"></span><span class="set-arrow">›</span></button>
+                    </div>
+                    <div class="set-list">
+                        <button type="button" class="set-row" onclick="openSetPage('backup')"><span class="set-ico">📦</span><span class="set-name">資料備份</span><span class="set-val" id="sv-backup"></span><span class="set-arrow">›</span></button>
+                        <button type="button" class="set-row" onclick="document.getElementById('crmInstallBtn').click()"><span class="set-ico">📲</span><span class="set-name">安裝到手機桌面</span><span class="set-val" id="sv-app"></span><span class="set-arrow">›</span></button>
+                        <button type="button" class="set-row" onclick="document.getElementById('crmShareBtn').click()"><span class="set-ico">🔗</span><span class="set-name">分享這個 App</span><span class="set-val"></span><span class="set-arrow">›</span></button>
+                    </div>
+                    <div class="set-list">
+                        <button type="button" class="set-row" onclick="openSetPage('support')"><span class="set-ico">💬</span><span class="set-name">聯繫客服</span><span class="set-val" id="sv-support"></span><span class="set-arrow">›</span></button>
+                        <button type="button" class="set-row" onclick="legalDocs.open('terms')"><span class="set-ico">📄</span><span class="set-name">服務條款與隱私政策</span><span class="set-val"></span><span class="set-arrow">›</span></button>
+                    </div>
+                    <div class="set-list" id="set-admin-card" style="display:none;">
+                        <button type="button" class="set-row" id="set-admin-subs" onclick="subsAdmin.open()"><span class="set-ico">🔑</span><span class="set-name">訂閱管理</span><span class="set-val"></span><span class="set-arrow">›</span></button>
+                        <button type="button" class="set-row" id="set-admin-preview" onclick="previewMode.open()"><span class="set-ico">🧪</span><span class="set-name">預覽使用者畫面</span><span class="set-val"></span><span class="set-arrow">›</span></button>
+                    </div>
+                    <div class="set-list">
+                        <button type="button" class="set-row" onclick="crmLogout()"><span class="set-ico">🚪</span><span class="set-name">登出</span><span class="set-val"></span><span class="set-arrow">›</span></button>
+                    </div>
                     <p style="text-align:center;color:#95a5a6;font-size:12px;margin-top:22px;">客戶管理系統 <span id="crmVerTagFoot">v1.0</span></p>
                 </div>
 
@@ -1829,7 +1846,7 @@ input:focus, textarea:focus, select:focus{
         function isCrmAdminEmail(e){ return String(e||'').toLowerCase() === ADMIN_EMAIL.toLowerCase(); }
         // 只用於「這個信箱用過試用沒」的比對，不可當資料路徑
         function crmTrialEmailKey(e){ return normEmail(e).replace(/[.#$\[\]]/g,'_'); }
-        const CRM_APP_VER = 'v1.0', CRM_BUILD_ID = '0929-1';
+        const CRM_APP_VER = 'v1.0', CRM_BUILD_ID = '1006-1';
         const CRM_EMAIL_FOR_SIGNIN = 'crmEmailForSignIn';
         const LINE_SUPPORT_URL = 'https://line.me/R/ti/p/@373pfdee';
         var crmUserEmail = null;
@@ -2535,12 +2552,15 @@ input:focus, textarea:focus, select:focus{
             if(_ex) _ex.textContent = (!crmIsAdmin && crmExpiry) ? ('到期日：' + crmExpiry) : '';
             var svp = document.getElementById('sv-plan');
             if (svp) svp.textContent = crmIsAdmin ? '管理員' : (CRM_PLAN_LABEL[crmPlan] || '免費版');
-            var upRow = document.getElementById('set-upgrade');
-            if (upRow) upRow.style.display = (crmIsAdmin || crmIsPaid(crmPlan)) ? 'none' : 'flex';
+            // 整張卡一起顯示／隱藏，只收單一列會留下一張空卡
+            var upCard = document.getElementById('set-upgrade-card');
+            if (upCard) upCard.style.display = (crmIsAdmin || crmIsPaid(crmPlan)) ? 'none' : 'block';
+            var adCard = document.getElementById('set-admin-card');
+            if (adCard) adCard.style.display = isAdmin ? 'block' : 'none';
             const asb = document.getElementById('set-admin-subs');
-            if (asb) asb.style.display = isAdmin ? 'flex' : 'none';
-            if (ar) ar.style.display = isAdmin ? 'flex' : 'none';
-            if (ag) ag.style.display = isAdmin ? 'block' : 'none';
+            if (asb) asb.style.display = 'flex';
+            if (ar) ar.style.display = 'flex';
+            if (ag) ag.style.display = 'none';
         }
 
         // ==================== 首次開通 ====================
@@ -4527,15 +4547,7 @@ input:focus, textarea:focus, select:focus{
         window.addEventListener('beforeinstallprompt', function(e){ e.preventDefault(); _crmDeferredPrompt = e; });
 
         function crmInstall(){
-            if (_crmDeferredPrompt){
-                _crmDeferredPrompt.prompt();
-                _crmDeferredPrompt.userChoice.then(function(){ _crmDeferredPrompt = null; });
-                return;
-            }
-            var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
-            alert('安裝到手機桌面\n\n' + (isIOS
-                ? '1. 請改用 Safari 開啟本頁\n2. 點下方「分享」⬆️\n3. 選「加入主畫面」'
-                : '1. 請改用 Chrome 開啟本頁\n2. 點瀏覽器選單（⋮）\n3. 選「安裝應用程式／加到主畫面」'));
+            appInstall.run(_crmDeferredPrompt).then(function(used){ if(used) _crmDeferredPrompt = null; });
         }
         async function crmShare(){
             var text = '客戶管理系統 — 到府服務師傅的客戶、預約與收款管理\n' + CRM_APP_URL;
@@ -4587,6 +4599,11 @@ input:focus, textarea:focus, select:focus{
             if (sp && sp.style.display === 'flex') return false;                                  // 開通頁 → 離開
             var lg = document.getElementById('crmLogin');
             if (lg && lg.style.display === 'flex') return false;                                  // 登入頁 → 離開
+            // 設定、追蹤、報表反白的是右上角圖示，底部沒有任何按鈕反白；
+            // 不特別處理的話返回鍵會誤判成「已經在第一頁」而直接退出 App。
+            if (document.querySelector('#step1.tab-pane.active, #tracking.tab-pane.active, #dashboard.tab-pane.active')) {
+                setActiveTab('clients'); return true;
+            }
             var first = document.querySelector('.nav-btn');
             var active = document.querySelector('.nav-btn.active');
             if (first && active && first !== active) { first.click(); return true; }              // 其他分頁 → 回第一頁
@@ -5643,6 +5660,85 @@ previewMode.init({
     visible: function(){ var w=document.getElementById('ldWrap'); return !!(w && w.classList.contains('on')); }
   };
 })();
+
+/* ==================== 安裝到桌面（四個 App 共用）====================
+   三件事在這裡統一：步驟說明的文字、「已安裝過」的提醒、按下安裝後的等待提示。
+   各 App 只要把自己接到的 beforeinstallprompt 事件交進來。
+   ==================================================================== */
+(function(){
+  var CFG = { appName:'這個 App', accent:'#5B6F79' };
+  function isIOS(){
+    try{ return /iphone|ipad|ipod/i.test(navigator.userAgent); }catch(e){ return false; }
+  }
+  function steps(){
+    var n = CFG.appName;
+    return '安裝到手機桌面\n\n安裝步驟：\n' + (isIOS()
+      ? '1. 請改用「Safari 瀏覽器」開啟本頁\n2. 點下方「分享」按鈕 ⬆️\n3. 選「加入主畫面」'
+      : '1. 請改用「Chrome 瀏覽器」開啟本頁\n2. 點瀏覽器選單（⋮）\n3. 選「安裝應用程式／加到主畫面」')
+      + '\n\n💡 若你已安裝過，請直接到手機桌面找「' + n + '」開啟';
+  }
+  function css(){
+    if(document.getElementById('inCss')) return;
+    var s=document.createElement('style'); s.id='inCss';
+    s.textContent =
+      '#inBar{position:fixed;left:0;right:0;top:0;z-index:10096;max-width:520px;margin:0 auto;'+
+        'display:none;padding:12px 16px calc(12px + env(safe-area-inset-top,0px));'+
+        'background:#2E2E33;color:#fff;font-size:13.5px;line-height:1.6;font-family:inherit;'+
+        'box-shadow:0 2px 12px rgba(0,0,0,.25);}'+
+      '#inBar.on{display:block;}'+
+      '#inBar b{color:#FFD9A0;}'+
+      '#inBar .in-x{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;'+
+        'border:none;color:rgba(255,255,255,.7);font-size:18px;padding:6px 10px;cursor:pointer;}';
+    document.head.appendChild(s);
+  }
+  function bar(html){
+    css();
+    var b=document.getElementById('inBar');
+    if(!b){
+      b=document.createElement('div'); b.id='inBar';
+      b.setAttribute('role','status');
+      document.body.appendChild(b);
+    }
+    b.innerHTML = html + '<button type="button" class="in-x" aria-label="關閉">×</button>';
+    b.querySelector('.in-x').onclick = hide;
+    b.classList.add('on');
+    return b;
+  }
+  function hide(){ var b=document.getElementById('inBar'); if(b) b.classList.remove('on'); }
+
+  // 安裝完成時把提示收掉（不是每支瀏覽器都會送這個事件，所以只當加分）
+  try{ window.addEventListener('appinstalled', function(){
+    bar('✅ <b>安裝完成</b>　到手機桌面找「' + CFG.appName + '」就能開啟');
+    setTimeout(hide, 6000);
+  }); }catch(e){}
+
+  window.appInstall = {
+    init: function(cfg){ if(cfg) { CFG.appName = cfg.appName || CFG.appName; } },
+    steps: steps,
+    hide: hide,
+    /* dp：各 App 接到的 beforeinstallprompt 事件；沒有就跳步驟說明。
+       回傳 Promise<boolean>，true 代表事件已經用掉，呼叫端要把自己的變數清空。 */
+    run: function(dp){
+      if(!dp){ try{ alert(steps()); }catch(e){} return Promise.resolve(false); }
+      try{
+        dp.prompt();
+        return dp.userChoice.then(function(r){
+          if(r && r.outcome === 'accepted'){
+            bar('⏳ <b>安裝中，請稍候…</b>　<b>請勿關閉本頁</b>，完成後桌面會出現圖示');
+          } else {
+            bar('已取消安裝，隨時可以再從設定頁安裝');
+            setTimeout(hide, 4000);
+          }
+          return true;
+        }).catch(function(){ return true; });
+      }catch(e){
+        try{ alert(steps()); }catch(e2){}
+        return Promise.resolve(false);
+      }
+    }
+  };
+})();
+appInstall.init({ appName:'客戶管理系統' });
 
 /* ==================== 確認對話框（四個 App 共用）====================
    各 App 原本的函式名與參數都保留，內部改成呼叫這裡，所以呼叫端一行都不用動。
