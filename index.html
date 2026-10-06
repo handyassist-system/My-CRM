@@ -558,11 +558,17 @@
 /* ===== 設定頁統一樣式（與生活管家一致）=====
    分組不放文字標題，按鈕上的字就是說明；卡片之間用間距分區。 */
 .set-grouphead{ display:none !important; }
+/* 設定頁留白統一 16px。
+   原本 #set-menu 自己是一張白卡，裡面又放 .set-list 白卡 —— 卡中卡，
+   再加上 body 10px + .content 20px 的內距，選單被推到離螢幕邊 46px。
+   這裡把外層卡片拿掉（.set-list 本身已有白底圓角），
+   再用 -14px 抵銷 10+20，讓設定頁左右剛好 16px，與另外三支一致。 */
 #set-menu{
-  background:#fff !important; border:1px solid #E3DED4 !important;
-  border-radius:18px !important; padding:15px !important; overflow:visible !important;
-  box-shadow:0 2px 10px rgba(46,46,51,.06) !important; margin-bottom:14px !important;
+  background:transparent !important; border:none !important; box-shadow:none !important;
+  border-radius:0 !important; padding:0 !important; overflow:visible !important;
+  margin-bottom:14px !important;
 }
+#step1{ margin-left:-14px !important; margin-right:-14px !important; }
 .set-gap{ height:10px !important; margin:0 !important; background:none !important; border:none !important; }
 .set-arrow{ margin-left:auto !important; color:#B9B3A8 !important; }
 
@@ -650,6 +656,35 @@ body:has(#step1.tab-pane.active) #crmNav{ display:none; }
 body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
 
 /* 設定列表的卡片外框：跟生活管家、旅遊、食在料理同一個規格 */
+/* 金額輸入：幣別符號包在框內，不要看起來像兩個欄位 */
+.money-in{display:flex;align-items:center;gap:7px;border:1px solid #bdc3c7;border-radius:8px;
+  padding:0 11px;background:#fff;}
+.money-in .cur{font-size:14px;color:#7f8c8d;flex:none;}
+.money-in .suf{font-size:13px;color:#7f8c8d;flex:none;}
+.money-in input{flex:1;min-width:0;border:none !important;outline:none;background:transparent;
+  padding:11px 0 !important;font-size:16px;border-radius:0 !important;}
+/* ===== 預約月曆（2026-10-06）===== */
+.bk-vbtn{flex:1;padding:9px 0;border:none;background:#fff;color:#7f8c8d;font-size:13.5px;
+  font-family:inherit;cursor:pointer;}
+.bk-vbtn.on{background:#4A7A9B;color:#fff;font-weight:600;}
+.bk-cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.bk-cal-head button{background:none;border:1px solid #d9dfe4;border-radius:8px;width:34px;height:34px;
+  font-size:16px;color:#4A7A9B;cursor:pointer;}
+.bk-cal-title{font-size:15.5px;font-weight:700;color:#2c3e50;}
+.bk-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;}
+.bk-dow{text-align:center;font-size:11.5px;color:#95a5a6;padding:4px 0;}
+.bk-cell{min-height:52px;border:1px solid #eef1f3;border-radius:8px;padding:3px 2px 2px;
+  background:#fff;text-align:center;cursor:pointer;}
+.bk-cell.off{background:#fafbfc;color:#c7cdd2;cursor:default;}
+.bk-cell.today{border-color:#4A7A9B;}
+.bk-cell.sel{background:#E8EFF4;border-color:#4A7A9B;}
+.bk-cell .d{font-size:12.5px;color:#2c3e50;}
+.bk-cell.off .d{color:#c7cdd2;}
+.bk-dots{display:flex;flex-wrap:wrap;gap:2px;justify-content:center;margin-top:3px;}
+.bk-dot{width:5px;height:5px;border-radius:50%;background:#4A7A9B;}
+.bk-dot.done{background:#27ae60;}
+.bk-cell .more{font-size:10px;color:#95a5a6;}
+.bk-day-head{margin:12px 0 6px;font-size:13.5px;font-weight:700;color:#2c3e50;}
 .set-list{
   background:#fff; border:1px solid #E3DED4; border-radius:16px;
   overflow:hidden; margin:0 0 14px; box-shadow:0 2px 10px rgba(46,46,51,.06);
@@ -658,17 +693,13 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
 </head>
 <body>
 <div id="previewBar" style="display:none;position:fixed;top:0;left:0;right:0;z-index:99999;background:#e67e22;color:#fff;padding:9px 12px;align-items:center;gap:10px;font-size:13px;box-shadow:0 2px 8px rgba(0,0,0,.2);">
-    <span style="flex:1;line-height:1.5;">👁 <strong>預覽模式</strong>　這是新使用者看到的畫面，不會動到你的資料</span>
+    <span style="flex:1;line-height:1.5;">👁 <strong>預覽模式</strong>　這是新使用者看到的畫面，不會變更任何資料</span>
     <button type="button" onclick="endPreview()" style="flex:0 0 auto;background:#fff;color:#e67e22;border:none;border-radius:6px;padding:6px 12px;font-family:inherit;font-size:13px;font-weight:bold;cursor:pointer;">結束預覽</button>
 </div>
 <div class="update-bar" id="updateBar"><span>🔄 有新版本可用</span><button id="updateBtn" type="button">立即更新</button></div>
     <div class="container">
         <div class="header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
             <h1 style="margin:0;">🏠 客戶管理系統 <span id="crmVerTag" style="font-size:13px;font-weight:normal;opacity:0.7;">v1.0</span></h1>
-            <a href="https://handyassist-system.github.io/My-Schedule/" target="_blank" rel="noopener"
-               style="background:rgba(255,255,255,0.15); color:white; padding:8px 14px; border-radius:8px; text-decoration:none; font-size:13px; font-weight:bold; white-space:nowrap; display:inline-flex; align-items:center; gap:6px;">
-                📅 行事曆
-            </a>
                 <button type="button" id="crmTrackBtn" title="客戶追蹤" style="position:relative;background:rgba(255,255,255,.15);color:#fff;border:none;border-radius:8px;padding:8px 12px;font-size:18px;line-height:1;cursor:pointer;">📋<span id="crmTrackBadge" style="display:none;position:absolute;top:-4px;right:-4px;min-width:18px;height:18px;padding:0 4px;background:#e74c3c;color:#fff;border-radius:9px;font-size:11px;font-weight:700;line-height:18px;text-align:center;"></span></button>
                 <button type="button" id="crmStatsBtn" title="業績報表" style="background:rgba(255,255,255,.15);color:#fff;border:none;border-radius:8px;padding:8px 12px;font-size:18px;line-height:1;cursor:pointer;">📊</button>
                 <button type="button" id="crmSetBtn" title="設定" style="background:rgba(255,255,255,.15);color:#fff;border:none;border-radius:8px;padding:8px 12px;font-size:18px;line-height:1;cursor:pointer;">⚙️</button>
@@ -715,9 +746,9 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
 
                 <div class="setpg" id="setpg-basic">
                     <div class="setpg-head"><button type="button" class="setpg-back" onclick="closeSetPage()">‹ 返回</button><span class="setpg-title">店家資料</span></div>
-<!-- 你的稱呼 -->
+<!-- 店名或稱呼 -->
                 <div class="form-group">
-                    <label for="provider-name-input">你的店名或稱呼</label>
+                    <label for="provider-name-input">店名或稱呼</label>
                     <div style="display:flex; gap:8px;">
                         <input type="text" id="provider-name-input" placeholder="例如：宏益冷氣、林師傅" style="flex:1; padding:8px 10px; border:1px solid #bdc3c7; border-radius:4px;">
                         <button class="btn btn-primary" onclick="saveProviderName()">儲存</button>
@@ -739,16 +770,15 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
 
                     <div id="add-service-box" style="display:none;margin-top:10px;padding:12px;background:#f8f9fa;border-radius:8px;">
                         <div class="form-group" style="margin-bottom:10px;">
+                            <label for="new-service-cat" style="font-size:13px;">服務類別</label>
+                            <select id="new-service-cat" onchange="onNewServiceCatChange()" style="width:100%;padding:9px 10px;border:1px solid #bdc3c7;border-radius:4px;box-sizing:border-box;font-size:16px;"></select>
+                        </div>
+                        <div class="form-group" id="new-service-name-group" style="margin-bottom:10px;display:none;">
                             <label for="new-service-type-input" style="font-size:13px;">服務名稱</label>
-                            <input type="text" id="new-service-type-input" placeholder="例如：冷氣保養" style="width:100%;padding:8px 10px;border:1px solid #bdc3c7;border-radius:4px;box-sizing:border-box;">
+                            <input type="text" id="new-service-type-input" maxlength="20" placeholder="例如：冷氣保養" style="width:100%;padding:8px 10px;border:1px solid #bdc3c7;border-radius:4px;box-sizing:border-box;">
                         </div>
                         <div class="form-group" style="margin-bottom:10px;">
-                            <label style="font-size:13px;">服務時要記錄什麼？</label>
-                            <div class="radio-group" style="flex-direction:column;align-items:flex-start;gap:6px;">
-                                <label><input type="radio" name="new-service-fields" value="none" checked> 只記基本資料</label>
-                                <label><input type="radio" name="new-service-fields" value="home"> 還要記住家狀況（房間數、寵物…）</label>
-                                <label><input type="radio" name="new-service-fields" value="repair"> 還要記電器與保固</label>
-                            </div>
+                            <div id="new-service-fieldinfo"></div>
                         </div>
                         <div style="display:flex;gap:8px;">
                             <button type="button" class="btn btn-secondary" style="flex:0 0 90px;margin:0;" onclick="cancelAddService()">取消</button>
@@ -772,7 +802,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                             <button type="button" class="btn btn-secondary" style="flex:0 0 90px;margin:0;" onclick="cancelAddPartner()">取消</button>
                             <button class="btn btn-primary" style="flex:1;margin:0;" onclick="addPartner()">新增夥伴</button>
                         </div>
-                        <p style="font-size:11px;color:#95a5a6;margin-top:6px;">只是用來記錄「這次是誰去的」，夥伴沒有帳號、看不到你的資料</p>
+                        <p style="font-size:11px;color:#95a5a6;margin-top:6px;">僅用於記錄執行人員，夥伴無帳號、無法檢視您的資料</p>
                     </div>
                 </div>
                 </div>
@@ -794,15 +824,23 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                         <p style="font-size:11px;color:#95a5a6;margin-top:2px;">關閉的話，客戶和合約就不會出現「自接／公司派」的選項，畫面比較單純。</p>
                     </div>
 
-                    <div class="form-group">
-                        <label for="set-hourly-rate">一般收費（元/小時）</label>
-                        <input type="number" id="set-hourly-rate" min="0" step="1">
-                        <small style="color:#7f8c8d;">新增自接合約時的預設單價，個別合約仍可改</small>
+                    <!-- 按合約的服務不設一般收費（每份合約都不一樣）；單次計費才有預設金額 -->
+                    <div class="form-group" id="set-hourly-rate-group" style="display:none;">
+                        <label for="set-hourly-rate">單次服務預設金額（選填）</label>
+                        <div class="money-in">
+                            <span class="cur">NT$</span>
+                            <input type="number" id="set-hourly-rate" min="0" step="1" placeholder="例如：1500">
+                        </div>
+                        <small style="color:#7f8c8d;">排定預約時自動帶入，個別預約仍可調整</small>
                     </div>
 
                     <div class="form-group" id="set-payment-rate-group">
-                        <label for="set-payment-rate">公司派：我方收款費率（元/小時）</label>
-                        <input type="number" id="set-payment-rate" min="0" step="1">
+                        <label for="set-payment-rate">公司派：我方收款費率</label>
+                        <div class="money-in">
+                            <span class="cur">NT$</span>
+                            <input type="number" id="set-payment-rate" min="0" step="1" placeholder="例如：600">
+                            <span class="suf">/ 小時</span>
+                        </div>
                         <small style="color:#7f8c8d;">新增公司派合約時的預設值，個別合約仍可改</small>
                     </div>
 
@@ -947,6 +985,12 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                     <button id="add-booking-btn" class="btn btn-primary" style="display:none;">+ 新增預約</button>
                 </div>
 
+                <div id="bk-view-switch" style="display:flex;gap:0;margin-bottom:14px;border:1px solid #d9dfe4;border-radius:10px;overflow:hidden;">
+                    <button type="button" class="bk-vbtn on" data-view="list" onclick="setBookingView('list')">☰ 清單</button>
+                    <button type="button" class="bk-vbtn" data-view="cal" onclick="setBookingView('cal')">📅 月曆</button>
+                </div>
+
+                <div id="bookings-cal" style="display:none;"></div>
                 <div id="bookings-list" style="margin-top: 20px;"></div>
             </div>
 
@@ -955,7 +999,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                 <h2>收款管理</h2>
                 <p style="margin-bottom: 15px; color: #7f8c8d; font-size:13px; line-height:1.7;">
                     預約標為「完成」時，系統自動產生收款紀錄。<br>
-                    若某筆完成的預約沒有收款單，把它改回未完成、再改回完成，就會補開。
+                    若完成的預約未產生收款單，改回未完成再改回完成即可補開。
                 </p>
 
                 <div id="payment-warning" class="alert alert-warning" style="display:none;">
@@ -1042,7 +1086,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
 
                 <div class="form-group">
                     <label for="client-address">服務地址 *</label>
-                    <input type="text" id="client-address" required>
+                    <input type="text" id="client-address">
                 </div>
 
                 <div class="form-group">
@@ -1129,18 +1173,18 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
 
                 <div id="contract-rate-group" style="display:none;" class="form-group">
                     <label for="contract-hourly-rate">合約單價（元/小時）*</label>
-                    <input type="number" id="contract-hourly-rate" min="0" step="1">
+                    <input type="number" id="contract-hourly-rate" min="0" step="1" placeholder="例如：1200">
                 </div>
 
                 <div id="contract-rate-fixed" style="display:none;" class="form-group">
                     <label for="contract-hourly-rate-company">合約單價（元/小時）*</label>
-                    <input type="number" id="contract-hourly-rate-company" min="0" step="1">
+                    <input type="number" id="contract-hourly-rate-company" min="0" step="1" placeholder="例如：1200">
                     <small style="color: #7f8c8d;">客戶付給公司的費用，供記錄用</small>
                 </div>
 
                 <div id="contract-payment-rate-group" style="display:none;" class="form-group">
                     <label for="contract-payment-rate">我方收款費率（元/小時）</label>
-                    <input type="number" id="contract-payment-rate" min="0" step="1">
+                    <input type="number" id="contract-payment-rate" min="0" step="1" placeholder="例如：600">
                     <small style="color: #7f8c8d;">計算收款時使用，預設值可在 ⚙️ 設定 調整</small>
                 </div>
 
@@ -1205,7 +1249,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                 <div id="booking-info-display" style="display:none;" class="info-box">
                     <p>客戶: <span id="booking-info-client"></span></p>
                     <p id="booking-info-home-row">住家: <span id="booking-info-home"></span></p>
-                    <p>剩餘: <span id="booking-info-remaining"></span> 小時</p>
+                    <p id="booking-info-remaining-row">剩餘: <span id="booking-info-remaining"></span> 小時</p>
                 </div>
 
                 <div class="form-group" id="booking-address-group" style="display:none;">
@@ -1234,7 +1278,35 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                 <div class="form-group">
                     <label for="booking-hours">服務時數 *</label>
                     <input type="number" id="booking-hours" required min="0.5" step="0.5">
-                    <small style="color: #7f8c8d;">⚠️ 不得超過合約剩餘時數</small>
+                    <small style="color: #7f8c8d;" id="booking-hours-note">⚠️ 不得超過合約剩餘時數</small>
+                </div>
+
+                <!-- 以下三欄只有「單次計費」的服務才出現 -->
+                <div class="form-group" id="booking-item-group" style="display:none;">
+                    <label for="booking-item">服務項目</label>
+                    <input type="text" id="booking-item" maxlength="30" placeholder="例如：淨水器、冷氣">
+                    <small style="color:#7f8c8d;">同一位客戶的不同設備，提醒週期各自計算</small>
+                </div>
+
+                <div class="form-group" id="booking-amount-group" style="display:none;">
+                    <label for="booking-amount">本次金額</label>
+                    <div class="money-in">
+                        <span class="cur">NT$</span>
+                        <input type="number" id="booking-amount" min="0" step="1" placeholder="例如：1500">
+                    </div>
+                    <small style="color:#7f8c8d;">標記完成時依此金額產生收款單</small>
+                </div>
+
+                <div class="form-group" id="booking-remind-group" style="display:none;">
+                    <label for="booking-remind">下次提醒</label>
+                    <select id="booking-remind">
+                        <option value="0">不提醒</option>
+                        <option value="3">3 個月後</option>
+                        <option value="6">6 個月後</option>
+                        <option value="12">12 個月後</option>
+                        <option value="24">24 個月後</option>
+                    </select>
+                    <small style="color:#7f8c8d;">到期時會出現在「客戶追蹤」</small>
                 </div>
 
                 <div id="booking-essential-oil-group" style="display:none;" class="form-group">
@@ -1439,6 +1511,68 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
             };
         }
 
+        /* ==================== 服務類別（2026-10-06）====================
+           下拉選單的十個類別。選了類別就自動帶出：
+             rec.home   客戶資料要不要記住家狀況（住家類型、房間數、小孩、寵物）
+             rec.repair 客戶資料要不要記電器與保固（電器名稱、保固狀態）
+             billing    contract＝按合約／堂數　single＝單次計費
+             addr       服務地址是否必填（不是到府的行業就不強迫填）
+           「其他」讓使用者自己填名稱、自己勾，所以預設全關。
+           ================================================================ */
+        const SERVICE_CATS = [
+            { name: '除塵蟎',   home: true,  repair: false, billing: 'contract', addr: true  },
+            { name: '居家清潔', home: true,  repair: false, billing: 'contract', addr: true  },
+            { name: '家電服務', home: false, repair: true,  billing: 'single',   addr: true  },
+            { name: '冷氣空調', home: true,  repair: true,  billing: 'single',   addr: true  },
+            { name: '修繕工程', home: true,  repair: true,  billing: 'single',   addr: true  },
+            { name: '除蟲消毒', home: true,  repair: false, billing: 'contract', addr: true  },
+            { name: '美容個人', home: false, repair: false, billing: 'contract', addr: false },
+            { name: '教學顧問', home: false, repair: false, billing: 'contract', addr: false },
+            { name: '設計接案', home: false, repair: false, billing: 'single',   addr: false },
+            { name: '生活服務', home: false, repair: false, billing: 'single',   addr: false },
+            { name: '其他',     home: false, repair: false, billing: 'contract', addr: false }
+        ];
+        function serviceCat(name) {
+            for (var i = 0; i < SERVICE_CATS.length; i++) {
+                if (SERVICE_CATS[i].name === name) return SERVICE_CATS[i];
+            }
+            return null;
+        }
+        // 舊名稱對應到新類別（只改對應，不改使用者看到的名字）
+        const SVC_RENAME = { '維修': '家電服務', '維修服務': '家電服務' };
+
+        /* 把一筆服務項目補成新格式。舊資料只有 fields 單一值，這裡轉成兩個開關。
+           已經是新格式的不動，所以重複呼叫是安全的。 */
+        function normalizeServiceType(st) {
+            if (!st) return st;
+            if (SVC_RENAME[st.typeName]) st.typeName = SVC_RENAME[st.typeName];
+            var cat = serviceCat(st.typeName);
+
+            if (!st.rec || typeof st.rec !== 'object') {
+                if (st.fields === 'home')        st.rec = { home: true,  repair: false };
+                else if (st.fields === 'repair') st.rec = { home: false, repair: true  };
+                else if (st.fields === 'none')   st.rec = { home: false, repair: false };
+                else if (cat)                    st.rec = { home: cat.home, repair: cat.repair };
+                else                             st.rec = { home: false, repair: false };
+            }
+            st.rec.home   = !!st.rec.home;
+            st.rec.repair = !!st.rec.repair;
+
+            // 舊版程式還在讀 fields，順手同步，萬一要退版也不會壞
+            st.fields = st.rec.repair ? (st.rec.home ? 'home' : 'repair') : (st.rec.home ? 'home' : 'none');
+
+            if (st.billing !== 'contract' && st.billing !== 'single') {
+                st.billing = cat ? cat.billing : 'contract';
+            }
+            if (typeof st.addrRequired !== 'boolean') {
+                // 舊資料一律維持必填，行為才不會突然變
+                st.addrRequired = cat ? cat.addr : true;
+            }
+            return st;
+        }
+        function svcRecHome(st)   { return !!(st && st.rec && st.rec.home); }
+        function svcRecRepair(st) { return !!(st && st.rec && st.rec.repair); }
+
         function ensureCrmSettings(d) {
             if (!d) return defaultCrmSettings();
             if (!d.settings) {
@@ -1567,11 +1701,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                     if (!this.data.serviceTypes) this.data.serviceTypes = [];
                     // 確保三種固定服務類型存在
                     // 舊資料名稱統一
-                    this.data.serviceTypes.forEach(st => {
-                        if (st.typeName === '維修') st.typeName = '維修服務';
-                        if (st.typeName === '居家清潔' || st.typeName === '除塵蟎') st.fields = st.fields || 'home';
-                        if (st.typeName === '維修服務') st.fields = st.fields || 'repair';
-                    });
+                    this.data.serviceTypes.forEach(st => normalizeServiceType(st));
                     // 去除重複（同名只保留第一筆）
                     const seen = {};
                     this.data.serviceTypes = this.data.serviceTypes.filter(st => {
@@ -1653,11 +1783,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                 }
                 if (!this.data.providerName) this.data.providerName = '';
                 if (!this.data.serviceTypes) this.data.serviceTypes = [];
-                this.data.serviceTypes.forEach(st => {
-                    if (st.typeName === '維修') st.typeName = '維修服務';
-                    if (st.typeName === '居家清潔' || st.typeName === '除塵蟎') st.fields = st.fields || 'home';
-                    if (st.typeName === '維修服務') st.fields = st.fields || 'repair';
-                });
+                this.data.serviceTypes.forEach(st => normalizeServiceType(st));
                 const seen = {};
                 this.data.serviceTypes = this.data.serviceTypes.filter(st => {
                     if (seen[st.typeName]) return false;
@@ -1678,9 +1804,23 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                 if (!this.data.payments) this.data.payments = [];
             }
 
-            addServiceType(typeName, fields) {
+            /* opt：{home, repair, billing, addrRequired}；沒給就照類別名自動帶 */
+            addServiceType(typeName, opt) {
                 const id = 'st_' + Date.now();
-                this.data.serviceTypes.push({ id, typeName, fields: fields || 'none', cfg: defaultSvcCfg() });
+                const cat = serviceCat(typeName);
+                const o = opt || {};
+                const st = {
+                    id, typeName,
+                    rec: {
+                        home:   (o.home   !== undefined) ? !!o.home   : !!(cat && cat.home),
+                        repair: (o.repair !== undefined) ? !!o.repair : !!(cat && cat.repair)
+                    },
+                    billing: o.billing || (cat ? cat.billing : 'contract'),
+                    addrRequired: (o.addrRequired !== undefined) ? !!o.addrRequired : !!(cat && cat.addr),
+                    cfg: defaultSvcCfg()
+                };
+                normalizeServiceType(st);
+                this.data.serviceTypes.push(st);
                 if (!this.data.selectedServiceType) this.data.selectedServiceType = id;
                 this.save();
                 return id;
@@ -1776,12 +1916,19 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                 return booking;
             }
 
+            /* 單次計費的預約沒有合約，改從 booking.clientId 認服務 */
+            bookingClient(b) {
+                if (!b) return null;
+                if (b.contractId) {
+                    const c = this.getContract(b.contractId);
+                    return c ? this.getClient(c.clientId) : null;
+                }
+                return this.getClient(b.clientId);
+            }
             getBookings() {
                 if (!this.data.selectedServiceType) return [];
                 return this.data.bookings.filter(b => {
-                    const contract = this.getContract(b.contractId);
-                    if (!contract) return false;
-                    const client = this.getClient(contract.clientId);
+                    const client = this.bookingClient(b);
                     return client && client.serviceTypeId === this.data.selectedServiceType;
                 });
             }
@@ -1817,9 +1964,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                 return this.data.payments.filter(p => {
                     const booking = this.getBooking(p.bookingId);
                     if (!booking) return false;
-                    const contract = this.getContract(booking.contractId);
-                    if (!contract) return false;
-                    const client = this.getClient(contract.clientId);
+                    const client = this.bookingClient(booking);
                     return client && client.serviceTypeId === this.data.selectedServiceType;
                 });
             }
@@ -1846,7 +1991,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
         function isCrmAdminEmail(e){ return String(e||'').toLowerCase() === ADMIN_EMAIL.toLowerCase(); }
         // 只用於「這個信箱用過試用沒」的比對，不可當資料路徑
         function crmTrialEmailKey(e){ return normEmail(e).replace(/[.#$\[\]]/g,'_'); }
-        const CRM_APP_VER = 'v1.0', CRM_BUILD_ID = '1006-1';
+        const CRM_APP_VER = 'v1.0', CRM_BUILD_ID = '1006-10';
         const CRM_EMAIL_FOR_SIGNIN = 'crmEmailForSignIn';
         const LINE_SUPPORT_URL = 'https://line.me/R/ti/p/@373pfdee';
         var crmUserEmail = null;
@@ -2154,6 +2299,23 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
            兩種都要警示：太久沒預約（紅燈天數）、可排時數快用完。 */
         function crmTrackAlertCount(){
             try{
+                // 單次計費：數「保養週期已到期」的設備筆數
+                if (isSingleBilling()) {
+                    var t0 = new Date(); t0.setHours(0,0,0,0);
+                    var n0 = 0, seen0 = {};
+                    (store.data.bookings || [])
+                      .filter(function(b){ return b && !b.contractId && b.status === '完成' && (parseInt(b.remindMonths,10)||0) > 0; })
+                      .sort(function(a,b){ return new Date(b.bookingDate) - new Date(a.bookingDate); })
+                      .forEach(function(b){
+                        var k = b.clientId + '|' + ((b.serviceItem||'').trim());
+                        if (seen0[k]) return;
+                        seen0[k] = true;
+                        var due = new Date(b.bookingDate);
+                        due.setMonth(due.getMonth() + (parseInt(b.remindMonths,10)||0));
+                        if (due <= t0) n0++;
+                      });
+                    return n0;
+                }
                 var cfg = SVC() || {};
                 var redDays = cfg.trackRed || 90;
                 var today = new Date(); today.setHours(0,0,0,0);
@@ -2211,6 +2373,118 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
             initQuickServiceSwitch();
         }
 
+        /* 「這個服務會記錄哪些客戶資料」—— 新增與編輯服務時共用，
+           上半截灰字是一定會有的欄位，下半截才是可以勾的兩組。 */
+        const REC_BASE_TXT = '客戶姓名、聯絡電話、客戶來源、服務地址、是否加入官方 LINE、備註、服務狀態';
+        function recInfoHtml(prefix, home, repair, locked) {
+            var dis = locked ? ' disabled' : '';
+            return '' +
+            '<label style="font-size:13px;">客戶資料欄位</label>' +
+            '<div style="background:#F7F6F3;border:1px solid #E7E2DA;border-radius:10px;padding:10px 12px;margin-top:6px;">' +
+              '<div style="font-size:12px;color:#95a5a6;font-weight:600;">基本欄位（已內建）</div>' +
+              '<div style="font-size:12px;color:#95a5a6;line-height:1.7;margin-top:2px;">' + REC_BASE_TXT + '</div>' +
+              '<div style="font-size:12px;color:#7f8c8d;font-weight:600;margin-top:12px;">選用欄位（可隨時調整）</div>' +
+              '<label style="display:block;margin-top:8px;font-size:13.5px;cursor:pointer;">' +
+                '<input type="checkbox" id="' + prefix + '-rec-home"' + (home ? ' checked' : '') + dis + '> 住家狀況' +
+                '<div style="font-size:11.5px;color:#95a5a6;margin:2px 0 0 22px;">住家類型、房間數、有無小孩、有無寵物</div>' +
+              '</label>' +
+              '<label style="display:block;margin-top:10px;font-size:13.5px;cursor:pointer;">' +
+                '<input type="checkbox" id="' + prefix + '-rec-repair"' + (repair ? ' checked' : '') + dis + '> 電器與保固' +
+                '<div style="font-size:11.5px;color:#95a5a6;margin:2px 0 0 22px;">電器名稱、保固狀態</div>' +
+              '</label>' +
+            '</div>';
+        }
+        // 新增服務：類別下拉換了就重畫下面的勾選，選「其他」才讓人自己填名稱
+        function onNewServiceCatChange() {
+            var sel = document.getElementById('new-service-cat');
+            if (!sel) return;
+            var cat = serviceCat(sel.value) || SERVICE_CATS[SERVICE_CATS.length - 1];
+            var other = (cat.name === '其他');
+            var g = document.getElementById('new-service-name-group');
+            if (g) g.style.display = other ? 'block' : 'none';
+            var box = document.getElementById('new-service-fieldinfo');
+            // 選了類別就照類別帶，只有「其他」要自己勾
+            if (box) box.innerHTML = recInfoHtml('new', cat.home, cat.repair, !other);
+        }
+        function fillServiceCatSelect(selectId, current) {
+            var sel = document.getElementById(selectId);
+            if (!sel) return;
+            sel.innerHTML = SERVICE_CATS.map(function (c) {
+                return '<option value="' + c.name + '"' + (c.name === current ? ' selected' : '') + '>' +
+                       (c.name === '其他' ? '其他（自己填名稱）' : c.name) + '</option>';
+            }).join('');
+        }
+
+        /* ==================== 計費方式分流（2026-10-06）====================
+           單次計費（維修類）跟按合約的差別：
+             · 沒有合約概念 → 底部不顯示「合約」分頁，排預約也不必先建合約
+             · 金額是整筆報價 → 預約填「本次金額」，完成時直接用它開收款單
+             · 追蹤看的是「保養週期到了沒」，不是「剩餘時數」
+           ================================================================ */
+        /* 撞期檢查：同一天、同一位執行人員、時段重疊就回傳提示字串，沒撞回傳空字串。
+           只提醒不擋——有時會刻意把同地區的案子排在一起連著跑。
+           會跨服務一起比對，因為人只有一個，不會因為換了服務就能分身。 */
+        function findBookingConflict(q) {
+            if (!q || !q.date || !q.time) return '';
+            const toMin = function (t) {
+                const m = /^(\d{1,2}):(\d{2})$/.exec(t || ''); 
+                return m ? (parseInt(m[1], 10) * 60 + parseInt(m[2], 10)) : null;
+            };
+            const s0 = toMin(q.time);
+            if (s0 === null) return '';
+            const e0 = s0 + Math.round((parseFloat(q.hours) || 1) * 60);
+            const list = (store.data.bookings || []).filter(function (b) {
+                return b && b.id !== q.bookingId && b.bookingDate === q.date && b.status !== '取消';
+            });
+            for (let i = 0; i < list.length; i++) {
+                const b = list[i];
+                const bs = toMin(b.bookingTime);
+                if (bs === null) continue;
+                const be = bs + Math.round((parseFloat(b.serviceHours) || 1) * 60);
+                const sameStaff = (b.staffId || 'me') === (q.staffId || 'me');
+                if (!sameStaff) continue;
+                if (s0 < be && bs < e0) {                       // 時間區間重疊
+                    const c = store.getClient(b.clientId);
+                    const who = c ? c.clientName : '另一筆預約';
+                    const sName = (function () {
+                        const ps = store.data.partners || [];
+                        const hit = ps.find(function (x) { return x.id === b.staffId; });
+                        return hit ? hit.name : '自己';
+                    })();
+                    return '⚠️ 時段重疊\n\n' + q.date + ' ' + b.bookingTime +
+                           ' 已有「' + who + '」' + (parseFloat(b.serviceHours) || 0) + ' 小時的預約（' + sName + '）。\n\n仍要排定嗎？';
+                }
+            }
+            return '';
+        }
+
+        function isSingleBilling() {
+            try {
+                const st = store.getServiceType(store.data.selectedServiceType);
+                return !!(st && st.billing === 'single');
+            } catch (e) { return false; }
+        }
+        // 依計費方式顯示／隱藏合約分頁與預約表單上的欄位
+        function applyBillingUI() {
+            const single = isSingleBilling();
+            const nav = document.querySelector('#crmNav .nav-btn[data-tab="contracts"]');
+            if (nav) nav.style.display = single ? 'none' : '';
+            // 停在合約頁時切換到單次計費的服務 → 退回客戶頁，避免卡在看不到的分頁
+            if (single) {
+                const cp = document.querySelector('#contracts.tab-pane.active');
+                if (cp) setActiveTab('clients');
+            }
+            [['booking-item-group', single], ['booking-amount-group', single],
+             ['booking-remind-group', single]].forEach(function (x) {
+                const el = document.getElementById(x[0]);
+                if (el) el.style.display = x[1] ? 'block' : 'none';
+            });
+            const hn = document.getElementById('booking-hours-note');
+            if (hn) hn.style.display = single ? 'none' : 'block';
+            const bw = document.getElementById('booking-warning');
+            if (bw && single) bw.style.display = 'none';
+        }
+
         function renderSettingsPage() {
             const name = store.data.providerName || '';
             document.getElementById('provider-name-input').value = name;
@@ -2219,7 +2493,13 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
             const list = document.getElementById('service-types-list');
             const types = store.getServiceTypes();
             const single = types.length === 1;
-            const FIELD_LABEL = { home: '會記住家狀況', repair: '會記電器與保固', none: '只記基本資料' };
+            const recLabel = function (st) {
+                var a = [];
+                if (svcRecHome(st))   a.push('住家狀況');
+                if (svcRecRepair(st)) a.push('電器與保固');
+                var t = a.length ? a.join('、') : '僅基本欄位';
+                return t + (st.billing === 'single' ? ' ｜ 單次制' : ' ｜ 合約制');
+            };
             const cnt = function (id) { return store.data.clients.filter(c => c.serviceTypeId === id).length; };
 
             document.getElementById('service-section-hint').style.display = single ? 'none' : 'block';
@@ -2238,7 +2518,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                     <div style="display:flex;align-items:center;gap:8px;padding:12px 0;">
                         <span style="flex:1;">
                             <span style="font-weight:bold;font-size:15px;color:#2c3e50;">${st.typeName}</span>
-                            <br><small style="color:#95a5a6;">${FIELD_LABEL[st.fields] || FIELD_LABEL.none}</small>
+                            <br><small style="color:#95a5a6;">${recLabel(st)}</small>
                         </span>
                         <button class="btn btn-sm btn-secondary" onclick="editServiceType('${st.id}')">編輯</button>
                     </div>`;
@@ -2250,7 +2530,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                     <div style="display:flex;align-items:center;gap:8px;padding:10px;border:2px solid ${isActive ? '#27ae60' : '#ecf0f1'};border-radius:8px;margin-bottom:8px;background:${isActive ? '#e8f5e9' : 'white'};">
                         <span style="flex:1;cursor:pointer;" onclick="switchServiceType('${st.id}')">
                             <span style="font-weight:${isActive ? 'bold' : 'normal'};">${st.typeName}</span>${isActive ? ' <span style="color:#27ae60;font-size:12px;">使用中</span>' : ''}
-                            <br><small style="color:#95a5a6;">${FIELD_LABEL[st.fields] || FIELD_LABEL.none} ｜ ${cnt(st.id)} 位客戶</small>
+                            <br><small style="color:#95a5a6;">${recLabel(st)} ｜ ${cnt(st.id)} 位客戶</small>
                         </span>
                         <button class="btn btn-sm btn-secondary" onclick="editServiceType('${st.id}')">編輯</button>
                         <button class="btn btn-sm btn-danger" onclick="deleteServiceType('${st.id}','${esc}')">✕</button>
@@ -2287,9 +2567,8 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
         }
 
         function cancelAddService() {
-            document.getElementById('new-service-type-input').value = '';
-            const r = document.querySelector('input[name="new-service-fields"][value="none"]');
-            if (r) r.checked = true;
+            const i = document.getElementById('new-service-type-input');
+            if (i) i.value = '';
             document.getElementById('add-service-box').style.display = 'none';
             renderSettingsPage();
         }
@@ -2357,9 +2636,8 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
             if (!st) return;
             document.getElementById('edit-service-modal').dataset.typeId = typeId;
             document.getElementById('edit-service-name').value = st.typeName || '';
-            const f = st.fields || 'none';
-            const r = document.querySelector(`input[name="edit-service-fields"][value="${f}"]`);
-            if (r) r.checked = true;
+            const box = document.getElementById('edit-service-fieldinfo');
+            if (box) box.innerHTML = recInfoHtml('edit', svcRecHome(st), svcRecRepair(st), false);
             document.getElementById('edit-service-modal').classList.add('show');
         }
 
@@ -2376,9 +2654,10 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
             if (store.getServiceTypes().some(x => x.id !== typeId && x.typeName === t)) {
                 showToast('已經有同名的服務了'); return;
             }
-            const fr = document.querySelector('input[name="edit-service-fields"]:checked');
+            const ck = function (id) { var e = document.getElementById(id); return e ? e.checked : false; };
             st.typeName = t;
-            st.fields = fr ? fr.value : 'none';
+            st.rec = { home: ck('edit-rec-home'), repair: ck('edit-rec-repair') };
+            normalizeServiceType(st);
             store.save();
             closeEditServiceModal();
             renderSettingsPage();
@@ -2401,6 +2680,10 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
             }
             const anote = document.getElementById('set-account-note');
             if (anote) anote.style.display = types.length > 1 ? 'block' : 'none';
+
+            // 一般收費只有「單次計費」的服務才出現（按合約的每份都不一樣，不設預設值）
+            const hg = document.getElementById('set-hourly-rate-group');
+            if (hg) hg.style.display = (cur && cur.billing === 'single') ? 'block' : 'none';
 
             const cb = document.getElementById('set-company-dispatch');
             if (cb) {
@@ -2474,7 +2757,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
 
         function startPreview() {
             if (crmUserEmail !== ADMIN_EMAIL) { showToast('這個功能只有管理員可以用'); return; }
-            showConfirm('要用「全新使用者」的角度看一次嗎？\n預覽期間所有操作都不會存檔，也不會動到你現在的資料。', function () {
+            showConfirm('要以全新使用者的視角檢視嗎？\n預覽期間所有操作都不會存檔，也不會變更現有資料。', function () {
                 PREVIEW = true;
                 store._firebaseReady = false;
                 store.data = {
@@ -2573,30 +2856,29 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
             el.style.display = 'flex';
             document.getElementById('setup-provider').value = store.data.providerName || '';
             document.getElementById('setupMsg').textContent = '';
-            setupShowStep(1);
+            fillServiceCatSelect('setup-cat', SERVICE_CATS[0].name);
+            onSetupCatChange();
+            el.scrollTop = 0;
             const cb = document.getElementById('setup-company');
             cb.onchange = function () {
                 document.getElementById('setup-payrate-group').style.display = this.checked ? 'block' : 'none';
             };
         }
 
-        function setupShowStep(k) {
-            document.getElementById('setupStep1').style.display = (k === 1) ? 'block' : 'none';
-            document.getElementById('setupStep2').style.display = (k === 2) ? 'block' : 'none';
-            document.getElementById('setupStepLabel').textContent =
-                (k === 1) ? '步驟 1／2　你是誰、做什麼' : '步驟 2／2　你的收費與規則';
-            document.getElementById('setupMsg').textContent = '';
-            document.getElementById('crmSetup').scrollTop = 0;
+        /* 選了類別就照類別帶欄位；只有「其他」要自己填名稱、自己勾 */
+        function onSetupCatChange() {
+            const sel = document.getElementById('setup-cat');
+            if (!sel) return;
+            const cat = serviceCat(sel.value) || SERVICE_CATS[SERVICE_CATS.length - 1];
+            const other = (cat.name === '其他');
+            const ng = document.getElementById('setup-name-group');
+            if (ng) ng.style.display = other ? 'block' : 'none';
+            const rg = document.getElementById('setup-recinfo-group');
+            if (rg) {
+                rg.style.display = other ? 'block' : 'none';
+                rg.innerHTML = other ? recInfoHtml('setup', cat.home, cat.repair, false) : '';
+            }
         }
-
-        function setupNext() {
-            const msg = document.getElementById('setupMsg');
-            if (!(document.getElementById('setup-provider').value || '').trim()) { msg.textContent = '請填你的店名或稱呼'; return; }
-            if (!(document.getElementById('setup-service').value || '').trim()) { msg.textContent = '請填你主要做的服務'; return; }
-            setupShowStep(2);
-        }
-
-        function setupBack() { setupShowStep(1); }
 
         function hideSetupPage() {
             document.getElementById('crmSetup').style.display = 'none';
@@ -2605,9 +2887,13 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
         function finishSetup() {
             const msg = document.getElementById('setupMsg');
             const who = (document.getElementById('setup-provider').value || '').trim();
-            const svc = (document.getElementById('setup-service').value || '').trim();
-            const fr = document.querySelector('input[name="setup-fields"]:checked');
-            if (!who || !svc) { setupShowStep(1); msg.textContent = !who ? '請填你的店名或稱呼' : '請填你主要做的服務'; return; }
+            if (!who) { msg.textContent = '請填寫店名或稱呼'; return; }
+
+            const sel = document.getElementById('setup-cat');
+            const cat = serviceCat(sel ? sel.value : '') || SERVICE_CATS[SERVICE_CATS.length - 1];
+            const other = (cat.name === '其他');
+            const svc = other ? ((document.getElementById('setup-service').value || '').trim()) : cat.name;
+            if (!svc) { msg.textContent = '請填服務名稱'; return; }
 
             const num = function (id, min, max, fallback) {
                 let v = parseInt((document.getElementById(id) || {}).value, 10);
@@ -2616,33 +2902,34 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                 if (v > max) v = max;
                 return v;
             };
+            const ck = function (id) { var e = document.getElementById(id); return e ? e.checked : false; };
             const def = defaultCrmSettings();
-            let yellow = num('setup-yellow', 1, 3650, def.trackYellow);
-            let red = num('setup-red', 1, 3650, def.trackRed);
-            if (red <= yellow) red = yellow + 1;
-            let st0 = num('setup-slot-start', 0, 23, def.slotStart);
-            let st1 = num('setup-slot-end', 1, 23, def.slotEnd);
-            if (st1 <= st0) st1 = Math.min(23, st0 + 1);
 
             store.data.providerName = who;
-            const id = store.addServiceType(svc, fr ? fr.value : 'none');
+            const id = store.addServiceType(svc, {
+                home:   other ? ck('setup-rec-home')   : cat.home,
+                repair: other ? ck('setup-rec-repair') : cat.repair,
+                billing: cat.billing,
+                addrRequired: cat.addr
+            });
             store.data.selectedServiceType = id;
+
+            // 其餘設定一律用預設值，不在開通時問（設定頁都能改）
             const acc = ensureCrmSettings(store.data);
-            acc.slotStart = st0;
-            acc.slotEnd = st1;
-            acc.overdueDays = num('setup-overdue', 1, 3650, def.overdueDays);
+            acc.slotStart = def.slotStart;
+            acc.slotEnd = def.slotEnd;
+            acc.overdueDays = def.overdueDays;
             acc.setupDone = true;
 
-            // 這個服務自己的收費規則
             const newSt = store.getServiceType(id);
             if (newSt) {
                 newSt.cfg = {
-                    companyDispatch: !!document.getElementById('setup-company').checked,
-                    defaultHourlyRate: num('setup-hourly-rate', 0, 1000000, 0),
+                    companyDispatch: ck('setup-company'),
+                    defaultHourlyRate: 0,
                     defaultPaymentRate: num('setup-payrate', 0, 1000000, def.defaultPaymentRate),
-                    contractYears: num('setup-years', 0, 50, def.contractYears),
-                    trackYellow: yellow,
-                    trackRed: red,
+                    contractYears: def.contractYears,
+                    trackYellow: def.trackYellow,
+                    trackRed: def.trackRed,
                     useOil: false
                 };
             }
@@ -2673,7 +2960,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
 
         function saveProviderName() {
             const name = document.getElementById('provider-name-input').value.trim();
-            if (!name) { showToast('請輸入你的店名或稱呼'); return; }
+            if (!name) { showToast('請輸入店名或稱呼'); return; }
             store.data.providerName = name;
             store.save();
             document.getElementById('current-provider-name').textContent = `目前：${name}`;
@@ -2681,14 +2968,23 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
         }
 
         function addServiceType() {
+            const sel = document.getElementById('new-service-cat');
+            const catName = sel ? sel.value : '其他';
+            const cat = serviceCat(catName) || SERVICE_CATS[SERVICE_CATS.length - 1];
             const input = document.getElementById('new-service-type-input');
-            const typeName = input.value.trim();
-            if (!typeName) { showToast('請輸入服務項目名稱'); return; }
+            // 選「其他」才用自己填的名字，其餘直接用類別名
+            const typeName = (cat.name === '其他') ? ((input && input.value) || '').trim() : cat.name;
+            if (!typeName) { showToast('請輸入服務名稱'); return; }
             const exists = store.getServiceTypes().some(st => st.typeName === typeName);
             if (exists) { showToast('這個服務項目已經有了'); return; }
-            const fr = document.querySelector('input[name="new-service-fields"]:checked');
-            store.addServiceType(typeName, fr ? fr.value : 'none');
-            input.value = '';
+            const ck = function (id) { var e = document.getElementById(id); return e ? e.checked : false; };
+            store.addServiceType(typeName, {
+                home:   (cat.name === '其他') ? ck('new-rec-home')   : cat.home,
+                repair: (cat.name === '其他') ? ck('new-rec-repair') : cat.repair,
+                billing: cat.billing,
+                addrRequired: cat.addr
+            });
+            if (input) input.value = '';
             const box = document.getElementById('add-service-box');
             if (box) box.style.display = 'none';
             renderSettingsPage();
@@ -2839,30 +3135,19 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
             document.getElementById('client-modal').classList.remove('show');
         }
 
+        /* 兩組加選欄位現在可以同時出現（原本是三選一）。
+           服務地址是否必填也跟著服務走——不是到府的行業不強迫填。 */
         function renderDynamicFields() {
             const container = document.getElementById('client-dynamic-fields');
             const st = store.getServiceType(store.data.selectedServiceType);
-            const fields = st ? st.fields : 'home';
+            const home   = svcRecHome(st);
+            const repair = svcRecRepair(st);
 
             const htg = document.getElementById('client-home-type-group');
-            if (htg) htg.style.display = (fields === 'home') ? 'block' : 'none';
+            if (htg) htg.style.display = home ? 'block' : 'none';
 
-            if (fields === 'repair') {
-                container.innerHTML = `
-                    <h3 style="margin-top:20px;margin-bottom:15px;">維修資訊</h3>
-                    <div class="form-group">
-                        <label for="client-appliance-name">電器名稱 *</label>
-                        <input type="text" id="client-appliance-name">
-                    </div>
-                    <div class="form-group">
-                        <label>保固狀態</label>
-                        <div class="radio-group">
-                            <label><input type="radio" name="client-warranty-status" value="保固內"> 保固內</label>
-                            <label><input type="radio" name="client-warranty-status" value="保固外"> 保固外</label>
-                        </div>
-                    </div>`;
-            } else if (fields === 'home') {
-                container.innerHTML = `
+            let html = '';
+            if (home) html += `
                     <h3 style="margin-top:20px;margin-bottom:15px;">居家資訊</h3>
                     <div class="form-group">
                         <label for="client-rooms">房間數</label>
@@ -2880,9 +3165,27 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                             <label for="client-has-pets">是否有寵物</label>
                         </div>
                     </div>`;
-            } else {
-                container.innerHTML = '';
-            }
+            if (repair) html += `
+                    <h3 style="margin-top:20px;margin-bottom:15px;">維修資訊</h3>
+                    <div class="form-group">
+                        <label for="client-appliance-name">電器名稱</label>
+                        <input type="text" id="client-appliance-name">
+                    </div>
+                    <div class="form-group">
+                        <label>保固狀態</label>
+                        <div class="radio-group">
+                            <label><input type="radio" name="client-warranty-status" value="保固內"> 保固內</label>
+                            <label><input type="radio" name="client-warranty-status" value="保固外"> 保固外</label>
+                        </div>
+                    </div>`;
+            container.innerHTML = html;
+
+            // 服務地址：必填與否由服務決定
+            const addrNeeded = !st || st.addrRequired !== false;
+            const addr = document.getElementById('client-address');
+            if (addr) addr.required = addrNeeded;
+            const addrLab = document.querySelector('label[for="client-address"]');
+            if (addrLab) addrLab.textContent = addrNeeded ? '服務地址 *' : '服務地址（選填）';
         }
 
         function editClient(clientId) {
@@ -2908,13 +3211,13 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
             applyCompanyDispatchUI(client.clientSource === '公司派');
 
             const st = store.getServiceType(store.data.selectedServiceType);
-            const fields = st ? st.fields : 'home';
 
-            if (fields === 'home') {
+            if (svcRecHome(st)) {
                 if (client.rooms) document.getElementById('client-rooms').value = client.rooms;
                 document.getElementById('client-has-children').checked = client.hasChildren || false;
                 document.getElementById('client-has-pets').checked = client.hasPets || false;
-            } else if (fields === 'repair') {
+            }
+            if (svcRecRepair(st)) {
                 if (client.applianceName) document.getElementById('client-appliance-name').value = client.applianceName;
                 if (client.warrantyStatus) {
                     const radio = document.querySelector(`input[name="client-warranty-status"][value="${client.warrantyStatus}"]`);
@@ -2937,7 +3240,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
 
                 const clientId = document.getElementById('client-modal').dataset.clientId;
                 const st = store.getServiceType(store.data.selectedServiceType);
-                const fields = st ? st.fields : 'home';
+                const addrNeeded = !st || st.addrRequired !== false;
 
                 // 驗證必填欄位
                 const clientName = document.getElementById('client-name').value.trim();
@@ -2949,8 +3252,8 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                 if (!clientName) { showToast('請輸入客戶姓名'); return; }
                 if (!phone) { showToast('請輸入聯絡電話'); return; }
                 if (SVC().companyDispatch && !clientSource) { showToast('請選擇客戶來源'); return; }
-                if (fields === 'home' && !homeType) { showToast('請選擇住家類型'); return; }
-                if (!address) { showToast('請輸入服務地址'); return; }
+                if (svcRecHome(st) && !homeType) { showToast('請選擇住家類型'); return; }
+                if (addrNeeded && !address) { showToast('請輸入服務地址'); return; }
 
                 const client = {
                     serviceTypeId: store.data.selectedServiceType,
@@ -2964,11 +3267,12 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                     serviceStatus: document.querySelector('input[name="client-service-status"]:checked')?.value || '服務中'
                 };
 
-                if (fields === 'home') {
+                if (svcRecHome(st)) {
                     client.rooms = parseInt(document.getElementById('client-rooms').value) || null;
                     client.hasChildren = document.getElementById('client-has-children').checked;
                     client.hasPets = document.getElementById('client-has-pets').checked;
-                } else if (fields === 'repair') {
+                }
+                if (svcRecRepair(st)) {
                     client.applianceName = document.getElementById('client-appliance-name').value.trim();
                     const warrantyRadio = document.querySelector('input[name="client-warranty-status"]:checked');
                     client.warrantyStatus = warrantyRadio ? warrantyRadio.value : '';
@@ -3112,10 +3416,8 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
             document.getElementById('contract-rate-fixed').style.display = 'none';
             document.getElementById('contract-payment-rate-group').style.display = 'none';
             document.getElementById('contract-payment-rate').value = SVC().defaultPaymentRate;
-            if (SVC().defaultHourlyRate > 0) {
-                document.getElementById('contract-hourly-rate').value = SVC().defaultHourlyRate;
-                document.getElementById('contract-hourly-rate-company').value = SVC().defaultHourlyRate;
-            }
+            // 合約制每份價格都不一樣，所以不帶預設單價（2026-10-06 改）
+            // defaultHourlyRate 現在只給「單次計費」的預約當預設金額用
             document.getElementById('contract-adv-box').style.display = 'none';
             document.getElementById('contract-adv-toggle').textContent = '＋ 進階選項';
             document.getElementById('contract-rate-note').style.display = 'none';
@@ -3336,6 +3638,89 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
             return { used: used, booked: booked, remain: remain, usable: remain - booked };
         }
 
+        /* ==================== 預約月曆（2026-10-06）====================
+           清單看不出「這個月哪幾天有排、哪天太滿」，所以加一個月曆檢視。
+           點日期只是篩選下方清單，預約的新增與編輯仍走原本那一套。
+           ================================================================ */
+        let bkView = 'list';
+        let bkCalMonth = null;      // 月曆目前顯示的月份（當月 1 號）
+        let bkCalPick = null;       // 使用者點選的日期 yyyy-mm-dd，null＝整個月
+
+        function ymdLocal(d) {
+            const p2 = n => String(n).padStart(2, '0');
+            return d.getFullYear() + '-' + p2(d.getMonth() + 1) + '-' + p2(d.getDate());
+        }
+        function setBookingView(v) {
+            bkView = (v === 'cal') ? 'cal' : 'list';
+            if (bkView === 'cal' && !bkCalMonth) {
+                const t = new Date();
+                bkCalMonth = new Date(t.getFullYear(), t.getMonth(), 1);
+            }
+            if (bkView === 'list') bkCalPick = null;
+            document.querySelectorAll('#bk-view-switch .bk-vbtn').forEach(function (b) {
+                b.classList.toggle('on', b.dataset.view === bkView);
+            });
+            const cal = document.getElementById('bookings-cal');
+            if (cal) cal.style.display = (bkView === 'cal') ? 'block' : 'none';
+            renderBookings();
+        }
+        function bkCalShift(n) {
+            if (!bkCalMonth) return;
+            bkCalMonth = new Date(bkCalMonth.getFullYear(), bkCalMonth.getMonth() + n, 1);
+            bkCalPick = null;
+            renderBookings();
+        }
+        function bkCalPickDay(ymd) {
+            bkCalPick = (bkCalPick === ymd) ? null : ymd;   // 再點一次取消篩選
+            renderBookings();
+        }
+        function renderBookingCalendar() {
+            const box = document.getElementById('bookings-cal');
+            if (!box || bkView !== 'cal') return;
+            if (!bkCalMonth) bkCalMonth = new Date();
+            const y = bkCalMonth.getFullYear(), m = bkCalMonth.getMonth();
+            const first = new Date(y, m, 1), last = new Date(y, m + 1, 0);
+            const todayY = ymdLocal(new Date());
+
+            // 這個月每一天有幾筆預約
+            const byDay = {};
+            store.getBookings().forEach(function (b) {
+                if (!b.bookingDate) return;
+                (byDay[b.bookingDate] = byDay[b.bookingDate] || []).push(b);
+            });
+
+            let html = '<div class="bk-cal-head">' +
+                '<button type="button" onclick="bkCalShift(-1)" aria-label="上個月">‹</button>' +
+                '<span class="bk-cal-title">' + y + ' 年 ' + (m + 1) + ' 月</span>' +
+                '<button type="button" onclick="bkCalShift(1)" aria-label="下個月">›</button></div>';
+            html += '<div class="bk-grid">';
+            ['日','一','二','三','四','五','六'].forEach(function (d) {
+                html += '<div class="bk-dow">' + d + '</div>';
+            });
+            for (let i = 0; i < first.getDay(); i++) html += '<div class="bk-cell off"></div>';
+            for (let d = 1; d <= last.getDate(); d++) {
+                const ymd = ymdLocal(new Date(y, m, d));
+                const list = byDay[ymd] || [];
+                const cls = ['bk-cell'];
+                if (ymd === todayY) cls.push('today');
+                if (ymd === bkCalPick) cls.push('sel');
+                let dots = '';
+                list.slice(0, 4).forEach(function (b) {
+                    dots += '<span class="bk-dot' + (b.status === '完成' ? ' done' : '') + '"></span>';
+                });
+                html += '<div class="' + cls.join(' ') + '" onclick="bkCalPickDay(\'' + ymd + '\')">' +
+                        '<div class="d">' + d + '</div>' +
+                        (list.length ? '<div class="bk-dots">' + dots + '</div>' : '') +
+                        (list.length > 4 ? '<div class="more">+' + (list.length - 4) + '</div>' : '') +
+                        '</div>';
+            }
+            html += '</div>';
+            html += '<div class="bk-day-head">' +
+                    (bkCalPick ? (bkCalPick + ' 的預約') : ((m + 1) + ' 月全部預約')) +
+                    '</div>';
+            box.innerHTML = html;
+        }
+
         // ==================== 預約管理 ====================
         function renderBookings() {
             const bookingsList = document.getElementById('bookings-list');
@@ -3343,15 +3728,24 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
             const statusFilter = document.getElementById('booking-status-filter') ? document.getElementById('booking-status-filter').value : '未開始';
             let bookings = store.getBookings();
 
+            renderBookingCalendar();
+            if (bkView === 'cal') {
+                if (bkCalPick) {
+                    bookings = bookings.filter(b => b.bookingDate === bkCalPick);
+                } else if (bkCalMonth) {
+                    const pre = bkCalMonth.getFullYear() + '-' +
+                                String(bkCalMonth.getMonth() + 1).padStart(2, '0');
+                    bookings = bookings.filter(b => (b.bookingDate || '').indexOf(pre) === 0);
+                }
+            }
+
             // 排序：日期新→舊
             bookings = bookings.sort((a, b) => new Date(b.bookingDate) - new Date(a.bookingDate) || new Date(b.createdAt) - new Date(a.createdAt));
 
             // 搜索過濾
             if (searchValue) {
                 bookings = bookings.filter(b => {
-                    const contract = store.getContract(b.contractId);
-                    if (!contract) return false;
-                    const client = store.getClient(contract.clientId);
+                    const client = store.bookingClient(b);
                     return client && client.clientName.toLowerCase().includes(searchValue);
                 });
             }
@@ -3365,9 +3759,8 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                 bookingsList.innerHTML = '<div class="empty-state">' + (searchValue ? '<span class="eico">🔍</span>找不到符合的預約<span class="esub">換個客戶姓名試試</span>' : '<span class="eico">📅</span>尚無預約<span class="esub">點「+ 新增預約」安排第一筆</span>') + '</div>';
             } else {
                 bookingsList.innerHTML = bookings.map(booking => {
-                    const contract = store.getContract(booking.contractId);
-                    if (!contract) return '';
-                    const client = store.getClient(contract.clientId);
+                    const contract = booking.contractId ? store.getContract(booking.contractId) : null;
+                    const client = store.bookingClient(booking);
                     if (!client) return '';
                     let statusBadgeClass = 'pending';
                     if (booking.status === '完成') statusBadgeClass = 'completed';
@@ -3403,7 +3796,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
         }
 
         function updateBookingTab() {
-            if (!store.data.selectedServiceType || store.getContracts().length === 0) {
+            if (!store.data.selectedServiceType || (!isSingleBilling() && store.getContracts().length === 0)) {
                 document.getElementById('booking-warning').style.display = 'block';
                 document.getElementById('add-booking-btn').style.display = 'none';
             } else {
@@ -3428,6 +3821,8 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('booking-date').value = today;
             renderStaffOptions('me');
+            document.getElementById('booking-modal').dataset.conflictOk = '';
+            applyBillingUI();
             document.getElementById('booking-modal').classList.add('show');
             initBookingClientSearch();
         }
@@ -3458,6 +3853,32 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
             document.getElementById('booking-client-id-hidden').value = clientId;
             document.getElementById('booking-client-search-input').value = clientName;
             document.getElementById('booking-client-dropdown').style.display = 'none';
+
+            const client0 = store.getClient(clientId);
+
+            // 單次計費：沒有合約也能排，直接帶出客戶資料
+            if (isSingleBilling()) {
+                document.getElementById('booking-modal').dataset.contractId = '';
+                document.getElementById('booking-client-selected-info').innerHTML = `✅ 已選擇：<strong>${clientName}</strong>`;
+                document.getElementById('booking-client-selected-info').style.display = 'block';
+                document.getElementById('booking-info-client').textContent = clientName;
+                document.getElementById('booking-info-home').textContent = client0?.homeType || '';
+                document.getElementById('booking-info-home-row').style.display = (client0 && client0.homeType) ? 'block' : 'none';
+                const _ra = document.getElementById('booking-info-remaining-row');
+                if (_ra) _ra.style.display = 'none';
+                const _a0 = document.getElementById('booking-address');
+                if (_a0) _a0.value = client0?.address || '';
+                document.getElementById('booking-address-group').style.display = 'block';
+                document.getElementById('booking-info-display').style.display = 'block';
+                // 服務項目預設帶客戶資料裡的主要電器
+                const _it = document.getElementById('booking-item');
+                if (_it && !_it.value) _it.value = (client0 && client0.applianceName) || '';
+                // 金額預設帶服務設定的預設單次金額
+                const _am = document.getElementById('booking-amount');
+                if (_am && !_am.value && SVC().defaultHourlyRate > 0) _am.value = SVC().defaultHourlyRate;
+                document.getElementById('booking-essential-oil-group').style.display = SVC().useOil ? 'block' : 'none';
+                return;
+            }
 
             const contract = store.getLatestActiveContract(clientId);
             if (!contract) {
@@ -3498,25 +3919,56 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
             e.preventDefault();
             if (crmBlocked()) return;
 
+            const single = isSingleBilling();
             const contractId = document.getElementById('booking-modal').dataset.contractId;
             const bookingId = document.getElementById('booking-modal').dataset.bookingId;
-            if (!contractId) { showToast('請先選擇客戶'); return; }
-            const contract = store.getContract(contractId);
-            const H = contractHours(contract, bookingId || undefined);
+            const clientIdSel = document.getElementById('booking-client-id-hidden').value;
             const serviceHours = parseFloat(document.getElementById('booking-hours').value);
 
-            if (serviceHours > H.usable) {
-                const extra = H.booked > 0 ? `（已完成 ${H.used}h、已排未做 ${H.booked}h）` : '';
-                showToast(`最多只能再排 ${H.usable} 小時${extra}`);
-                return;
+            let clientId, contract = null;
+            if (single) {
+                // 單次計費：沒有合約，直接綁客戶
+                clientId = clientIdSel || (bookingId ? (store.getBooking(bookingId) || {}).clientId : '');
+                if (!clientId) { showToast('請先選擇客戶'); return; }
+            } else {
+                if (!contractId) { showToast('請先選擇客戶'); return; }
+                contract = store.getContract(contractId);
+                const H = contractHours(contract, bookingId || undefined);
+                if (serviceHours > H.usable) {
+                    const extra = H.booked > 0 ? `（已完成 ${H.used}h、已排未做 ${H.booked}h）` : '';
+                    showToast(`最多只能再排 ${H.usable} 小時${extra}`);
+                    return;
+                }
+                clientId = contract.clientId;
             }
 
-            const client = store.getClient(contract.clientId);
-            const st = store.getServiceType(store.data.selectedServiceType);
+            const client = store.getClient(clientId);
+            if (!client) { showToast('找不到這位客戶'); return; }
+
+            // 撞期提醒：同一天、同一位執行人員、時段重疊就先問一聲（不擋，可照排）
+            const conflict = findBookingConflict({
+                bookingId: bookingId || null,
+                date: document.getElementById('booking-date').value,
+                time: document.getElementById('booking-time').value,
+                hours: serviceHours,
+                staffId: hasPartners() ? (document.getElementById('booking-staff').value || 'me') : 'me'
+            });
+            if (conflict && !document.getElementById('booking-modal').dataset.conflictOk) {
+                confirmDialog({ message: conflict, okText: '仍要排定', accent: '#4A7A9B' })
+                    .then(function (ok) {
+                        const m = document.getElementById('booking-modal');
+                        if (!ok) { m.dataset.conflictOk = ''; return; }
+                        m.dataset.conflictOk = '1';
+                        document.getElementById('booking-form')
+                            .dispatchEvent(new Event('submit', { cancelable: true }));
+                    });
+                return;
+            }
+            document.getElementById('booking-modal').dataset.conflictOk = '';
 
             const booking = {
-                contractId: contractId,
-                clientId: contract.clientId,
+                contractId: single ? '' : contractId,
+                clientId: clientId,
                 bookingDate: document.getElementById('booking-date').value,
                 bookingTime: document.getElementById('booking-time').value,
                 homeType: client.homeType,
@@ -3525,6 +3977,12 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                 serviceNotes: document.getElementById('booking-notes').value,
                 status: '未開始'
             };
+
+            if (single) {
+                booking.serviceItem = (document.getElementById('booking-item').value || '').trim();
+                booking.amount = parseInt(document.getElementById('booking-amount').value, 10) || 0;
+                booking.remindMonths = parseInt(document.getElementById('booking-remind').value, 10) || 0;
+            }
 
             if (hasPartners()) {
                 booking.staffId = document.getElementById('booking-staff').value || 'me';
@@ -3552,11 +4010,12 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
             const booking = store.getBooking(bookingId);
             if (!booking) return;
 
-            const contract = store.getContract(booking.contractId);
-            if (!contract) return;
-            const client = store.getClient(contract.clientId);
+            const flat = !booking.contractId;
+            const contract = flat ? null : store.getContract(booking.contractId);
+            if (!flat && !contract) return;
+            const client = store.getClient(flat ? booking.clientId : contract.clientId);
             if (!client) return;
-            const H = contractHours(contract, bookingId);
+            const H = flat ? { usable: 0, used: 0, booked: 0 } : contractHours(contract, bookingId);
 
             document.getElementById('booking-modal-title').textContent = '編輯預約';
             document.getElementById('booking-modal').dataset.bookingId = bookingId;
@@ -3570,7 +4029,16 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
             document.getElementById('booking-address').value = (booking.address != null ? booking.address : client.address) || '';
             document.getElementById('booking-address-group').style.display = 'block';
             document.getElementById('booking-info-remaining').textContent = H.usable;
+            const _rr = document.getElementById('booking-info-remaining-row');
+            if (_rr) _rr.style.display = flat ? 'none' : 'block';
             document.getElementById('booking-info-display').style.display = 'block';
+            document.getElementById('booking-client-id-hidden').value = client.id;
+            applyBillingUI();
+            if (flat) {
+                document.getElementById('booking-item').value = booking.serviceItem || '';
+                document.getElementById('booking-amount').value = (booking.amount != null) ? booking.amount : '';
+                document.getElementById('booking-remind').value = String(booking.remindMonths || 0);
+            }
 
             document.getElementById('booking-date').value = booking.bookingDate;
             document.getElementById('booking-time').value = booking.bookingTime;
@@ -3590,8 +4058,8 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
 
         function openBookingStatusModal(bookingId) {
             const booking = store.getBooking(bookingId);
-            const contract = store.getContract(booking.contractId);
-            const client = store.getClient(contract.clientId);
+            const contract = booking.contractId ? store.getContract(booking.contractId) : null;
+            const client = store.getClient(contract ? contract.clientId : booking.clientId);
 
             const info = `
                 <p>客戶: ${client.clientName}</p>
@@ -3665,25 +4133,29 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
 
             if (newStatus === '完成') {
                 const booking = store.getBooking(bookingId);
-                const contract = store.getContract(booking.contractId);
-                if (!contract) { closeBookingStatusModal(); updateAllTabs(); return; }
-                const client = store.getClient(contract.clientId);
+                const contract = booking.contractId ? store.getContract(booking.contractId) : null;
+                // 單次計費沒有合約，直接用預約上的客戶與金額
+                const flat = !booking.contractId;
+                if (!flat && !contract) { closeBookingStatusModal(); updateAllTabs(); return; }
+                const client = store.getClient(flat ? booking.clientId : contract.clientId);
                 if (!client) { closeBookingStatusModal(); updateAllTabs(); return; }
 
                 const existingPayment = store.data.payments.find(p => p.bookingId === bookingId);
                 if (!existingPayment) {
-                    const hourlyRate = contract.cooperationMethod === '公司派'
+                    const hourlyRate = flat ? 0 : (contract.cooperationMethod === '公司派'
                         ? (contract.paymentRate || SVC().defaultPaymentRate)
-                        : contract.hourlyRate;
-                    const amountDue = hourlyRate * booking.serviceHours;
+                        : contract.hourlyRate);
+                    const amountDue = flat ? (parseInt(booking.amount, 10) || 0)
+                                           : hourlyRate * booking.serviceHours;
                     store.addPayment({
                         bookingId: bookingId,
-                        clientId: contract.clientId,
+                        clientId: client.id,
                         clientName: client.clientName,
                         serviceHours: booking.serviceHours,
-                        cooperationMethod: contract.cooperationMethod,
+                        cooperationMethod: flat ? (client.clientSource || '自接') : contract.cooperationMethod,
                         hourlyRate: hourlyRate,
                         amountDue: amountDue,
+                        flatRate: flat,
                         paymentStatus: '未收',
                         actualPaymentDate: null,
                         modificationHistory: [],
@@ -3750,14 +4222,14 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                                 <div style="flex: 1;">
                                     <h4>${payment.clientName}${cooperationMethod ? `（${cooperationMethod}）` : ''}</h4>
                                     <p>預約日期: ${bookingDate} | 時數: ${payment.serviceHours}h</p>
-                                    <p>單價: NT$${hourlyRate}/h | 金額: <strong>NT$${(payment.amountDue || 0).toLocaleString()}</strong></p>
+                                    <p>${payment.flatRate ? '單次計費' : `單價: NT$${hourlyRate}/h`} | 金額: <strong>NT$${(payment.amountDue || 0).toLocaleString()}</strong></p>
                                     <p>狀態: <span class="status-badge ${statusBadgeClass}">${statusText}</span>${overdue ? ` <span style="color:#C0392B;font-size:12px;">已超過 ${S().overdueDays || 30} 天</span>` : ''}</p>
                                 </div>
                                 <button class="btn btn-sm btn-secondary" style="margin-left: 10px;" onclick="toggleExpand('${expandId}')">展開</button>
                             </div>
                             <div id="${expandId}" style="display: none; margin-top: 10px; padding-top: 10px; border-top: 1px solid #ecf0f1;">
                                 ${payment.actualPaymentDate ? `<p>實收日: ${payment.actualPaymentDate}</p>` : ''}
-                                <p style="color:#7f8c8d;font-size:12px;">金額驗證：${payment.serviceHours}h × NT$${hourlyRate} = NT$${(payment.serviceHours * hourlyRate).toLocaleString()}</p>
+                                ${payment.flatRate ? '' : `<p style="color:#7f8c8d;font-size:12px;">金額驗證：${payment.serviceHours}h × NT$${hourlyRate} = NT$${(payment.serviceHours * hourlyRate).toLocaleString()}</p>`}
                                 ${modCount > 0 ? `<p style="color: #e74c3c;"><strong>📝 修改記錄: ${modCount} 次</strong></p>` : ''}
                                 <div class="list-item-actions" style="margin-top: 10px;">
                                     <button class="btn btn-sm btn-primary" onclick="editPayment('${payment.id}')">編輯</button>
@@ -4099,6 +4571,54 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
             `;
         }
 
+        /* 單次計費的追蹤卡片。跟合約型共用同一套顏色與版型，
+           差別只在副標顯示「設備名稱 ｜ 保養週期」而不是「剩餘時數」。 */
+        function renderTrackingRows(rows, filterVal, container) {
+            const cfgMap = {
+                red:    { icon: '🔴', label: '該回訪了', bg: '#fce4ec', border: '#e74c3c' },
+                yellow: { icon: '🟡', label: '快到期',   bg: '#fff8e1', border: '#f39c12' },
+                green:  { icon: '🟢', label: '正常',     bg: '#e8f5e9', border: '#27ae60' },
+                new:    { icon: '⚪', label: '尚未服務', bg: '#f5f5f5', border: '#bdc3c7' }
+            };
+            const list = filterVal ? rows.filter(r => r.level === filterVal) : rows;
+            const rank = { red: 0, yellow: 1, green: 2, new: 3 };
+            list.sort((a, b) => (rank[a.level] - rank[b.level]) ||
+                                ((b.daysDiff || 0) - (a.daysDiff || 0)));
+            if (!list.length) {
+                container.innerHTML = '<div class="empty-state"><span class="eico">👥</span>此分類沒有客戶<span class="esub">換一個分類看看</span></div>';
+                return;
+            }
+            container.innerHTML = list.map(d => {
+                const cfg = cfgMap[d.level];
+                let timeText = '尚未有完成的服務';
+                if (d.daysDiff !== null) {
+                    timeText = (d.monthsDiff >= 1) ? `${d.monthsDiff} 個月前` : `${d.daysDiff} 天前`;
+                }
+                const dateText = d.lastDate ? d.lastDate.toISOString().split('T')[0] : '';
+                const sub = [d.itemName, d.note].filter(Boolean).join(' ｜ ');
+                return `
+                    <div style="border-left:4px solid ${cfg.border};background:${cfg.bg};padding:12px 14px;border-radius:6px;margin-bottom:10px;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;">
+                            <div style="flex:1;">
+                                <p style="font-weight:bold;color:#2c3e50;">${cfg.icon} ${d.client.clientName}</p>
+                                <p style="font-size:13px;color:#555;margin-top:4px;">
+                                    最後服務：${timeText}
+                                    ${dateText ? `<span style="color:#7f8c8d;">（${dateText}）</span>` : ''}
+                                </p>
+                                ${sub ? `<p style="font-size:12px;color:#7f8c8d;">${sub}</p>` : ''}
+                            </div>
+                            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
+                                <span style="font-size:11px;background:white;padding:2px 8px;border-radius:10px;color:${cfg.border};border:1px solid ${cfg.border};">${cfg.label}</span>
+                                <div style="display:flex;gap:6px;">
+                                    ${d.client.phone ? `<a class="btn btn-sm btn-secondary" style="text-decoration:none;display:inline-block;" href="tel:${String(d.client.phone).replace(/[^0-9+]/g,'')}">📞 撥號</a>` : ''}
+                                    <button class="btn btn-sm btn-secondary" onclick="openClientDetailModal('${d.client.id}')">查看</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+            }).join('');
+        }
+
         function renderTrackingList() {
             const container = document.getElementById('tracking-content');
             if (!container) return;
@@ -4107,6 +4627,46 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
             today.setHours(0,0,0,0);
 
             const clients = store.getClients().filter(c => (c.serviceStatus || '服務中') === '服務中');
+
+            /* 單次計費（維修類）：追蹤的是「保養週期到了沒」。
+               設備記在每一次維修上，所以同一位客戶的不同設備各自算一列。 */
+            if (isSingleBilling()) {
+                const rows = [];
+                clients.forEach(client => {
+                    const done = (store.data.bookings || [])
+                        .filter(b => b.clientId === client.id && !b.contractId && b.status === '完成')
+                        .sort((a, b) => new Date(b.bookingDate) - new Date(a.bookingDate));
+                    if (!done.length) {
+                        rows.push({ client, itemName: '', lastDate: null, daysDiff: null,
+                                    monthsDiff: null, level: 'new', note: '' });
+                        return;
+                    }
+                    const seen = {};
+                    done.forEach(b => {
+                        const key = (b.serviceItem || '').trim() || '（未填項目）';
+                        if (seen[key]) return;              // 同一項目只看最近一次
+                        seen[key] = true;
+                        const last = new Date(b.bookingDate);
+                        const days = Math.floor((today - last) / 86400000);
+                        const months = Math.floor(days / 30);
+                        const rm = parseInt(b.remindMonths, 10) || 0;
+                        let level = 'green', note = '';
+                        if (rm > 0) {
+                            const due = new Date(last); due.setMonth(due.getMonth() + rm);
+                            const left = Math.ceil((due - today) / 86400000);
+                            if (left <= 0)       { level = 'red';    note = `每 ${rm} 個月保養，已到期 ${Math.abs(left)} 天`; }
+                            else if (left <= 30) { level = 'yellow'; note = `每 ${rm} 個月保養，還有 ${left} 天到期`; }
+                            else                 { level = 'green';  note = `每 ${rm} 個月保養，${left} 天後到期`; }
+                        } else {
+                            note = '未設定提醒週期';
+                        }
+                        rows.push({ client, itemName: key, lastDate: last, daysDiff: days,
+                                    monthsDiff: months, level, note });
+                    });
+                });
+                renderTrackingRows(rows, filterVal, container);
+                return;
+            }
 
             const clientData = clients.map(client => {
                 const contracts = store.getContractsByClient(client.id);
@@ -4188,6 +4748,9 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                 `;
             }).join('');
         }
+        window.setBookingView = setBookingView;
+        window.bkCalShift = bkCalShift;
+        window.bkCalPickDay = bkCalPickDay;
         window.renderTrackingList = renderTrackingList;
 
         function openClientDetailModal(clientId) {
@@ -4436,6 +4999,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
         }
 
         function updateAllTabs() {
+            applyBillingUI();
             renderSettingsPage();
             updateClientTab();
             updateContractTab();
@@ -4475,8 +5039,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
         window.endPreview = endPreview;
         window.openSetPage = openSetPage;
         window.closeSetPage = closeSetPage;
-        window.setupNext = setupNext;
-        window.setupBack = setupBack;
+        window.onSetupCatChange = onSetupCatChange;
         window.editServiceType = editServiceType;
         window.saveEditServiceType = saveEditServiceType;
         window.closeEditServiceModal = closeEditServiceModal;
@@ -4509,9 +5072,11 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                 if (open) { cancelAddService(); return; }
                 box.style.display = 'block';
                 this.textContent = '− 收起';
-                document.getElementById('new-service-type-input').focus();
+                fillServiceCatSelect('new-service-cat', SERVICE_CATS[0].name);
+                onNewServiceCatChange();
             });
         })();
+        window.onNewServiceCatChange = onNewServiceCatChange;
         window.addServiceType = addServiceType;
         window.deleteServiceType = deleteServiceType;
         window.switchServiceType = switchServiceType;
@@ -4635,14 +5200,17 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
             if (lb) lb.addEventListener('click', crmSendLink);
             var ei = document.getElementById('crmEmailInput');
             if (ei) ei.addEventListener('keydown', function(e){ if (e.key === 'Enter') crmSendLink(); });
-            var at = document.getElementById('crmAdminToggle');
-            if (at) at.addEventListener('click', function(){
-                var box = document.getElementById('crmAdminBox');
-                box.style.display = (box.style.display === 'none' || !box.style.display) ? 'block' : 'none';
-            });
             var ab = document.getElementById('crmAdminBtn');
             if (ab) ab.addEventListener('click', crmAdminLogin);
             var ib = document.getElementById('crmInstallBtn'); if (ib) ib.addEventListener('click', crmInstall);
+            // 已從桌面圖示開啟 → 安裝相關選項全部隱藏（與其他三支 App 一致）
+            try{
+                if (window.appInstall && appInstall.installed()) {
+                    if (ib) ib.style.display = 'none';
+                    var _r = document.querySelector("button.set-row[onclick*='crmInstallBtn']");
+                    if (_r) _r.style.display = 'none';
+                }
+            }catch(e){}
             var sb = document.getElementById('crmShareBtn');   if (sb) sb.addEventListener('click', crmShare);
             var pb = document.getElementById('crmSupportBtn'); if (pb) pb.addEventListener('click', function(){ window.open(LINE_SUPPORT_URL, '_blank', 'noopener'); });
             var tb = document.getElementById('crmTermsBtn');   if (tb) tb.addEventListener('click', function(){ legalDocs.open('terms'); });
@@ -4887,7 +5455,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
   async function doAdd(){
     var em=document.getElementById('aEmail'), btn=document.getElementById('aGo');
     var v=(em&&em.value||'').trim().toLowerCase();
-    if(!isMail(v)){ toast('Email 格式不對，請檢查'); if(em) em.focus(); return; }
+    if(!isMail(v)){ toast('Email 格式不正確'); if(em) em.focus(); return; }
     var app=SUBS_APPS.filter(function(a){ return a.id===S.addApp; })[0];
     var key=eKey(v), now=Date.now();
     var exp=ymd(addMonths(now, S.addMonths));
@@ -5095,12 +5663,12 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
         '<span style="font-size:34px;font-weight:900;color:'+ac+';letter-spacing:-.5px">$'+Number(o.price||0).toLocaleString()+'</span>'+
         '<span style="color:#8A8A93;font-size:14px">/年</span></div>'+ per +
       '<div style="background:#F6F7F9;border-radius:12px;padding:13px;margin-top:15px">'+
-        '<div style="font-size:12px;color:#7b8794;margin-bottom:6px">你的帳號</div>'+
+        '<div style="font-size:12px;color:#7b8794;margin-bottom:6px">帳號資訊</div>'+
         '<div style="display:flex;align-items:center;gap:8px">'+
           '<div id="payMail" style="flex:1;font-size:14px;font-weight:700;color:#2E2E33;word-break:break-all">'+esc(mail||'（請先登入）')+'</div>'+
           (mail?'<button type="button" id="payCopy" style="flex:none;border:1px solid #dfe3e8;background:#fff;color:#5a6a78;border-radius:8px;padding:7px 12px;font-size:12px;font-family:inherit;min-height:36px">複製</button>':'')+
         '</div>'+
-        '<div style="font-size:12.5px;color:#B45309;line-height:1.65;margin-top:10px">⚠️ 付款時「電子郵件」欄請填上面這個信箱，我們才知道要幫誰開通。</div>'+
+        '<div style="font-size:12.5px;color:#B45309;line-height:1.65;margin-top:10px">⚠️ 付款時請於「電子郵件」欄填寫上方信箱，以利帳號開通。</div>'+
       '</div>'+
       '<label for="payAgree" style="display:flex;gap:9px;align-items:flex-start;margin-top:15px;font-size:12.5px;line-height:1.65;color:#39423C;cursor:pointer">'+
         '<input type="checkbox" id="payAgree" style="flex:none;width:18px;height:18px;margin-top:1px;accent-color:'+ac+'">'+
@@ -5145,7 +5713,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
       if(go.disabled) return;
       var url=PAY_LINKS[app];
       if(url){ window.open(url,'_blank','noopener'); return; }
-      tip('付款連結準備中，先幫你開客服');
+      tip('付款連結準備中，將為您轉至客服');
       setTimeout(function(){ window.open(LINE_URL,'_blank','noopener'); }, 700);
     };
   };
@@ -5161,7 +5729,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
    ==================================================================== */
 (function(){
   var APP = (window.LEGAL_APP || 'cal');
-  var UPDATED = '2026/09/30';
+  var UPDATED = '2026/10/06';
   var MAIL = 'beyunself@hotmail.com';
   var LINE_NAME = '智在生活';
 
@@ -5225,13 +5793,13 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
          '裝置識別碼：用於計算同一帳號之登入裝置數量。') +
       p('本服務不蒐集通訊錄、位置資訊、照片或其他裝置資料，亦未使用任何廣告或行為追蹤工具。')) +
     sec(2,'資料之儲存', ol(
-      '前條資料儲存於 Google Firebase。',
+      '前條資料儲存於 Google 雲端服務。',
       '各帳號之資料以使用者之電子郵件位址區隔，其他使用者無從讀取。')) +
     sec(3,'資料之存取與利用', ol(
       '本服務僅於使用者申告問題而有協助排除障礙之必要，或系統異常而有修復之必要時，存取使用者資料。',
       '除前款情形外，本服務不查閱使用者資料，不作行銷利用，亦不提供予任何第三人。')) +
     sec(4,'委外之第三方服務',
-      ol('Google Firebase：提供身分驗證及資料儲存。',
+      ol('Google 雲端服務：提供身分驗證及資料儲存。',
          '藍新金流：提供付款處理。本服務不取得使用者之信用卡號。') +
       p('前開服務各有其隱私權政策。')) +
     sec(5,'保存期限', ol(
@@ -5421,7 +5989,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
       w=document.createElement('div'); w.id='pvWrap';
       w.innerHTML='<div class="pv-box">'+
         '<div class="pv-t">預覽使用者畫面</div>'+
-        '<div class="pv-s">用客戶的角度看一次。預覽期間不會動到你的資料。</div>'+
+        '<div class="pv-s">以使用者視角檢視畫面，預覽期間不會變更任何資料。</div>'+
         '<div id="pvList"></div>'+
         '<button type="button" class="pv-cancel" id="pvCancel">取消</button></div>';
       document.body.appendChild(w);
@@ -5553,12 +6121,12 @@ previewMode.init({
     if(d === 0){
       title = isTrial ? '試用今天到期' : '完整版今天到期';
       desc  = isTrial
-        ? '今天過後會轉成免費版，部分功能會鎖起來。<br><b>你建立的資料都會保留。</b>'
-        : '今天過後會轉成免費版。<br><b>你的資料都會保留，續約就能繼續用。</b>';
+        ? '明日起轉為免費版，部分功能停用。<br><b>既有資料完整保留。</b>'
+        : '明日起轉為免費版。<br><b>資料完整保留，續約後即可恢復。</b>';
     } else {
       title = isTrial ? ('試用還有 ' + d + ' 天') : ('完整版還有 ' + d + ' 天到期');
       desc  = isTrial
-        ? ('試用到 <b>' + cfg.expiry + '</b> 為止。<br>到期後會轉成免費版，部分功能會鎖起來，資料都會保留。')
+        ? ('試用到 <b>' + cfg.expiry + '</b> 為止。<br>到期後轉為免費版，部分功能停用，資料完整保留。')
         : ('使用到 <b>' + cfg.expiry + '</b> 為止。<br>現在續約會從原到期日往後延長，剩下的天數不會被吃掉。');
     }
     btn = isTrial ? '看方案' : '我要續約';
@@ -5661,37 +6229,115 @@ previewMode.init({
   };
 })();
 
+/* ==================== 登入頁：管理員模式（四個 App 共用）====================
+   原本點「管理員登入」只是在客戶登入區「下面」再長出一段，整張卡愈疊愈長，
+   中間累積的間距讓畫面看起來很空。
+   改成：進管理員模式時把客戶登入區整個收起來，只留標題與管理員欄位，
+   並附一顆「返回一般登入」還原。標題區（前三個元素）一律保留。
+   ========================================================================= */
+(function(){
+  function hide(el, on){
+    if(!el) return;
+    if(on){
+      if(el.dataset.admPrev === undefined) el.dataset.admPrev = el.style.display || '';
+      el.style.display = 'none';
+    }else if(el.dataset.admPrev !== undefined){
+      el.style.display = el.dataset.admPrev;
+      delete el.dataset.admPrev;
+    }
+  }
+  window.adminOnly = {
+    /* toggleId：「🔧 管理員登入」那顆；boxId：管理員帳密區塊 */
+    bind: function(toggleId, boxId, accent){
+      var t = document.getElementById(toggleId), box = document.getElementById(boxId);
+      if(!t || !box || box.dataset.admBound) return;
+      box.dataset.admBound = '1';
+      var card = box.parentElement;
+      if(!card) return;
+
+      var back = document.createElement('button');
+      back.type = 'button';
+      back.id = boxId + 'Back';
+      back.textContent = '‹ 返回一般登入';
+      back.style.cssText = 'width:100%;margin-top:12px;padding:9px;background:none;border:none;' +
+        'color:#95a5a6;font-size:13px;font-family:inherit;cursor:pointer;';
+      back.addEventListener('click', function(){ set(false); });
+      box.appendChild(back);
+
+      function set(on){
+        var kids = [].slice.call(card.children);
+        kids.forEach(function(el, i){
+          if(el === box) return;
+          if(i < 3) return;                       // 圖示、標題、副標留著
+          hide(el, on);
+        });
+        box.style.display = on ? 'block' : 'none';
+        try{ card.scrollTop = 0; }catch(e){}
+      }
+      t.addEventListener('click', function(){
+        var open = !(box.style.display === 'none' || !box.style.display);
+        set(!open);
+      });
+    }
+  };
+
+  /* 四支 App 的 id 命名不同，存在哪一組就綁哪一組。
+     放在模組自己這裡，不依賴各 App 程式碼的執行順序。 */
+  (function auto(){
+    var pairs = [['adminLoginToggle','adminLoginBox'], ['crmAdminToggle','crmAdminBox']];
+    var done = false;
+    pairs.forEach(function(x){
+      if(document.getElementById(x[0]) && document.getElementById(x[1])){
+        try{ window.adminOnly.bind(x[0], x[1]); done = true; }catch(e){}
+      }
+    });
+    if(!done) setTimeout(auto, 60);
+  })();
+})();
+
 /* ==================== 安裝到桌面（四個 App 共用）====================
    三件事在這裡統一：步驟說明的文字、「已安裝過」的提醒、按下安裝後的等待提示。
    各 App 只要把自己接到的 beforeinstallprompt 事件交進來。
+   提示長條固定在畫面「下方」，不會蓋到標題列與返回鍵；15 秒後自動淡掉。
    ==================================================================== */
 (function(){
   var CFG = { appName:'這個 App', accent:'#5B6F79' };
+  var _t = null;                                   // 自動關閉的計時器
   function isIOS(){
     try{ return /iphone|ipad|ipod/i.test(navigator.userAgent); }catch(e){ return false; }
+  }
+  /* 已經從桌面圖示開啟 → 不必再顯示任何安裝相關提示 */
+  function installed(){
+    try{
+      return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches)
+             || window.navigator.standalone === true;
+    }catch(e){ return false; }
   }
   function steps(){
     var n = CFG.appName;
     return '安裝到手機桌面\n\n安裝步驟：\n' + (isIOS()
       ? '1. 請改用「Safari 瀏覽器」開啟本頁\n2. 點下方「分享」按鈕 ⬆️\n3. 選「加入主畫面」'
       : '1. 請改用「Chrome 瀏覽器」開啟本頁\n2. 點瀏覽器選單（⋮）\n3. 選「安裝應用程式／加到主畫面」')
-      + '\n\n💡 若你已安裝過，請直接到手機桌面找「' + n + '」開啟';
+      + '\n\n💡 若您已安裝過，請直接至手機桌面開啟「' + n + '」開啟';
   }
   function css(){
     if(document.getElementById('inCss')) return;
     var s=document.createElement('style'); s.id='inCss';
     s.textContent =
-      '#inBar{position:fixed;left:0;right:0;top:0;z-index:10096;max-width:520px;margin:0 auto;'+
-        'display:none;padding:12px 16px calc(12px + env(safe-area-inset-top,0px));'+
+      '#inBar{position:fixed;left:0;right:0;bottom:0;z-index:10096;max-width:520px;margin:0 auto;'+
+        'display:none;padding:12px 44px calc(12px + env(safe-area-inset-bottom,0px)) 16px;'+
         'background:#2E2E33;color:#fff;font-size:13.5px;line-height:1.6;font-family:inherit;'+
-        'box-shadow:0 2px 12px rgba(0,0,0,.25);}'+
+        'box-shadow:0 -2px 12px rgba(0,0,0,.25);cursor:pointer;'+
+        'opacity:0;transition:opacity .35s ease;}'+
       '#inBar.on{display:block;}'+
+      '#inBar.show{opacity:1;}'+
       '#inBar b{color:#FFD9A0;}'+
-      '#inBar .in-x{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;'+
+      '#inBar .in-x{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;'+
         'border:none;color:rgba(255,255,255,.7);font-size:18px;padding:6px 10px;cursor:pointer;}';
     document.head.appendChild(s);
   }
-  function bar(html){
+  /* html：提示內容；ms：幾毫秒後自動淡掉（不傳就用 15 秒） */
+  function bar(html, ms){
     css();
     var b=document.getElementById('inBar');
     if(!b){
@@ -5700,22 +6346,33 @@ previewMode.init({
       document.body.appendChild(b);
     }
     b.innerHTML = html + '<button type="button" class="in-x" aria-label="關閉">×</button>';
-    b.querySelector('.in-x').onclick = hide;
+    b.onclick = hide;                              // 點長條任一處都可關掉
     b.classList.add('on');
+    // 先掛上再加 .show，讓淡入生效
+    try{ void b.offsetWidth; }catch(e){}
+    b.classList.add('show');
+    if(_t){ clearTimeout(_t); _t=null; }
+    _t = setTimeout(hide, (typeof ms==='number' ? ms : 15000));
     return b;
   }
-  function hide(){ var b=document.getElementById('inBar'); if(b) b.classList.remove('on'); }
+  function hide(){
+    if(_t){ clearTimeout(_t); _t=null; }
+    var b=document.getElementById('inBar'); if(!b) return;
+    b.classList.remove('show');
+    setTimeout(function(){ b.classList.remove('on'); }, 360);
+  }
 
-  // 安裝完成時把提示收掉（不是每支瀏覽器都會送這個事件，所以只當加分）
+  // 安裝完成時換成完成訊息（不是每支瀏覽器都會送這個事件，所以只當加分）
   try{ window.addEventListener('appinstalled', function(){
-    bar('✅ <b>安裝完成</b>　到手機桌面找「' + CFG.appName + '」就能開啟');
-    setTimeout(hide, 6000);
+    try{ localStorage.setItem('installDismissed','1'); }catch(e){}
+    bar('✅ <b>安裝完成</b>　到手機桌面找「' + CFG.appName + '」就能開啟', 6000);
   }); }catch(e){}
 
   window.appInstall = {
     init: function(cfg){ if(cfg) { CFG.appName = cfg.appName || CFG.appName; } },
     steps: steps,
     hide: hide,
+    installed: installed,
     /* dp：各 App 接到的 beforeinstallprompt 事件；沒有就跳步驟說明。
        回傳 Promise<boolean>，true 代表事件已經用掉，呼叫端要把自己的變數清空。 */
     run: function(dp){
@@ -5724,10 +6381,11 @@ previewMode.init({
         dp.prompt();
         return dp.userChoice.then(function(r){
           if(r && r.outcome === 'accepted'){
+            // 使用者已經按下安裝 → 記住，首頁橫條不用再出現
+            try{ localStorage.setItem('installDismissed','1'); }catch(e){}
             bar('⏳ <b>安裝中，請稍候…</b>　<b>請勿關閉本頁</b>，完成後桌面會出現圖示');
           } else {
-            bar('已取消安裝，隨時可以再從設定頁安裝');
-            setTimeout(hide, 4000);
+            bar('已取消安裝，隨時可以再從設定頁安裝', 4000);
           }
           return true;
         }).catch(function(){ return true; });
@@ -5969,13 +6627,8 @@ upgradeSheet.init({
                 <input type="text" id="edit-service-name" maxlength="20">
             </div>
             <div class="form-group">
-                <label>服務時要記錄什麼？</label>
-                <div class="radio-group" style="flex-direction:column;align-items:flex-start;gap:8px;">
-                    <label><input type="radio" name="edit-service-fields" value="none"> 只記基本資料</label>
-                    <label><input type="radio" name="edit-service-fields" value="home"> 還要記住家狀況（房間數、寵物…）</label>
-                    <label><input type="radio" name="edit-service-fields" value="repair"> 還要記電器與保固</label>
-                </div>
-                <p style="font-size:11.5px;color:#95a5a6;margin-top:6px;">改成別的類型，舊資料會留著，只是欄位不再顯示</p>
+                <div id="edit-service-fieldinfo"></div>
+                <p style="font-size:11.5px;color:#95a5a6;margin-top:6px;">取消勾選後，舊資料會留著，只是欄位不再顯示</p>
             </div>
             <button type="button" class="btn btn-success" onclick="saveEditServiceType()">儲存</button>
             <button type="button" class="btn btn-secondary" onclick="closeEditServiceModal()">取消</button>
@@ -5988,101 +6641,54 @@ upgradeSheet.init({
             <div style="text-align:center;margin-bottom:20px;">
                 <div style="font-size:40px;margin-bottom:6px;">🏠</div>
                 <h2 style="color:#2c3e50;margin:0 0 4px;font-size:20px;">歡迎使用客戶管理系統</h2>
-                <p id="setupStepLabel" style="color:#95a5a6;font-size:12.5px;margin:0;">步驟 1／2　你是誰、做什麼</p>
+                <p style="color:#95a5a6;font-size:12.5px;margin:0;">三項基本設定即可開始</p>
             </div>
 
-            <!-- 步驟 1 -->
-            <div id="setupStep1">
-                <div class="form-group">
-                    <label for="setup-provider">你的店名或稱呼</label>
-                    <input type="text" id="setup-provider" placeholder="例如：宏益冷氣、林師傅" maxlength="20"
-                        style="width:100%;padding:13px 14px;border:1px solid #E7E2DA;border-radius:12px;font-size:16px;box-sizing:border-box;">
-                    <p style="font-size:11.5px;color:#95a5a6;margin-top:4px;">沒有店名就填自己的名字，會顯示在報表上</p>
-                </div>
-
-                <div class="form-group" style="margin-top:16px;">
-                    <label for="setup-service">你主要做什麼服務？</label>
-                    <input type="text" id="setup-service" placeholder="例如：冷氣保養" maxlength="20"
-                        style="width:100%;padding:13px 14px;border:1px solid #E7E2DA;border-radius:12px;font-size:16px;box-sizing:border-box;">
-                </div>
-
-                <div class="form-group" style="margin-top:16px;">
-                    <label>服務時要記錄什麼？</label>
-                    <div class="radio-group" style="flex-direction:column;align-items:flex-start;gap:9px;margin-top:6px;">
-                        <label><input type="radio" name="setup-fields" value="none" checked> 只記基本資料</label>
-                        <label><input type="radio" name="setup-fields" value="home"> 還要記住家狀況（房間數、寵物…）</label>
-                        <label><input type="radio" name="setup-fields" value="repair"> 還要記電器與保固</label>
-                    </div>
-                    <p style="font-size:11.5px;color:#95a5a6;margin-top:6px;">之後在設定裡隨時能改，也能再加別的服務</p>
-                </div>
-
-                <button type="button" onclick="setupNext()"
-                    style="width:100%;margin-top:22px;padding:14px;border:none;border-radius:14px;background:#4A7A9B;color:#fff;font-size:16px;font-weight:700;cursor:pointer;">下一步</button>
+            <!-- 一頁搞定：只問店名、服務類別、公司派。其餘全用預設值，設定裡隨時能改 -->
+            <div class="form-group">
+                <label for="setup-provider">店名或稱呼</label>
+                <input type="text" id="setup-provider" maxlength="20" placeholder="例如：宏益冷氣、林師傅"
+                    style="width:100%;padding:13px 14px;border:1px solid #E7E2DA;border-radius:12px;font-size:16px;box-sizing:border-box;">
+                <p style="font-size:11.5px;color:#95a5a6;margin-top:4px;">未設店名可填個人名稱，將顯示於報表</p>
             </div>
 
-            <!-- 步驟 2 -->
-            <div id="setupStep2" style="display:none;">
-                <div class="form-group">
-                    <label for="setup-hourly-rate">一般收費（元/小時）</label>
-                    <input type="number" id="setup-hourly-rate" min="0" step="1" placeholder="例如：1000"
-                        style="width:100%;padding:13px 14px;border:1px solid #E7E2DA;border-radius:12px;font-size:16px;box-sizing:border-box;">
-                    <p style="font-size:11.5px;color:#95a5a6;margin-top:4px;">新增合約時自動帶入，個別合約仍可改</p>
-                </div>
+            <div class="form-group" style="margin-top:14px;">
+                <label for="setup-cat">主要服務類別</label>
+                <select id="setup-cat" onchange="onSetupCatChange()"
+                    style="width:100%;padding:13px 14px;border:1px solid #E7E2DA;border-radius:12px;font-size:16px;box-sizing:border-box;background:#fff;"></select>
+            </div>
 
-                <div class="form-group" style="margin-top:14px;">
-                    <div class="checkbox-group">
-                        <input type="checkbox" id="setup-company">
-                        <label for="setup-company">我也有接公司派的案子</label>
-                    </div>
-                </div>
+            <div class="form-group" id="setup-name-group" style="margin-top:14px;display:none;">
+                <label for="setup-service">服務名稱</label>
+                <input type="text" id="setup-service" maxlength="20" placeholder="例如：冷氣保養"
+                    style="width:100%;padding:13px 14px;border:1px solid #E7E2DA;border-radius:12px;font-size:16px;box-sizing:border-box;">
+            </div>
 
-                <div class="form-group" id="setup-payrate-group" style="display:none;margin-top:14px;">
-                    <label for="setup-payrate">公司派：我方收款費率（元/小時）</label>
-                    <input type="number" id="setup-payrate" min="0" step="1" value="600"
-                        style="width:100%;padding:13px 14px;border:1px solid #E7E2DA;border-radius:12px;font-size:16px;box-sizing:border-box;">
-                </div>
+            <div class="form-group" id="setup-recinfo-group" style="margin-top:14px;display:none;"></div>
 
-                <div class="form-group" style="margin-top:14px;">
-                    <label for="setup-years">合約年限（年）</label>
-                    <input type="number" id="setup-years" min="0" step="1" value="2"
-                        style="width:100%;padding:13px 14px;border:1px solid #E7E2DA;border-radius:12px;font-size:16px;box-sizing:border-box;">
+            <div class="form-group" style="margin-top:14px;">
+                <div class="checkbox-group">
+                    <input type="checkbox" id="setup-company">
+                    <label for="setup-company">我也有接公司派的案子</label>
                 </div>
+            </div>
 
-                <div class="form-group" style="margin-top:14px;">
-                    <label>預約時段範圍</label>
-                    <div style="display:flex;gap:8px;align-items:center;margin-top:4px;">
-                        <input type="number" id="setup-slot-start" min="0" max="23" value="8" style="width:80px;padding:11px;border:1px solid #E7E2DA;border-radius:12px;font-size:16px;box-sizing:border-box;">
-                        <span style="font-size:13px;color:#7f8c8d;">點 到</span>
-                        <input type="number" id="setup-slot-end" min="1" max="23" value="21" style="width:80px;padding:11px;border:1px solid #E7E2DA;border-radius:12px;font-size:16px;box-sizing:border-box;">
-                        <span style="font-size:13px;color:#7f8c8d;">點</span>
-                    </div>
+            <div class="form-group" id="setup-payrate-group" style="display:none;margin-top:14px;">
+                <label for="setup-payrate">公司派：我方收款費率</label>
+                <div class="money-in" style="border-color:#E7E2DA;border-radius:12px;">
+                    <span class="cur">NT$</span>
+                    <input type="number" id="setup-payrate" min="0" step="1" value="600">
+                    <span class="suf">/ 小時</span>
                 </div>
+            </div>
 
-                <div class="form-group" style="margin-top:14px;">
-                    <label>多久沒服務要提醒</label>
-                    <div style="display:flex;gap:8px;align-items:center;margin-top:4px;">
-                        <span style="font-size:13px;">🟡</span>
-                        <input type="number" id="setup-yellow" min="1" value="60" style="width:80px;padding:11px;border:1px solid #E7E2DA;border-radius:12px;font-size:16px;box-sizing:border-box;">
-                        <span style="font-size:13px;color:#7f8c8d;">天　🔴</span>
-                        <input type="number" id="setup-red" min="1" value="90" style="width:80px;padding:11px;border:1px solid #E7E2DA;border-radius:12px;font-size:16px;box-sizing:border-box;">
-                        <span style="font-size:13px;color:#7f8c8d;">天</span>
-                    </div>
-                </div>
+            <p style="font-size:12px;color:#95a5a6;margin-top:16px;text-align:center;line-height:1.7;">
+                其餘參數採預設值<br>可於設定中調整
+            </p>
 
-                <div class="form-group" style="margin-top:14px;">
-                    <label for="setup-overdue">收款超過幾天算逾期</label>
-                    <input type="number" id="setup-overdue" min="1" value="30"
-                        style="width:100%;padding:13px 14px;border:1px solid #E7E2DA;border-radius:12px;font-size:16px;box-sizing:border-box;">
-                </div>
-
-                <p style="font-size:12px;color:#95a5a6;margin-top:14px;text-align:center;">這些之後在設定裡隨時能改</p>
-
-                <div style="display:flex;gap:10px;margin-top:14px;">
-                    <button type="button" onclick="setupBack()"
-                        style="flex:0 0 96px;padding:14px;border:1px solid #E7E2DA;border-radius:14px;background:#fff;color:#7f8c8d;font-size:15px;cursor:pointer;">上一步</button>
-                    <button type="button" id="setupGoBtn" onclick="finishSetup()"
-                        style="flex:1;padding:14px;border:none;border-radius:14px;background:#4A7A9B;color:#fff;font-size:16px;font-weight:700;cursor:pointer;">開始使用</button>
-                </div>
+            <div style="margin-top:14px;">
+                <button type="button" id="setupGoBtn" onclick="finishSetup()"
+                    style="width:100%;padding:14px;border:none;border-radius:14px;background:#4A7A9B;color:#fff;font-size:16px;font-weight:700;cursor:pointer;">開始使用</button>
             </div>
 
             <div id="setupMsg" style="color:#e74c3c;font-size:13px;min-height:16px;margin-top:8px;text-align:center;"></div>
