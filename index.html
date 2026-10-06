@@ -73,6 +73,16 @@
             font-size: 24px;
             margin-bottom: 10px;
         }
+        /* 窄螢幕：標題縮一點，讓標題與右側三顆按鈕排在同一列（2026-10-06） */
+        @media (max-width: 430px) {
+            .header { flex-wrap: nowrap !important; gap: 8px !important; }
+            .header h1 { font-size: 18px; flex: 1 1 auto; min-width: 0; }
+            /* 管理員才看得到的建置編號換行顯示，不要把右邊按鈕擠出畫面 */
+            .header h1 #crmVerTag { display: block; margin-top: 2px; }
+            .header h1 #crmVerTag { font-size: 10.5px; }
+            .header button { padding: 7px 9px !important; font-size: 16px !important; }
+            .header > div { flex: 0 0 auto; }
+        }
 
         .header p {
             font-size: 14px;
@@ -700,9 +710,11 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
     <div class="container">
         <div class="header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
             <h1 style="margin:0;">🏠 客戶管理系統 <span id="crmVerTag" style="font-size:13px;font-weight:normal;opacity:0.7;">v1.0</span></h1>
+            <div style="display:flex; align-items:center; gap:8px;">
                 <button type="button" id="crmTrackBtn" title="客戶追蹤" style="position:relative;background:rgba(255,255,255,.15);color:#fff;border:none;border-radius:8px;padding:8px 12px;font-size:18px;line-height:1;cursor:pointer;">📋<span id="crmTrackBadge" style="display:none;position:absolute;top:-4px;right:-4px;min-width:18px;height:18px;padding:0 4px;background:#e74c3c;color:#fff;border-radius:9px;font-size:11px;font-weight:700;line-height:18px;text-align:center;"></span></button>
                 <button type="button" id="crmStatsBtn" title="業績報表" style="background:rgba(255,255,255,.15);color:#fff;border:none;border-radius:8px;padding:8px 12px;font-size:18px;line-height:1;cursor:pointer;">📊</button>
                 <button type="button" id="crmSetBtn" title="設定" style="background:rgba(255,255,255,.15);color:#fff;border:none;border-radius:8px;padding:8px 12px;font-size:18px;line-height:1;cursor:pointer;">⚙️</button>
+            </div>
         </div>
 
         <!-- 頂部服務切換列 -->
@@ -1991,7 +2003,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
         function isCrmAdminEmail(e){ return String(e||'').toLowerCase() === ADMIN_EMAIL.toLowerCase(); }
         // 只用於「這個信箱用過試用沒」的比對，不可當資料路徑
         function crmTrialEmailKey(e){ return normEmail(e).replace(/[.#$\[\]]/g,'_'); }
-        const CRM_APP_VER = 'v1.0', CRM_BUILD_ID = '1006-10';
+        const CRM_APP_VER = 'v1.0', CRM_BUILD_ID = '1006-11';
         const CRM_EMAIL_FOR_SIGNIN = 'crmEmailForSignIn';
         const LINE_SUPPORT_URL = 'https://line.me/R/ti/p/@373pfdee';
         var crmUserEmail = null;
@@ -2634,11 +2646,55 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
         function editServiceType(typeId) {
             const st = store.getServiceType(typeId);
             if (!st) return;
-            document.getElementById('edit-service-modal').dataset.typeId = typeId;
+            const m = document.getElementById('edit-service-modal');
+            m.dataset.typeId = typeId;
+            m.dataset.origBilling = st.billing || 'contract';
+            // 類別：名稱對得上就選它，對不上（自己改過名）就選「其他」
+            const cat = serviceCat(st.typeName);
+            fillServiceCatSelect('edit-service-cat', cat ? cat.name : '其他');
+            m.dataset.prevCat = cat ? cat.name : '其他';
             document.getElementById('edit-service-name').value = st.typeName || '';
             const box = document.getElementById('edit-service-fieldinfo');
             if (box) box.innerHTML = recInfoHtml('edit', svcRecHome(st), svcRecRepair(st), false);
-            document.getElementById('edit-service-modal').classList.add('show');
+            renderEditCatInfo(st.billing, st.addrRequired);
+            document.getElementById('edit-billing-warn').style.display = 'none';
+            m.classList.add('show');
+        }
+
+        function renderEditCatInfo(billing, addrReq) {
+            const el = document.getElementById('edit-cat-info');
+            if (!el) return;
+            el.innerHTML = '計費方式：<b>' + (billing === 'single' ? '單次制' : '合約制') + '</b>' +
+                           '　｜　服務地址：<b>' + (addrReq === false ? '選填' : '必填') + '</b>';
+        }
+
+        /* 換類別＝套用該類別的最新預設值（記錄欄位、計費方式、地址）。
+           名稱如果還是舊類別名就一起更新；自己取過名字的就保留。 */
+        function onEditServiceCatChange() {
+            const m = document.getElementById('edit-service-modal');
+            const sel = document.getElementById('edit-service-cat');
+            const cat = serviceCat(sel.value) || SERVICE_CATS[SERVICE_CATS.length - 1];
+            const other = (cat.name === '其他');
+            const nameEl = document.getElementById('edit-service-name');
+            if (!other && nameEl.value.trim() === (m.dataset.prevCat || '')) nameEl.value = cat.name;
+            m.dataset.prevCat = cat.name;
+
+            const box = document.getElementById('edit-service-fieldinfo');
+            if (box && !other) box.innerHTML = recInfoHtml('edit', cat.home, cat.repair, false);
+            renderEditCatInfo(other ? (m.dataset.origBilling || 'contract') : cat.billing,
+                              other ? true : cat.addr);
+
+            // 計費方式要變的話先講清楚
+            const warn = document.getElementById('edit-billing-warn');
+            const nowB = other ? (m.dataset.origBilling || 'contract') : cat.billing;
+            if (warn) {
+                if (nowB !== m.dataset.origBilling) {
+                    warn.innerHTML = (nowB === 'single')
+                      ? '⚠️ 改成<b>單次制</b>後，這個服務的「合約」分頁會隱藏，排預約不再需要合約。<br>既有合約資料仍完整保留，改回合約制就會再出現。'
+                      : '⚠️ 改成<b>合約制</b>後，會出現「合約」分頁，排預約需要先建立合約。<br>既有的單次預約與收款資料仍完整保留。';
+                    warn.style.display = 'block';
+                } else warn.style.display = 'none';
+            }
         }
 
         function closeEditServiceModal() {
@@ -2655,8 +2711,15 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                 showToast('已經有同名的服務了'); return;
             }
             const ck = function (id) { var e = document.getElementById(id); return e ? e.checked : false; };
+            const sel = document.getElementById('edit-service-cat');
+            const cat = serviceCat(sel ? sel.value : '') || SERVICE_CATS[SERVICE_CATS.length - 1];
+            const other = (cat.name === '其他');
             st.typeName = t;
             st.rec = { home: ck('edit-rec-home'), repair: ck('edit-rec-repair') };
+            if (!other) {                       // 選了實際類別 → 套用該類別的計費方式與地址規則
+                st.billing = cat.billing;
+                st.addrRequired = cat.addr;
+            }
             normalizeServiceType(st);
             store.save();
             closeEditServiceModal();
@@ -5076,6 +5139,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                 onNewServiceCatChange();
             });
         })();
+        window.onEditServiceCatChange = onEditServiceCatChange;
         window.onNewServiceCatChange = onNewServiceCatChange;
         window.addServiceType = addServiceType;
         window.deleteServiceType = deleteServiceType;
@@ -6623,13 +6687,20 @@ upgradeSheet.init({
         <div class="modal-content">
             <div class="modal-header"><h3>編輯服務</h3></div>
             <div class="form-group">
+                <label for="edit-service-cat">服務類別</label>
+                <select id="edit-service-cat" onchange="onEditServiceCatChange()" style="width:100%;padding:9px 10px;border:1px solid #bdc3c7;border-radius:4px;box-sizing:border-box;font-size:16px;"></select>
+                <div id="edit-cat-info" style="font-size:12px;color:#7f8c8d;margin-top:6px;line-height:1.7;"></div>
+            </div>
+            <div class="form-group">
                 <label for="edit-service-name">服務名稱</label>
                 <input type="text" id="edit-service-name" maxlength="20">
+                <small style="color:#7f8c8d;">可以改成自己的叫法，不影響上面的類別設定</small>
             </div>
             <div class="form-group">
                 <div id="edit-service-fieldinfo"></div>
                 <p style="font-size:11.5px;color:#95a5a6;margin-top:6px;">取消勾選後，舊資料會留著，只是欄位不再顯示</p>
             </div>
+            <div id="edit-billing-warn" style="display:none;background:#fef5e7;border:1px solid #f5cba7;border-radius:8px;padding:10px 12px;font-size:12.5px;color:#9c640c;line-height:1.7;margin-bottom:12px;"></div>
             <button type="button" class="btn btn-success" onclick="saveEditServiceType()">儲存</button>
             <button type="button" class="btn btn-secondary" onclick="closeEditServiceModal()">取消</button>
         </div>
