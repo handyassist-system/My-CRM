@@ -2019,7 +2019,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
         function isCrmAdminEmail(e){ return String(e||'').toLowerCase() === ADMIN_EMAIL.toLowerCase(); }
         // 只用於「這個信箱用過試用沒」的比對，不可當資料路徑
         function crmTrialEmailKey(e){ return normEmail(e).replace(/[.#$\[\]]/g,'_'); }
-        const CRM_APP_VER = 'v1.0', CRM_BUILD_ID = '1006-18';
+        const CRM_APP_VER = 'v1.0', CRM_BUILD_ID = '1007-19';
         const CRM_EMAIL_FOR_SIGNIN = 'crmEmailForSignIn';
         const LINE_SUPPORT_URL = 'https://line.me/R/ti/p/@373pfdee';
         var crmUserEmail = null;
@@ -6452,12 +6452,12 @@ previewMode.init({
         'align-items:center;justify-content:center;gap:14px;background:rgba(252,252,250,.94);'+
         '-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);}'+
       '#ldWrap.on{display:flex;}'+
-      '#ldWrap .ld-sp{width:34px;height:34px;border-radius:50%;'+
+      '.ld-sp{width:34px;height:34px;border-radius:50%;'+
         'border:3px solid rgba(90,100,95,.18);border-top-color:var(--ld-ac,#5B6F79);'+
         'animation:ldSpin .8s linear infinite;}'+
-      '#ldWrap .ld-tx{font-size:14px;color:#5B6F79;font-family:inherit;letter-spacing:.02em;}'+
+      '.ld-tx{font-size:14px;color:#5B6F79;font-family:inherit;letter-spacing:.02em;}'+
       '@keyframes ldSpin{to{transform:rotate(360deg)}}'+
-      '@media (prefers-reduced-motion:reduce){#ldWrap .ld-sp{animation-duration:2.4s}}';
+      '@media (prefers-reduced-motion:reduce){.ld-sp{animation-duration:2.4s}}';
     document.head.appendChild(s);
   }
   css();   // 立刻注入：CRM 有一顆寫在 HTML 裡的載入遮罩也要用到 .ld-sp
