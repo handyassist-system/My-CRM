@@ -76,7 +76,7 @@
         /* 窄螢幕：標題縮一點，讓標題與右側三顆按鈕排在同一列（2026-10-06） */
         @media (max-width: 430px) {
             .header { flex-wrap: nowrap !important; gap: 8px !important; }
-            .header h1 { font-size: 18px; flex: 1 1 auto; min-width: 0; }
+            .header h1 { font-size: 24px; flex: 1 1 auto; min-width: 0; }
             /* 管理員才看得到的建置編號換行顯示，不要把右邊按鈕擠出畫面 */
             .header h1 #crmVerTag { display: block; margin-top: 2px; }
             .header h1 #crmVerTag { font-size: 10.5px; }
@@ -984,7 +984,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                 <h2>預約管理</h2>
 
                 <div id="booking-warning" class="alert alert-warning" style="display:none;">
-                    請先建立至少一個合約
+                    請先建立至少一位客戶
                 </div>
 
                 <div style="display:flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
@@ -1297,7 +1297,15 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                 <div class="form-group" id="booking-item-group" style="display:none;">
                     <label for="booking-item">服務項目</label>
                     <input type="text" id="booking-item" maxlength="30" placeholder="例如：淨水器、冷氣">
-                    <small style="color:#7f8c8d;">同一位客戶的不同設備，提醒週期各自計算</small>
+                    <small style="color:#7f8c8d;">同一客戶之不同設備，提醒週期分別計算</small>
+                </div>
+
+                <div class="form-group" id="booking-mode-group" style="display:none;">
+                    <label>本次計費方式</label>
+                    <div class="radio-group" style="flex-direction:column;align-items:flex-start;gap:6px;">
+                        <label><input type="radio" name="booking-mode" value="contract" checked onchange="onBookingModeChange()"> 從合約扣時數</label>
+                        <label><input type="radio" name="booking-mode" value="single" onchange="onBookingModeChange()"> 單次計費（不扣合約時數）</label>
+                    </div>
                 </div>
 
                 <div class="form-group" id="booking-amount-group" style="display:none;">
@@ -1306,7 +1314,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                         <span class="cur">NT$</span>
                         <input type="number" id="booking-amount" min="0" step="1" placeholder="例如：1500">
                     </div>
-                    <small style="color:#7f8c8d;">標記完成時依此金額產生收款單</small>
+                    <small style="color:#7f8c8d;">標記完成時，依此金額產生收款紀錄</small>
                 </div>
 
                 <div class="form-group" id="booking-remind-group" style="display:none;">
@@ -1318,7 +1326,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                         <option value="12">12 個月後</option>
                         <option value="24">24 個月後</option>
                     </select>
-                    <small style="color:#7f8c8d;">到期時會出現在「客戶追蹤」</small>
+                    <small style="color:#7f8c8d;">到期時將列入「客戶追蹤」</small>
                 </div>
 
                 <div id="booking-essential-oil-group" style="display:none;" class="form-group">
@@ -1535,8 +1543,8 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
             { name: '除塵蟎',   home: true,  repair: false, billing: 'contract', addr: true  },
             { name: '居家清潔', home: true,  repair: false, billing: 'contract', addr: true  },
             { name: '家電服務', home: false, repair: true,  billing: 'single',   addr: true  },
-            { name: '冷氣空調', home: true,  repair: true,  billing: 'single',   addr: true  },
-            { name: '修繕工程', home: true,  repair: true,  billing: 'single',   addr: true  },
+            { name: '冷氣空調', home: false, repair: true,  billing: 'single',   addr: true  },
+            { name: '修繕工程', home: false, repair: true,  billing: 'single',   addr: true  },
             { name: '除蟲消毒', home: true,  repair: false, billing: 'contract', addr: true  },
             { name: '美容個人', home: false, repair: false, billing: 'contract', addr: false },
             { name: '教學顧問', home: false, repair: false, billing: 'contract', addr: false },
@@ -1750,11 +1758,14 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                     settings: ensureCrmSettings(this.data)
                 };
 
-                // 業務資料：有資料才寫入，防止空陣列覆蓋 Firebase
-                if ((this.data.clients?.length || 0) > 0) updateData.clients = this.data.clients;
-                if ((this.data.contracts?.length || 0) > 0) updateData.contracts = this.data.contracts;
-                if ((this.data.bookings?.length || 0) > 0) updateData.bookings = this.data.bookings;
-                if ((this.data.payments?.length || 0) > 0) updateData.payments = this.data.payments;
+                /* 業務資料一律寫入，包含空陣列。
+                   走到這裡代表 _firebaseReady 為 true —— 只有雲端讀取成功才會是 true，
+                   所以此刻的空陣列是「真的被刪光了」，不是「還沒載入」。
+                   原本的 length>0 防呆會害「刪掉最後一筆」無法同步，重整後資料復活。 */
+                updateData.clients   = this.data.clients   || [];
+                updateData.contracts = this.data.contracts || [];
+                updateData.bookings  = this.data.bookings  || [];
+                updateData.payments  = this.data.payments  || [];
 
                 if (!FB_KEY) { console.warn('尚未登入，跳過雲端儲存'); return; }
                 db.ref(FB_KEY).update(updateData).catch(err => {
@@ -1910,11 +1921,16 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                         .filter(b => b.status === '完成')
                         .reduce((sum, b) => sum + b.serviceHours, 0);
                 };
+                /* 用 usable（扣掉已完成 ＋ 已排未做）判斷，而不是只扣已完成。
+                   否則時數排滿但還沒做時，仍會被當成可用合約挑出來，
+                   選了客戶卻跳「最多只能再排 0 小時」，使用者會卡住。 */
                 const active = this.getContractsByClient(clientId).filter(c => {
-                    const preUsed = c.preUsedHours || 0;
-                    const bonus = c.bonusHours || 0;
-                    const remaining = c.totalHours + bonus - preUsed - usedFn(c.id);
-                    return (c.contractStatus || '進行中') === '進行中' && remaining > 0;
+                    if ((c.contractStatus || '進行中') !== '進行中') return false;
+                    try { return contractHours(c).usable > 0; }
+                    catch (e) {
+                        const preUsed = c.preUsedHours || 0, bonus = c.bonusHours || 0;
+                        return (c.totalHours + bonus - preUsed - usedFn(c.id)) > 0;
+                    }
                 });
                 return active.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0] || null;
             }
@@ -2003,7 +2019,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
         function isCrmAdminEmail(e){ return String(e||'').toLowerCase() === ADMIN_EMAIL.toLowerCase(); }
         // 只用於「這個信箱用過試用沒」的比對，不可當資料路徑
         function crmTrialEmailKey(e){ return normEmail(e).replace(/[.#$\[\]]/g,'_'); }
-        const CRM_APP_VER = 'v1.0', CRM_BUILD_ID = '1006-11';
+        const CRM_APP_VER = 'v1.0', CRM_BUILD_ID = '1006-18';
         const CRM_EMAIL_FOR_SIGNIN = 'crmEmailForSignIn';
         const LINE_SUPPORT_URL = 'https://line.me/R/ti/p/@373pfdee';
         var crmUserEmail = null;
@@ -2315,8 +2331,13 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                 if (isSingleBilling()) {
                     var t0 = new Date(); t0.setHours(0,0,0,0);
                     var n0 = 0, seen0 = {};
+                    var liveIds = {};
+                    store.getClients().forEach(function(c){
+                        if ((c.serviceStatus || '服務中') === '服務中') liveIds[c.id] = true;
+                    });
                     (store.data.bookings || [])
-                      .filter(function(b){ return b && !b.contractId && b.status === '完成' && (parseInt(b.remindMonths,10)||0) > 0; })
+                      .filter(function(b){ return b && !b.contractId && b.status === '完成'
+                          && (parseInt(b.remindMonths,10)||0) > 0 && liveIds[b.clientId]; })
                       .sort(function(a,b){ return new Date(b.bookingDate) - new Date(a.bookingDate); })
                       .forEach(function(b){
                         var k = b.clientId + '|' + ((b.serviceItem||'').trim());
@@ -2339,7 +2360,10 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                     var live = contracts.filter(function(c){ return (c.contractStatus || '進行中') === '進行中'; });
                     var done = contracts.reduce(function(acc, c){
                         return acc.concat(store.getBookingsByContract(c.id).filter(function(b){ return b.status === '完成'; }));
-                    }, []).sort(function(a,b){ return new Date(b.bookingDate) - new Date(a.bookingDate); });
+                    }, []).concat(
+                        (store.data.bookings || []).filter(function(b){
+                            return !b.contractId && b.clientId === client.id && b.status === '完成'; })
+                    ).sort(function(a,b){ return new Date(b.bookingDate) - new Date(a.bookingDate); });
                     var overdue = false;
                     if(done.length){
                         var days = Math.floor((today - new Date(done[0].bookingDate)) / 86400000);
@@ -2445,8 +2469,10 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
             const s0 = toMin(q.time);
             if (s0 === null) return '';
             const e0 = s0 + Math.round((parseFloat(q.hours) || 1) * 60);
-            const list = (store.data.bookings || []).filter(function (b) {
-                return b && b.id !== q.bookingId && b.bookingDate === q.date && b.status !== '取消';
+            /* 只比對「目前這個服務」底下的預約。
+               （本 App 的狀態只有 未開始／進行中／完成，沒有「取消」，所以不另外排除。） */
+            const list = store.getBookings().filter(function (b) {
+                return b && b.id !== q.bookingId && b.bookingDate === q.date;
             });
             for (let i = 0; i < list.length; i++) {
                 const b = list[i];
@@ -2477,6 +2503,31 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
             } catch (e) { return false; }
         }
         // 依計費方式顯示／隱藏合約分頁與預約表單上的欄位
+        /* 合約制服務遇到沒合約的客戶時，只開「本次金額」一欄；
+           「服務項目／下次提醒」是維修保養週期用的，合約制不需要。 */
+        /* 有合約的客戶也能把單一筆改成單次計費（合約沒包含的額外服務）。
+           切到單次就不扣時數，改填金額。 */
+        function onBookingModeChange() {
+            const m = document.querySelector('input[name="booking-mode"]:checked');
+            const single = !!(m && m.value === 'single');
+            showBookingAmountField(single);
+            const rr = document.getElementById('booking-info-remaining-row');
+            if (rr) rr.style.display = single ? 'none' : 'block';
+            document.getElementById('booking-modal').dataset.forceSingle = single ? '1' : '';
+        }
+        function setBookingMode(v) {
+            const r = document.querySelector('input[name="booking-mode"][value="' + v + '"]');
+            if (r) r.checked = true;
+            document.getElementById('booking-modal').dataset.forceSingle = (v === 'single') ? '1' : '';
+        }
+
+        function showBookingAmountField(on) {
+            const g = document.getElementById('booking-amount-group');
+            if (g) g.style.display = on ? 'block' : 'none';
+            const hn = document.getElementById('booking-hours-note');
+            if (hn) hn.style.display = on ? 'none' : 'block';
+        }
+
         function applyBillingUI() {
             const single = isSingleBilling();
             const nav = document.querySelector('#crmNav .nav-btn[data-tab="contracts"]');
@@ -2510,7 +2561,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                 if (svcRecHome(st))   a.push('住家狀況');
                 if (svcRecRepair(st)) a.push('電器與保固');
                 var t = a.length ? a.join('、') : '僅基本欄位';
-                return t + (st.billing === 'single' ? ' ｜ 單次制' : ' ｜ 合約制');
+                return t + (st.billing === 'single' ? ' ｜ 只有單次' : ' ｜ 合約／單次皆可');
             };
             const cnt = function (id) { return store.data.clients.filter(c => c.serviceTypeId === id).length; };
 
@@ -2658,14 +2709,36 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
             if (box) box.innerHTML = recInfoHtml('edit', svcRecHome(st), svcRecRepair(st), false);
             renderEditCatInfo(st.billing, st.addrRequired);
             document.getElementById('edit-billing-warn').style.display = 'none';
+            const _cm = document.getElementById('edit-cat-msg');
+            if (_cm) _cm.style.display = 'none';
             m.classList.add('show');
         }
 
         function renderEditCatInfo(billing, addrReq) {
-            const el = document.getElementById('edit-cat-info');
-            if (!el) return;
-            el.innerHTML = '計費方式：<b>' + (billing === 'single' ? '單次制' : '合約制') + '</b>' +
-                           '　｜　服務地址：<b>' + (addrReq === false ? '選填' : '必填') + '</b>';
+            const b = document.querySelector('input[name="edit-billing"][value="' + (billing === 'single' ? 'single' : 'contract') + '"]');
+            if (b) b.checked = true;
+            const a = document.querySelector('input[name="edit-addr"][value="' + (addrReq === false ? '0' : '1') + '"]');
+            if (a) a.checked = true;
+        }
+        function editBillingValue() {
+            const r = document.querySelector('input[name="edit-billing"]:checked');
+            return (r && r.value === 'single') ? 'single' : 'contract';
+        }
+        function editAddrValue() {
+            const r = document.querySelector('input[name="edit-addr"]:checked');
+            return !(r && r.value === '0');
+        }
+        function onEditBillingChange() {
+            const m = document.getElementById('edit-service-modal');
+            const warn = document.getElementById('edit-billing-warn');
+            const nowB = editBillingValue();
+            if (!warn) return;
+            if (nowB !== m.dataset.origBilling) {
+                warn.innerHTML = (nowB === 'single')
+                  ? '⚠️ 改為<b>僅單次計費</b>後，此服務的「合約」分頁將隱藏。<br>既有合約資料完整保留，改回後即恢復顯示。'
+                  : '⚠️ 改為<b>合約／單次皆可</b>後，將顯示「合約」分頁。<br>無合約之客戶仍可直接排定單次預約，資料完整保留。';
+                warn.style.display = 'block';
+            } else warn.style.display = 'none';
         }
 
         /* 換類別＝套用該類別的最新預設值（記錄欄位、計費方式、地址）。
@@ -2680,21 +2753,28 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
             m.dataset.prevCat = cat.name;
 
             const box = document.getElementById('edit-service-fieldinfo');
-            if (box && !other) box.innerHTML = recInfoHtml('edit', cat.home, cat.repair, false);
-            renderEditCatInfo(other ? (m.dataset.origBilling || 'contract') : cat.billing,
-                              other ? true : cat.addr);
-
-            // 計費方式要變的話先講清楚
-            const warn = document.getElementById('edit-billing-warn');
-            const nowB = other ? (m.dataset.origBilling || 'contract') : cat.billing;
-            if (warn) {
-                if (nowB !== m.dataset.origBilling) {
-                    warn.innerHTML = (nowB === 'single')
-                      ? '⚠️ 改成<b>單次制</b>後，這個服務的「合約」分頁會隱藏，排預約不再需要合約。<br>既有合約資料仍完整保留，改回合約制就會再出現。'
-                      : '⚠️ 改成<b>合約制</b>後，會出現「合約」分頁，排預約需要先建立合約。<br>既有的單次預約與收款資料仍完整保留。';
-                    warn.style.display = 'block';
-                } else warn.style.display = 'none';
+            const msg = document.getElementById('edit-cat-msg');
+            if (other) {
+                if (msg) msg.style.display = 'none';
+            } else {
+                // 選了類別就以類別的預設值為準，全部覆蓋，並告訴使用者改了什麼
+                if (box) box.innerHTML = recInfoHtml('edit', cat.home, cat.repair, false);
+                renderEditCatInfo(cat.billing, cat.addr);
+                const items = [];
+                items.push('計費方式：' + (cat.billing === 'single' ? '僅單次計費' : '合約／單次皆可'));
+                items.push('服務地址：' + (cat.addr ? '必填' : '選填'));
+                const f = [];
+                if (cat.home) f.push('住家狀況');
+                if (cat.repair) f.push('電器與保固');
+                items.push('記錄欄位：' + (f.length ? f.join('、') : '僅基本欄位'));
+                if (msg) {
+                    msg.innerHTML = '已套用「<b>' + cat.name + '</b>」的預設設定<br>' +
+                                    items.join('　｜　') + '<br>' +
+                                    '<span style="color:#5b7a6b;">如需調整，可於下方修改</span>';
+                    msg.style.display = 'block';
+                }
             }
+            onEditBillingChange();
         }
 
         function closeEditServiceModal() {
@@ -2716,10 +2796,8 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
             const other = (cat.name === '其他');
             st.typeName = t;
             st.rec = { home: ck('edit-rec-home'), repair: ck('edit-rec-repair') };
-            if (!other) {                       // 選了實際類別 → 套用該類別的計費方式與地址規則
-                st.billing = cat.billing;
-                st.addrRequired = cat.addr;
-            }
+            st.billing = editBillingValue();    // 以畫面上的選擇為準（換類別時已自動帶入）
+            st.addrRequired = editAddrValue();
             normalizeServiceType(st);
             store.save();
             closeEditServiceModal();
@@ -2745,8 +2823,9 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
             if (anote) anote.style.display = types.length > 1 ? 'block' : 'none';
 
             // 一般收費只有「單次計費」的服務才出現（按合約的每份都不一樣，不設預設值）
+            // 合約制也可能接沒合約的單次客，所以這個預設金額一律顯示
             const hg = document.getElementById('set-hourly-rate-group');
-            if (hg) hg.style.display = (cur && cur.billing === 'single') ? 'block' : 'none';
+            if (hg) hg.style.display = 'block';
 
             const cb = document.getElementById('set-company-dispatch');
             if (cb) {
@@ -3134,9 +3213,12 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                     const statusBadge = serviceStatus === '服務中'
                         ? '<span style="background:#e8f5e9;color:#27ae60;padding:2px 8px;border-radius:10px;font-size:11px;margin-left:6px;">服務中</span>'
                         : '<span style="background:#fce4ec;color:#c0392b;padding:2px 8px;border-radius:10px;font-size:11px;margin-left:6px;">已終止</span>';
-                    const hasContract = store.getContracts().some(c => c.clientId === client.id);
-                    const deleteBtn = hasContract
-                        ? `<button class="btn btn-sm btn-secondary" disabled style="opacity:0.5;cursor:not-allowed;" title="有合約，無法刪除">刪除</button>`
+                    // 有合約、單次預約或收款紀錄的客戶都不給刪（避免留下孤兒資料）
+                    const locked = store.getContracts().some(c => c.clientId === client.id)
+                        || (store.data.bookings || []).some(b => !b.contractId && b.clientId === client.id)
+                        || (store.data.payments || []).some(p => p.clientId === client.id);
+                    const deleteBtn = locked
+                        ? `<button class="btn btn-sm btn-secondary" disabled style="opacity:0.5;cursor:not-allowed;" title="有關聯資料，無法刪除">刪除</button>`
                         : `<button class="btn btn-sm btn-danger" onclick="deleteClient('${client.id}', '${client.clientName}')">刪除</button>`;
                     return `
                         <div class="list-item">
@@ -3859,7 +3941,8 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
         }
 
         function updateBookingTab() {
-            if (!store.data.selectedServiceType || (!isSingleBilling() && store.getContracts().length === 0)) {
+            // 合約制也允許沒有合約的客戶排單次，所以只要有客戶就能排
+            if (!store.data.selectedServiceType || store.getClients().length === 0) {
                 document.getElementById('booking-warning').style.display = 'block';
                 document.getElementById('add-booking-btn').style.display = 'none';
             } else {
@@ -3885,6 +3968,9 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
             document.getElementById('booking-date').value = today;
             renderStaffOptions('me');
             document.getElementById('booking-modal').dataset.conflictOk = '';
+            document.getElementById('booking-modal').dataset.forceSingle = '';
+            const _mg = document.getElementById('booking-mode-group');
+            if (_mg) _mg.style.display = 'none';
             applyBillingUI();
             document.getElementById('booking-modal').classList.add('show');
             initBookingClientSearch();
@@ -3945,12 +4031,34 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
 
             const contract = store.getLatestActiveContract(clientId);
             if (!contract) {
-                document.getElementById('booking-client-selected-info').innerHTML = `⚠️ <strong>${clientName}</strong> 目前沒有進行中的合約`;
-                document.getElementById('booking-client-selected-info').style.display = 'block';
-                document.getElementById('booking-info-display').style.display = 'none';
+                /* 合約制的服務選到沒有合約的客戶（例如只做一次的新客人）→
+                   這一筆改用單次計費，填金額就能排，不必先去建一張合約。 */
                 document.getElementById('booking-modal').dataset.contractId = '';
+                document.getElementById('booking-client-selected-info').innerHTML =
+                    `✅ 已選擇：<strong>${clientName}</strong><br>` +
+                    `<span style="color:#9c640c;">ℹ️ 此客戶無進行中合約，本次以單次計費處理</span>`;
+                document.getElementById('booking-client-selected-info').style.display = 'block';
+                document.getElementById('booking-info-client').textContent = clientName;
+                document.getElementById('booking-info-home').textContent = client0?.homeType || '';
+                document.getElementById('booking-info-home-row').style.display = (client0 && client0.homeType) ? 'block' : 'none';
+                const _rr2 = document.getElementById('booking-info-remaining-row');
+                if (_rr2) _rr2.style.display = 'none';
+                const _a1 = document.getElementById('booking-address');
+                if (_a1) _a1.value = client0?.address || '';
+                document.getElementById('booking-address-group').style.display = 'block';
+                document.getElementById('booking-info-display').style.display = 'block';
+                const mg0 = document.getElementById('booking-mode-group');
+                if (mg0) mg0.style.display = 'none';
+                document.getElementById('booking-modal').dataset.forceSingle = '';
+                showBookingAmountField(true);          // 只開「本次金額」，維修專用的那兩欄不出現
+                document.getElementById('booking-essential-oil-group').style.display = SVC().useOil ? 'block' : 'none';
                 return;
             }
+            // 有合約：預設扣時數，但允許這一筆改成單次
+            const mg = document.getElementById('booking-mode-group');
+            if (mg) mg.style.display = isSingleBilling() ? 'none' : 'block';
+            setBookingMode('contract');
+            showBookingAmountField(isSingleBilling());
 
             document.getElementById('booking-modal').dataset.contractId = contract.id;
             const client = store.getClient(clientId);
@@ -3982,8 +4090,11 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
             e.preventDefault();
             if (crmBlocked()) return;
 
-            const single = isSingleBilling();
-            const contractId = document.getElementById('booking-modal').dataset.contractId;
+            const _bm = document.getElementById('booking-modal');
+            const forceSingle = _bm.dataset.forceSingle === '1';
+            const contractId = forceSingle ? '' : _bm.dataset.contractId;
+            // 單次的三種情況：服務只有單次／客戶沒合約／這一筆手動切成單次
+            const single = isSingleBilling() || !contractId;
             const bookingId = document.getElementById('booking-modal').dataset.bookingId;
             const clientIdSel = document.getElementById('booking-client-id-hidden').value;
             const serviceHours = parseFloat(document.getElementById('booking-hours').value);
@@ -4007,6 +4118,13 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
 
             const client = store.getClient(clientId);
             if (!client) { showToast('找不到這位客戶'); return; }
+            // 單次計費一定要有金額，否則會產生 NT$0 的收款單
+            if (single) {
+                const amtRaw = (document.getElementById('booking-amount').value || '').trim();
+                if (amtRaw === '' || !(parseInt(amtRaw, 10) > 0)) {
+                    showToast('請填寫本次金額'); return;
+                }
+            }
 
             // 撞期提醒：同一天、同一位執行人員、時段重疊就先問一聲（不擋，可照排）
             const conflict = findBookingConflict({
@@ -4042,9 +4160,12 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
             };
 
             if (single) {
-                booking.serviceItem = (document.getElementById('booking-item').value || '').trim();
                 booking.amount = parseInt(document.getElementById('booking-amount').value, 10) || 0;
-                booking.remindMonths = parseInt(document.getElementById('booking-remind').value, 10) || 0;
+                // 服務項目與保養提醒只有「單次制」的服務才會填
+                if (isSingleBilling()) {
+                    booking.serviceItem = (document.getElementById('booking-item').value || '').trim();
+                    booking.remindMonths = parseInt(document.getElementById('booking-remind').value, 10) || 0;
+                }
             }
 
             if (hasPartners()) {
@@ -4057,7 +4178,17 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
 
             if (bookingId) {
                 const existing = store.getBooking(bookingId);
+                delete booking.status;              // 修：編輯時不要覆蓋「完成／進行中」狀態
                 Object.assign(existing, booking);
+                /* 這筆若已經產生收款單，時數或金額改了就要跟著重算，
+                   否則報表會對不起來（使用者手動改過金額的就不動，尊重他的修改）。 */
+                const pay = (store.data.payments || []).find(p => p.bookingId === bookingId);
+                if (pay && !(pay.modificationHistory || []).length) {
+                    pay.serviceHours = existing.serviceHours;
+                    pay.amountDue = pay.flatRate
+                        ? (parseInt(existing.amount, 10) || 0)
+                        : (pay.hourlyRate || 0) * existing.serviceHours;
+                }
                 store.save();
             } else {
                 store.addBooking(booking);
@@ -4081,8 +4212,13 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
             const H = flat ? { usable: 0, used: 0, booked: 0 } : contractHours(contract, bookingId);
 
             document.getElementById('booking-modal-title').textContent = '編輯預約';
-            document.getElementById('booking-modal').dataset.bookingId = bookingId;
-            document.getElementById('booking-modal').dataset.contractId = booking.contractId;
+            const _bm0 = document.getElementById('booking-modal');
+            _bm0.dataset.bookingId = bookingId;
+            // 修：舊資料可能沒有 contractId 欄位，直接指派會變成字串 "undefined"
+            _bm0.dataset.contractId = booking.contractId || '';
+            // 修：上一次若切過「單次計費」，這個旗標會殘留，害下一筆合約預約被轉成單次
+            _bm0.dataset.forceSingle = flat ? '1' : '';
+            _bm0.dataset.conflictOk = '';
             // 編輯時隱藏客戶搜尋
             document.getElementById('booking-client-search-group').style.display = 'none';
 
@@ -4097,10 +4233,17 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
             document.getElementById('booking-info-display').style.display = 'block';
             document.getElementById('booking-client-id-hidden').value = client.id;
             applyBillingUI();
+            // 合約制服務下，讓「本次計費方式」反映這一筆實際的狀態
+            const _mg2 = document.getElementById('booking-mode-group');
+            if (_mg2) _mg2.style.display = isSingleBilling() ? 'none' : 'block';
+            setBookingMode(flat ? 'single' : 'contract');
             if (flat) {
-                document.getElementById('booking-item').value = booking.serviceItem || '';
+                showBookingAmountField(true);
                 document.getElementById('booking-amount').value = (booking.amount != null) ? booking.amount : '';
-                document.getElementById('booking-remind').value = String(booking.remindMonths || 0);
+                if (isSingleBilling()) {
+                    document.getElementById('booking-item').value = booking.serviceItem || '';
+                    document.getElementById('booking-remind').value = String(booking.remindMonths || 0);
+                }
             }
 
             document.getElementById('booking-date').value = booking.bookingDate;
@@ -4309,8 +4452,8 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
 
         function renderPaymentStats() {
             const payments = store.getPayments();
-            const paidTotal = payments.filter(p => p.paymentStatus === '已收').reduce((sum, p) => sum + p.amountDue, 0);
-            const unpaidTotal = payments.filter(p => p.paymentStatus === '未收').reduce((sum, p) => sum + p.amountDue, 0);
+            const paidTotal = payments.filter(p => p.paymentStatus === '已收').reduce((sum, p) => sum + (p.amountDue || 0), 0);
+            const unpaidTotal = payments.filter(p => p.paymentStatus === '未收').reduce((sum, p) => sum + (p.amountDue || 0), 0);
 
             document.getElementById('payment-stats').innerHTML = `
                 <div class="info-box">
@@ -4348,9 +4491,10 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
             }
 
             const booking = store.getBooking(bookingId);
-            const contract = store.getContract(booking.contractId);
-            const client = store.getClient(contract.clientId);
-            
+            // 單次預約沒有合約，一律用 bookingClient 取客戶（修：原本會 TypeError）
+            const client = store.bookingClient(booking);
+            if (!booking || !client) { showToast('找不到對應的預約或客戶'); return; }
+
             const newStatus = document.querySelector('input[name="payment-status"]:checked').value;
             const newAmount = parseFloat(document.getElementById('payment-amount').value);
             const newDate = document.getElementById('payment-date').value || null;
@@ -4391,8 +4535,8 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
 
             const payment = store.data.payments.find(p => p.id === paymentId);
             const booking = store.getBooking(payment.bookingId);
-            const contract = store.getContract(booking.contractId);
-            const client = store.getClient(contract.clientId);
+            const client = store.bookingClient(booking);
+            if (!payment || !booking || !client) { showToast('找不到對應的預約或客戶'); return; }
 
             // 記錄修改歷史
             const modification = {
@@ -4511,9 +4655,15 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
 
             // 客戶統計（服務中）
             const activeClients = allClients.filter(c => (c.serviceStatus || '服務中') === '服務中').length;
-            const selfClients = new Set(
+            /* 自接客戶數：原本只看合約，單次計費服務沒有合約所以恆為 0。
+               改成合約與客戶來源兩邊都算（同一人只計一次）。 */
+            const selfSet = new Set(
                 allContracts.filter(c => c.cooperationMethod === '自接').map(c => c.clientId)
-            ).size;
+            );
+            store.getClients().forEach(c => {
+                if ((c.clientSource || '自接') === '自接') selfSet.add(c.id);
+            });
+            const selfClients = selfSet.size;
 
             // 填充年月篩選下拉
             const yearSel = document.getElementById('dash-year');
@@ -4638,8 +4788,8 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
            差別只在副標顯示「設備名稱 ｜ 保養週期」而不是「剩餘時數」。 */
         function renderTrackingRows(rows, filterVal, container) {
             const cfgMap = {
-                red:    { icon: '🔴', label: '該回訪了', bg: '#fce4ec', border: '#e74c3c' },
-                yellow: { icon: '🟡', label: '快到期',   bg: '#fff8e1', border: '#f39c12' },
+                red:    { icon: '🔴', label: '需回訪', bg: '#fce4ec', border: '#e74c3c' },
+                yellow: { icon: '🟡', label: '即將到期',   bg: '#fff8e1', border: '#f39c12' },
                 green:  { icon: '🟢', label: '正常',     bg: '#e8f5e9', border: '#27ae60' },
                 new:    { icon: '⚪', label: '尚未服務', bg: '#f5f5f5', border: '#bdc3c7' }
             };
@@ -4717,8 +4867,8 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                         if (rm > 0) {
                             const due = new Date(last); due.setMonth(due.getMonth() + rm);
                             const left = Math.ceil((due - today) / 86400000);
-                            if (left <= 0)       { level = 'red';    note = `每 ${rm} 個月保養，已到期 ${Math.abs(left)} 天`; }
-                            else if (left <= 30) { level = 'yellow'; note = `每 ${rm} 個月保養，還有 ${left} 天到期`; }
+                            if (left <= 0)       { level = 'red';    note = `每 ${rm} 個月保養，已逾期 ${Math.abs(left)} 天`; }
+                            else if (left <= 30) { level = 'yellow'; note = `每 ${rm} 個月保養，${left} 天後到期`; }
                             else                 { level = 'green';  note = `每 ${rm} 個月保養，${left} 天後到期`; }
                         } else {
                             note = '未設定提醒週期';
@@ -4733,8 +4883,12 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
 
             const clientData = clients.map(client => {
                 const contracts = store.getContractsByClient(client.id);
+                // 合約的預約 ＋ 這位客戶沒有掛合約的單次預約，兩邊都要算
                 const bookings = contracts.flatMap(c =>
                     store.getBookingsByContract(c.id).filter(b => b.status === '完成')
+                ).concat(
+                    (store.data.bookings || []).filter(b =>
+                        !b.contractId && b.clientId === client.id && b.status === '完成')
                 ).sort((a, b) => new Date(b.bookingDate) - new Date(a.bookingDate));
 
                 const lastBooking = bookings[0] || null;
@@ -4811,6 +4965,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                 `;
             }).join('');
         }
+        window.onBookingModeChange = onBookingModeChange;
         window.setBookingView = setBookingView;
         window.bkCalShift = bkCalShift;
         window.bkCalPickDay = bkCalPickDay;
@@ -4840,6 +4995,9 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
             // 預約紀錄（所有合約的所有預約，由新到舊）
             const allBookings = contracts.flatMap(c =>
                 store.getBookingsByContract(c.id)
+            ).concat(
+                // 沒掛合約的單次預約也要列出來，否則單次客永遠顯示「尚無預約紀錄」
+                (store.data.bookings || []).filter(b => !b.contractId && b.clientId === clientId)
             ).sort((a, b) => new Date(b.bookingDate) - new Date(a.bookingDate));
 
             let bookingsHtml = '<p style="color:#95a5a6;font-size:13px;">尚無預約紀錄</p>';
@@ -4895,11 +5053,20 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
         // ==================== 刪除功能 ====================
         function deleteClient(clientId, clientName) {
             if (crmBlocked()) return;
-            // 檢查是否有關聯的合約
+            // 檢查關聯資料：合約、預約、收款都要擋，否則會留下清不掉的孤兒資料
             const relatedContracts = store.getContracts().filter(c => c.clientId === clientId);
-            
             if (relatedContracts.length > 0) {
                 showToast(`${clientName}還有 ${relatedContracts.length} 份合約，請先刪除合約`);
+                return;
+            }
+            const relatedBookings = (store.data.bookings || []).filter(b => !b.contractId && b.clientId === clientId);
+            if (relatedBookings.length > 0) {
+                showToast(`${clientName}還有 ${relatedBookings.length} 筆預約，請先刪除預約`);
+                return;
+            }
+            const relatedPays = (store.data.payments || []).filter(p => p.clientId === clientId);
+            if (relatedPays.length > 0) {
+                showToast(`${clientName}還有 ${relatedPays.length} 筆收款紀錄，請先刪除`);
                 return;
             }
 
@@ -4971,7 +5138,13 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
             });
         }
 
+        /* 這個函式每次 updateAllTabs() 都會被呼叫，原本每次都再 addEventListener 一次，
+           箭頭函式每次都是新的物件所以無法去重，用久了打一個字會觸發十幾次重繪。
+           用旗標確保只掛一次。 */
+        let _searchBound = false;
         function attachSearchListeners() {
+            if (_searchBound) return;
+            _searchBound = true;
             const clientSearch = document.getElementById('client-search');
             const clientStatusFilter = document.getElementById('client-status-filter');
             const contractSearch = document.getElementById('contract-search');
@@ -5139,7 +5312,24 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                 onNewServiceCatChange();
             });
         })();
+
+        /* 登入頁安裝按鈕：四支 App 位置與行為一致（2026-10-07）
+           還沒安裝就顯示；按下去走共用模組，沒有安裝事件時跳圖文步驟。 */
+        (function crmLoginInstall(){
+            function go(){
+                var b = document.getElementById('crmLoginInstallBtn');
+                if (!b) { setTimeout(go, 60); return; }
+                if (window.appInstall && appInstall.installed()) { b.style.display = 'none'; return; }
+                b.addEventListener('click', function(){
+                    appInstall.run(_crmDeferredPrompt).then(function(used){
+                        if (used) _crmDeferredPrompt = null;
+                    });
+                });
+            }
+            go();
+        })();
         window.onEditServiceCatChange = onEditServiceCatChange;
+        window.onEditBillingChange = onEditBillingChange;
         window.onNewServiceCatChange = onNewServiceCatChange;
         window.addServiceType = addServiceType;
         window.deleteServiceType = deleteServiceType;
@@ -6668,6 +6858,8 @@ upgradeSheet.init({
             <div style="margin-top:12px;font-size:12px;line-height:1.8;color:#7f8c8d;text-align:left;background:#FBF8F3;border:1px solid #E7E2DA;border-radius:12px;padding:10px 12px;">
                 👨‍👩‍👧 從「生活管家」點進來會自動登入，不用再輸入一次
             </div>
+            <button id="crmLoginInstallBtn" type="button"
+                style="width:100%;margin-top:16px;padding:12px;background:#E8EFF4;border:1px solid #4A7A9B;border-radius:12px;color:#4A7A9B;font-size:14px;font-weight:600;font-family:inherit;cursor:pointer;">📲 安裝到手機桌面</button>
             <button id="crmAdminToggle" type="button"
                 style="width:100%;margin-top:18px;padding:8px;background:none;border:none;color:#95a5a6;font-size:12.5px;opacity:.75;cursor:pointer;">🔧 管理員登入</button>
             <div id="crmAdminBox" style="display:none;margin-top:10px;text-align:left;">
@@ -6689,16 +6881,30 @@ upgradeSheet.init({
             <div class="form-group">
                 <label for="edit-service-cat">服務類別</label>
                 <select id="edit-service-cat" onchange="onEditServiceCatChange()" style="width:100%;padding:9px 10px;border:1px solid #bdc3c7;border-radius:4px;box-sizing:border-box;font-size:16px;"></select>
-                <div id="edit-cat-info" style="font-size:12px;color:#7f8c8d;margin-top:6px;line-height:1.7;"></div>
+                <div id="edit-cat-msg" style="display:none;font-size:12px;color:#1e6f50;background:#e8f5e9;border:1px solid #c3e6cb;border-radius:8px;padding:8px 10px;margin-top:8px;line-height:1.6;"></div>
+            </div>
+            <div class="form-group">
+                <label>計費方式</label>
+                <div class="radio-group" style="flex-direction:column;align-items:flex-start;gap:6px;">
+                    <label><input type="radio" name="edit-billing" value="contract" onchange="onEditBillingChange()"> 合約／單次皆可</label>
+                    <label><input type="radio" name="edit-billing" value="single" onchange="onEditBillingChange()"> 僅單次計費</label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>服務地址</label>
+                <div class="radio-group" style="gap:16px;">
+                    <label><input type="radio" name="edit-addr" value="1"> 必填</label>
+                    <label><input type="radio" name="edit-addr" value="0"> 選填</label>
+                </div>
             </div>
             <div class="form-group">
                 <label for="edit-service-name">服務名稱</label>
                 <input type="text" id="edit-service-name" maxlength="20">
-                <small style="color:#7f8c8d;">可以改成自己的叫法，不影響上面的類別設定</small>
+                <small style="color:#7f8c8d;">可自訂名稱，不影響上方類別設定</small>
             </div>
             <div class="form-group">
                 <div id="edit-service-fieldinfo"></div>
-                <p style="font-size:11.5px;color:#95a5a6;margin-top:6px;">取消勾選後，舊資料會留著，只是欄位不再顯示</p>
+                <p style="font-size:11.5px;color:#95a5a6;margin-top:6px;">取消勾選後，既有資料仍保留，僅不再顯示欄位</p>
             </div>
             <div id="edit-billing-warn" style="display:none;background:#fef5e7;border:1px solid #f5cba7;border-radius:8px;padding:10px 12px;font-size:12.5px;color:#9c640c;line-height:1.7;margin-bottom:12px;"></div>
             <button type="button" class="btn btn-success" onclick="saveEditServiceType()">儲存</button>
