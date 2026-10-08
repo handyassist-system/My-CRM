@@ -161,24 +161,32 @@
         }
         .setpg-title { font-size: 17px; font-weight: bold; color: #2c3e50; }
 
-        .svc-pill {
-            flex: 0 0 auto;
-            padding: 7px 15px;
-            border: 1px solid rgba(255,255,255,.28);
-            border-radius: 999px;
-            background: transparent;
-            color: #ecf0f1;
-            font-size: 13.5px;
-            font-family: inherit;
-            cursor: pointer;
-            white-space: nowrap;
+        #service-switch-bar {
+            width: 100%; display: flex; align-items: center; gap: 6px;
+            background: #EDF2F5; border: none; border-bottom: 1px solid #DCE4E9;
+            padding: 7px 16px; font-family: inherit; font-size: 13px;
+            color: #4A7A9B; text-align: left; cursor: pointer; min-height: 36px;
         }
-        .svc-pill.on {
-            background: #fff;
-            border-color: #fff;
-            color: #2c3e50;
-            font-weight: bold;
+        .svc-cur-lb { color: #7f8c8d; flex: 0 0 auto; }
+        .svc-cur-nm { font-weight: 600; color: #2c3e50; flex: 1 1 auto;
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .svc-cur-ar { flex: 0 0 auto; color: #7f8c8d; font-size: 11px; }
+        .svc-opt {
+            display: block; width: 100%; text-align: left; font-family: inherit;
+            background: #fff; border: 2px solid #ecf0f1; border-radius: 10px;
+            padding: 12px 14px; margin-bottom: 8px; cursor: pointer; font-size: 15px;
+            color: #2c3e50; min-height: 48px;
         }
+        .svc-opt.on { border-color: #27ae60; background: #e8f5e9; font-weight: 700; }
+        .adv-toggle {
+            width: 100%; display: flex; align-items: center; justify-content: space-between;
+            background: #F7F9FA; border: 1px solid #E3E9ED; border-radius: 10px;
+            padding: 13px 14px; margin: 18px 0 10px; font-family: inherit; font-size: 14.5px;
+            color: #4A7A9B; cursor: pointer; min-height: 48px;
+        }
+        .adv-ar { transition: transform .18s; font-size: 16px; color: #95a5a6; }
+        .adv-toggle.on .adv-ar { transform: rotate(90deg); }
+        .svc-opt small { display: block; font-weight: 400; color: #95a5a6; font-size: 12px; margin-top: 2px; }
         .nav-tabs button:hover {
             background-color: #e8e8e8;
         }
@@ -717,8 +725,10 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
             </div>
         </div>
 
-        <!-- 頂部服務切換列 -->
-        <div id="service-switch-bar" style="display:none; background:#34495e; padding:8px 12px; gap:8px; overflow-x:auto; white-space:nowrap; -webkit-overflow-scrolling:touch;"></div>
+        <!-- 目前服務（點一下切換） -->
+        <button type="button" id="service-switch-bar" style="display:none;">
+            <span class="svc-cur-lb">目前服務</span><span class="svc-cur-nm" id="svcCurName"></span><span class="svc-cur-ar">▾</span>
+        </button>
 
         
 
@@ -863,6 +873,10 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                         </div>
                     </div>
 
+                    <button type="button" id="advToggle" class="adv-toggle" onclick="toggleAdvSet()">
+                        <span>⚙️ 進階設定</span><span class="adv-ar" id="advArrow">›</span>
+                    </button>
+                    <div id="advBox" style="display:none;">
                     <div class="form-group">
                         <label for="set-contract-years">合約年限（年）</label>
                         <input type="number" id="set-contract-years" min="0" step="1">
@@ -897,6 +911,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                             <span style="font-size:13px;">點</span>
                         </div>
                         <small style="color:#7f8c8d;">每半小時一個時段</small>
+                    </div>
                     </div>
 
                     <button class="btn btn-primary" style="width:100%" onclick="saveServiceSettings()">儲存服務設定</button>
@@ -1064,6 +1079,14 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
     </div>
 
     <!-- Modal for Add/Edit Client -->
+    <div id="svc-pick-modal" class="modal">
+        <div class="modal-content" style="max-width:420px;">
+            <div class="modal-header"><h3>切換服務</h3></div>
+            <div id="svc-pick-list"></div>
+            <button type="button" class="btn btn-secondary" style="width:100%;margin-top:4px;" onclick="document.getElementById('svc-pick-modal').classList.remove('show')">取消</button>
+        </div>
+    </div>
+
     <div id="client-modal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -2019,7 +2042,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
         function isCrmAdminEmail(e){ return String(e||'').toLowerCase() === ADMIN_EMAIL.toLowerCase(); }
         // 只用於「這個信箱用過試用沒」的比對，不可當資料路徑
         function crmTrialEmailKey(e){ return normEmail(e).replace(/[.#$\[\]]/g,'_'); }
-        const CRM_APP_VER = 'v1.0', CRM_BUILD_ID = '1007-19';
+        const CRM_APP_VER = 'v1.0', CRM_BUILD_ID = '1008-23';
         const CRM_EMAIL_FOR_SIGNIN = 'crmEmailForSignIn';
         const LINE_SUPPORT_URL = 'https://line.me/R/ti/p/@373pfdee';
         var crmUserEmail = null;
@@ -2190,12 +2213,35 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                 console.log('舊資料已搬到帳號底下');
             } catch(e){ console.warn('搬遷略過', e); }
         }
+        /* 完整重置的收尾：管理員在後台重置後，雲端會留一個時間戳記。
+           客戶下次登入時比對本機記錄，較新就把本機快取清掉。
+           不這樣做的話，loadFromFirebase() 發現雲端是空的會改讀本機快取，
+           又把舊資料推回雲端（第 1807-1814 行），等於重置失效。 */
+        const CRM_RESET_PATH = 'servicecrm_resets/';
+        async function crmHonorReset(email){
+            try{
+                var key = crmEmailKey(email);
+                var snap = await _crmTimeout(db.ref(CRM_RESET_PATH + key).once('value'), CRM_VERIFY_TIMEOUT);
+                var at = snap && snap.val() && snap.val().at;
+                if(!at) return;
+                var seen = 0;
+                try{ seen = Number(localStorage.getItem('servicecrm_reset_' + key) || 0); }catch(e){}
+                if(Number(at) > seen){
+                    // 只清快取就好。loadFromFirebase() 發現雲端是空的時候會自己 initData()，
+                    // 這裡不呼叫，免得多觸發一次 save() 把空資料寫回去。
+                    crmCacheClear();
+                    try{ localStorage.setItem('servicecrm_reset_' + key, String(at)); }catch(e){}
+                }
+            }catch(e){}
+        }
+
         async function crmEnter(email){
           // 整段包起來：驗證之後的任何一步出錯，也要把登入畫面放回來
           // 並說明原因，不能讓使用者只看到一片空白。
           try{
                 crmUserEmail = String(email).toLowerCase();   // 路徑用原始小寫，跟規則一致
                 setCrmPath(crmUserEmail);
+                await crmHonorReset(crmUserEmail);   // 管理員做過完整重置 → 先清掉本機快取，避免舊資料被推回雲端
                 hideCrmLogin();
                 document.getElementById('loading-overlay').style.display = 'flex';
                 var res = await crmVerify(crmUserEmail);
@@ -2837,7 +2883,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
             }
             const g = document.getElementById('set-payment-rate-group');
             if (g) g.style.display = c.companyDispatch ? 'block' : 'none';
-            set('set-hourly-rate', c.defaultHourlyRate);
+            set('set-hourly-rate', (Number(c.defaultHourlyRate) > 0) ? c.defaultHourlyRate : '');
             const oilCb = document.getElementById('set-use-oil');
             if (oilCb) oilCb.checked = !!c.useOil;
             set('set-payment-rate', c.defaultPaymentRate);
@@ -3156,29 +3202,53 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
 
         function initQuickServiceSwitch() {
             const bar = document.getElementById('service-switch-bar');
+            if (!bar) return;
             const types = store.getServiceTypes();
 
-            // 只有一種服務（或還沒有）時，整條切換列不出現
-            if (types.length < 2) {
-                bar.style.display = 'none';
-                bar.innerHTML = '';
-                return;
-            }
+            // 只有一種服務（或還沒有）時，整條不出現
+            if (types.length < 2) { bar.style.display = 'none'; return; }
 
+            const cur = store.getServiceType(store.data.selectedServiceType) || types[0];
+            const nm = document.getElementById('svcCurName');
+            if (nm) nm.textContent = cur ? cur.typeName : '';
             bar.style.display = 'flex';
-            bar.innerHTML = types.map(st => {
-                const on = store.data.selectedServiceType === st.id;
-                return `<button type="button" class="svc-pill${on ? ' on' : ''}" data-svc="${st.id}">${st.typeName}</button>`;
-            }).join('');
+            bar.onclick = openServicePicker;
+        }
 
-            bar.querySelectorAll('.svc-pill').forEach(btn => {
-                btn.addEventListener('click', function () {
-                    store.data.selectedServiceType = this.dataset.svc;
-                    store.save();
-                    renderSettingsPage();
-                    updateAllTabs();
+        function toggleAdvSet() {
+            const box = document.getElementById('advBox');
+            const btn = document.getElementById('advToggle');
+            if (!box || !btn) return;
+            const open = box.style.display !== 'none';
+            box.style.display = open ? 'none' : 'block';
+            btn.classList.toggle('on', !open);
+        }
+
+        function svcEsc(t) {
+            return String(t == null ? '' : t).replace(/[&<>"']/g, function (c) {
+                return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+            });
+        }
+        function openServicePicker() {
+            const m = document.getElementById('svc-pick-modal');
+            const list = document.getElementById('svc-pick-list');
+            if (!m || !list) return;
+            const types = store.getServiceTypes();
+            list.innerHTML = types.map(function (st) {
+                const on = store.data.selectedServiceType === st.id;
+                return '<button type="button" class="svc-opt' + (on ? ' on' : '') + '" data-svc="' + st.id + '">'
+                     + svcEsc(st.typeName) + (on ? ' ・使用中' : '')
+                     + '<small>' + store.data.clients.filter(function(c){return c.serviceTypeId===st.id;}).length
+                       + ' 位客戶 ｜ ' + (st.billing === 'single' ? '只有單次' : '合約／單次皆可') + '</small></button>';
+            }).join('');
+            list.querySelectorAll('.svc-opt').forEach(function (b) {
+                b.addEventListener('click', function () {
+                    m.classList.remove('show');
+                    if (store.data.selectedServiceType === this.dataset.svc) return;
+                    switchServiceType(this.dataset.svc);
                 });
             });
+            m.classList.add('show');
         }
 
         // ==================== 客戶管理 ====================
@@ -5334,6 +5404,8 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
         window.addServiceType = addServiceType;
         window.deleteServiceType = deleteServiceType;
         window.switchServiceType = switchServiceType;
+        window.openServicePicker = openServicePicker;
+        window.toggleAdvSet = toggleAdvSet;
         window.toggleExpand = toggleExpand;
         window.openContractModal = openContractModal;
         window.openBookingModal = openBookingModal;
@@ -5775,7 +5847,8 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
       '<div class="subs-row2"><span>狀態</span><span class="v">'+(st.disabled?'已停用':'啟用中')+'</span>'+
         '<button type="button" class="subs-mini" id="mTog">'+(st.disabled?'恢復':'停用')+'</button></div>'+
       '<button type="button" class="subs-ghost" onclick="subsAdmin.closeSheet()">關閉</button>'+
-      '<button type="button" class="subs-danger" id="mDel">刪除此 App 的訂閱</button>'
+      '<button type="button" class="subs-danger" id="mDel">清除訂閱紀錄</button>'+
+      (app.id==='crm' ? '<button type="button" class="subs-danger" id="mWipe" style="margin-top:8px;">完整重置（含客戶資料）</button>' : '')
     );
 
     var path=app.path+key;
@@ -5809,11 +5882,49 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
       catch(e){ toast(fail('更新', e)); }
     };
     document.getElementById('mDel').onclick=function(){
-      confirmBox('確定刪除「'+email+'」在'+app.name+'的訂閱嗎？\n此動作無法復原。', async function(){
-        try{ await firebase.database().ref(path).remove(); toast('已刪除'); closeSheet(); await load(); }
-        catch(e){ toast(fail('刪除', e)); }
+      confirmBox('清除「'+email+'」在'+app.name+'的訂閱紀錄？\n\n客戶的 App 資料（客戶名單、設定）會保留，之後重新開通即可接續使用。', async function(){
+        try{ await firebase.database().ref(path).remove(); toast('已清除訂閱紀錄'); closeSheet(); await load(); }
+        catch(e){ toast(fail('清除', e)); }
       });
     };
+    var wipeBtn=document.getElementById('mWipe');
+    if(wipeBtn) wipeBtn.onclick=function(){ wipeCrmAccount(email, key, path); };
+  }
+
+  /* 完整重置（只有客戶管理有）：把一個帳號打回「從沒用過」的狀態。
+     要清五個地方，少一個都會殘留：
+       1 訂閱紀錄            crm_subscribers/<key>
+       2 App 資料            servicecrm_v6/<key>
+       3 試用紀錄（email）   trial_devices/crm/e_<key>
+       4 試用紀錄（裝置）    trial_devices/crm/<devId>，從訂閱裡的 devices 取得
+       5 客戶手機的本機快取  程式碰不到，改寫一個時間戳記，客戶下次登入時自清
+     第 5 項不做的話，客戶手機上的舊資料會在登入時被推回雲端，重置等於白做。*/
+  async function wipeCrmAccount(email, key, subPath){
+    var typed = window.prompt('完整重置會刪除「'+email+'」的訂閱、客戶名單、服務設定與試用紀錄，無法復原。\n\n確定的話，請輸入這個 Email：');
+    if(typed === null) return;
+    if(String(typed).trim().toLowerCase() !== String(email).trim().toLowerCase()){
+      toast('Email 不符，已取消'); return;
+    }
+    try{
+      var db2 = firebase.database();
+      var devIds = [];
+      try{
+        var ds = await db2.ref(subPath+'/devices').once('value');
+        devIds = Object.keys(ds.val() || {});
+      }catch(e){}
+      var tKey = (typeof crmTrialEmailKey === 'function')
+        ? crmTrialEmailKey(email)
+        : String(email).toLowerCase().replace(/[.#$\[\]]/g,'_');
+      await db2.ref(subPath).remove();                              // 1
+      await db2.ref('servicecrm_v6/'+key).remove();                 // 2
+      await db2.ref('trial_devices/crm/e_'+tKey).remove();          // 3
+      for(var i=0;i<devIds.length;i++){                             // 4
+        try{ await db2.ref('trial_devices/crm/'+devIds[i]).remove(); }catch(e){}
+      }
+      await db2.ref('servicecrm_resets/'+key).set({ at: Date.now() });  // 5
+      toast('已完整重置');
+      closeSheet(); await load();
+    }catch(e){ toast(fail('重置', e)); }
   }
 
   // 續約：從「原到期日」往後加，已過期才從今天算，剩餘天數不會被吃掉
