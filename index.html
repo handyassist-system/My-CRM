@@ -556,6 +556,13 @@
 .subs-sh-title{font-size:16px;font-weight:700;color:#2c3e50;margin-bottom:2px;word-break:break-all;}
 .subs-sh-sub{font-size:13px;color:#7b8794;margin-bottom:16px;}
 .subs-label{font-size:12px;color:#7b8794;margin:14px 0 6px;}
+.subs-more{margin-left:auto;background:none;border:none;font-size:22px;line-height:1;color:#7b8794;padding:4px 8px;cursor:pointer;min-height:40px;}
+.dl-row{border-bottom:1px solid #eef1f4;padding:11px 2px;}
+.dl-row:last-child{border-bottom:none;}
+.dl-top{font-size:14px;color:#2c3e50;font-weight:600;word-break:break-all;}
+.dl-meta{font-size:12px;color:#7b8794;margin-top:3px;}
+.dl-tag{display:inline-block;font-size:11px;padding:2px 7px;border-radius:999px;background:#eef2f5;color:#4A7A9B;margin-left:6px;}
+.dl-tag.req{background:#fdecea;color:#c0392b;}
 .subs-input{width:100%;font-size:16px;font-family:inherit;padding:11px 12px;border:1px solid #dfe3e8;border-radius:10px;}
 .subs-input:focus{outline:none;border-color:#4A7A9B;box-shadow:0 0 0 3px rgba(74,122,155,.12);}
 .subs-chips{display:flex;gap:8px;flex-wrap:wrap;}
@@ -744,7 +751,6 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                     <div class="set-list">
                         <button type="button" class="set-row" onclick="openSetPage('basic')"><span class="set-ico">🏠</span><span class="set-name">店家資料</span><span class="set-val" id="sv-basic"></span><span class="set-arrow">›</span></button>
                         <button type="button" class="set-row" onclick="openSetPage('service')"><span class="set-ico">🧰</span><span class="set-name">服務項目</span><span class="set-val" id="sv-service"></span><span class="set-arrow">›</span></button>
-                        <button type="button" class="set-row" onclick="openSetPage('partner')"><span class="set-ico">👥</span><span class="set-name">代班人員</span><span class="set-val" id="sv-partner"></span><span class="set-arrow">›</span></button>
                         <button type="button" class="set-row" onclick="openSetPage('svcset')"><span class="set-ico">🛠️</span><span class="set-name">收費與規則</span><span class="set-val" id="sv-svcset"></span><span class="set-arrow">›</span></button>
                     </div>
                     <div class="set-list">
@@ -810,26 +816,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                 </div>
                 </div>
 
-                <div class="setpg" id="setpg-partner">
-                    <div class="setpg-head"><button type="button" class="setpg-back" onclick="closeSetPage()">‹ 返回</button><span class="setpg-title">代班人員</span></div>
-<!-- 我的夥伴 -->
-                <div class="form-group">
-                    <label id="partner-section-label" style="display:none;">我的夥伴</label>
-                    <div id="partners-list" style="margin-top:8px;"></div>
-                    <button type="button" id="add-partner-toggle"
-                        style="margin-top:8px;background:none;border:none;color:#4A7A9B;font-size:13.5px;padding:4px 0;cursor:pointer;">＋ 有時候會請人代班</button>
-                    <div id="add-partner-box" style="display:none;margin-top:10px;">
-                        <input type="text" id="new-partner-input" placeholder="夥伴姓名" maxlength="20" style="width:100%;padding:8px 10px;border:1px solid #bdc3c7;border-radius:4px;box-sizing:border-box;">
-                        <div style="display:flex;gap:8px;margin-top:8px;">
-                            <button type="button" class="btn btn-secondary" style="flex:0 0 90px;margin:0;" onclick="cancelAddPartner()">取消</button>
-                            <button class="btn btn-primary" style="flex:1;margin:0;" onclick="addPartner()">新增夥伴</button>
-                        </div>
-                        <p style="font-size:11px;color:#95a5a6;margin-top:6px;">僅用於記錄執行人員，夥伴無帳號、無法檢視您的資料</p>
-                    </div>
-                </div>
-                </div>
-
-                <div class="setpg" id="setpg-svcset">
+<div class="setpg" id="setpg-svcset">
                     <div class="setpg-head"><button type="button" class="setpg-back" onclick="closeSetPage()">‹ 返回</button><span class="setpg-title">收費與規則</span></div>
                     <div id="svcset-scope" style="display:none;background:#eaf4fc;border-radius:8px;padding:10px 12px;margin-bottom:16px;font-size:13px;color:#2c3e50;line-height:1.6;">
                         以下設定只套用在「<strong id="svcset-scope-name"></strong>」<br>
@@ -1293,9 +1280,9 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                     <p style="font-size:11px;color:#95a5a6;margin-top:4px;">預設帶入客戶的地址，這次要去別的地方就直接改，不會影響客戶資料</p>
                 </div>
 
-                <div class="form-group" id="booking-staff-group" style="display:none;">
-                    <label for="booking-staff">服務人員</label>
-                    <select id="booking-staff"></select>
+                <div class="form-group" id="booking-staff-group">
+                    <label for="booking-staff">服務人員（選填）</label>
+                    <input type="text" id="booking-staff" maxlength="20" placeholder="留空＝自己前往">
                 </div>
 
                 <div class="form-group">
@@ -1449,8 +1436,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                 <div class="form-group">
                     <label>預約狀態 *</label>
                     <div class="radio-group">
-                        <label><input type="radio" name="booking-status" value="未開始" required> 未開始</label>
-                        <label><input type="radio" name="booking-status" value="進行中"> 進行中</label>
+                        <label><input type="radio" name="booking-status" value="未開始" required> 未完成</label>
                         <label><input type="radio" name="booking-status" value="完成"> 完成</label>
                         <label><input type="radio" name="booking-status" value="刪除"> 🗑️ 刪除此預約</label>
                     </div>
@@ -1689,12 +1675,6 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
             if (!Array.isArray(d.partners)) d.partners = [];
             return d.partners;
         }
-        function partnerName(id) {
-            if (!id || id === 'me') return (store.data.providerName || '我自己');
-            var p = (store.data.partners || []).find(function (x) { return x.id === id; });
-            return p ? p.name : '（已刪除）';
-        }
-        function hasPartners() { return (store.data.partners || []).length > 0; }
 
         // 舊帳號救援：服務類型不見了，但客戶身上還有 serviceTypeId，就把它補回來
         function rescueServiceTypes(d) {
@@ -1847,6 +1827,21 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                 if (!this.data.clients) this.data.clients = [];
                 if (!this.data.contracts) this.data.contracts = [];
                 if (!this.data.bookings) this.data.bookings = [];
+                // 舊資料搬遷：預約狀態取消「進行中」，併回未完成。
+                this.data.bookings.forEach(function (b) {
+                    if (b && b.status === '進行中') b.status = '未開始';
+                });
+                // 舊資料搬遷：服務人員從「代班人員 id」改成直接存名字。
+                // partners 清單不刪除，萬一要退版還原得回來。
+                (function (d) {
+                    var ps = d.partners || [];
+                    d.bookings.forEach(function (b) {
+                        if (!b || typeof b.staffName === 'string') return;
+                        if (!b.staffId || b.staffId === 'me') { b.staffName = ''; return; }
+                        var hit = ps.find(function (x) { return x.id === b.staffId; });
+                        b.staffName = hit ? hit.name : '';
+                    });
+                })(this.data);
                 if (!this.data.payments) this.data.payments = [];
             }
 
@@ -2042,7 +2037,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
         function isCrmAdminEmail(e){ return String(e||'').toLowerCase() === ADMIN_EMAIL.toLowerCase(); }
         // 只用於「這個信箱用過試用沒」的比對，不可當資料路徑
         function crmTrialEmailKey(e){ return normEmail(e).replace(/[.#$\[\]]/g,'_'); }
-        const CRM_APP_VER = 'v1.0', CRM_BUILD_ID = '1008-23';
+        const CRM_APP_VER = 'v1.0', CRM_BUILD_ID = '1009-26';
         const CRM_EMAIL_FOR_SIGNIN = 'crmEmailForSignIn';
         const LINE_SUPPORT_URL = 'https://line.me/R/ti/p/@373pfdee';
         var crmUserEmail = null;
@@ -2217,6 +2212,26 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
            客戶下次登入時比對本機記錄，較新就把本機快取清掉。
            不這樣做的話，loadFromFirebase() 發現雲端是空的會改讀本機快取，
            又把舊資料推回雲端（第 1807-1814 行），等於重置失效。 */
+        /* 登入後的提示（試用／到期）排隊等著跳。
+           開通畫面 z-index 99997 比提示的 10090 高，同時出現的話提示會被蓋住，
+           而且一跳就記成「今天已顯示」，新客戶等於永遠看不到自己有試用。
+           所以要開通的人先跑開通，完成後才把提示放出來。 */
+        var _crmNotices = [];
+        function crmFlushNotices(){
+            var q = _crmNotices; _crmNotices = [];
+            if(!q.length) return;
+            var i = 0;
+            (function next(){
+                if(i >= q.length) return;
+                var fn = q[i++];
+                try{
+                    var r = fn();
+                    if(r && typeof r.then === 'function'){ r.then(function(){ setTimeout(next, 250); }); return; }
+                }catch(e){}
+                setTimeout(next, 700);
+            })();
+        }
+
         const CRM_RESET_PATH = 'servicecrm_resets/';
         async function crmHonorReset(email){
             try{
@@ -2247,11 +2262,12 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                 var res = await crmVerify(crmUserEmail);
                 if(!res.ok){ document.getElementById('loading-overlay').style.display='none'; showCrmLogin(res.msg||'無法使用'); return; }
                 crmPlan = res.plan; crmExpiry = res.expiry || ''; crmClientsCreated = Number(res.clientsCreated||0);
-                setTimeout(function(){
+                _crmNotices = [];
+                _crmNotices.push(function(){
                   expiryNotice.check({ app:'crm', appName:'客戶管理', plan:crmPlan, expiry:crmExpiry,
                     isAdmin:crmIsAdmin, accent:'#4A7A9B',
                     onUpgrade:function(){ openCrmUpgrade(); } });
-                }, 900);
+                });
                 await crmMigrateIfNeeded();
                 await store.loadFromFirebase();
                 // 舊帳號沒有計數 → 用現有客戶數補上，避免既有使用者一登入就被鎖
@@ -2261,13 +2277,14 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                 }
                 crmApplyPlan();
                 document.getElementById('loading-overlay').style.display = 'none';
-                if(res.newTrial) showConfirm('已開啟 ' + CRM_TRIAL_DAYS + ' 天全功能免費試用，到 ' + res.expiry + ' 為止。\n\n試用期間不限客戶數，所有功能都能用。', function(){}, '開始使用');
-                else if(res.expired) showConfirm('訂閱已到期。\n\n現有資料都看得到、也能匯出備份，升級後可繼續新增與編輯。', function(){ window.open(LINE_SUPPORT_URL,'_blank','noopener'); }, '聯繫客服');
+                if(res.newTrial) _crmNotices.unshift(function(){ showConfirm('已開啟 ' + CRM_TRIAL_DAYS + ' 天全功能免費試用，到 ' + res.expiry + ' 為止。\n\n試用期間不限客戶數，所有功能都能用。', function(){}, '開始使用'); });
+                else if(res.expired) _crmNotices.unshift(function(){ showConfirm('訂閱已到期。\n\n現有資料都看得到、也能匯出備份，升級後可繼續新增與編輯。', function(){ window.open(LINE_SUPPORT_URL,'_blank','noopener'); }, '聯繫客服'); });
                 renderCrmVerTag();
                 initStep1();
                 initBookingTimeOptions();
                 updateAllTabs();
-                if (needsSetup()) showSetupPage(); else setActiveTab('clients');
+                if (needsSetup()) showSetupPage();        // 提示延到開通完成後再跳，否則會被開通畫面蓋住
+                else { setActiveTab('clients'); crmFlushNotices(); }
                 var importFile = document.getElementById('import-file');
                 if (importFile) importFile.addEventListener('change', function(e){ importData(e); });
         
@@ -2516,7 +2533,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
             if (s0 === null) return '';
             const e0 = s0 + Math.round((parseFloat(q.hours) || 1) * 60);
             /* 只比對「目前這個服務」底下的預約。
-               （本 App 的狀態只有 未開始／進行中／完成，沒有「取消」，所以不另外排除。） */
+               （本 App 的狀態只有 未開始／完成，沒有「取消」，所以不另外排除。） */
             const list = store.getBookings().filter(function (b) {
                 return b && b.id !== q.bookingId && b.bookingDate === q.date;
             });
@@ -2525,16 +2542,12 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                 const bs = toMin(b.bookingTime);
                 if (bs === null) continue;
                 const be = bs + Math.round((parseFloat(b.serviceHours) || 1) * 60);
-                const sameStaff = (b.staffId || 'me') === (q.staffId || 'me');
-                if (!sameStaff) continue;
+                const sameStaff = (b.staffName || '') === (q.staffName || '');
+                if (!sameStaff) continue;   // 不同人同時段不算衝突
                 if (s0 < be && bs < e0) {                       // 時間區間重疊
                     const c = store.getClient(b.clientId);
                     const who = c ? c.clientName : '另一筆預約';
-                    const sName = (function () {
-                        const ps = store.data.partners || [];
-                        const hit = ps.find(function (x) { return x.id === b.staffId; });
-                        return hit ? hit.name : '自己';
-                    })();
+                    const sName = staffLabel(b);
                     return '⚠️ 時段重疊\n\n' + q.date + ' ' + b.bookingTime +
                            ' 已有「' + who + '」' + (parseFloat(b.serviceHours) || 0) + ' 小時的預約（' + sName + '）。\n\n仍要排定嗎？';
                 }
@@ -2648,31 +2661,8 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
             }
 
             renderServiceSettings();
-            renderPartners();
             renderSetMenu();
             initQuickServiceSwitch();
-        }
-
-        // ==================== 夥伴 ====================
-        function renderPartners() {
-            const list = document.getElementById('partners-list');
-            const ps = ensurePartners(store.data);
-            const toggle = document.getElementById('add-partner-toggle');
-            const pBoxOpen = document.getElementById('add-partner-box').style.display === 'block';
-            toggle.textContent = pBoxOpen ? '− 收起' : (ps.length ? '＋ 新增夥伴' : '＋ 有時候會請人代班');
-
-            if (!ps.length) { list.innerHTML = ''; return; }
-            const me = store.data.providerName || '我自己';
-            list.innerHTML =
-                `<div style="padding:8px 0;color:#2c3e50;font-size:14px;">${me}<small style="color:#95a5a6;"> · 我自己</small></div>` +
-                ps.map(p => {
-                    const esc = (p.name || '').replace(/'/g, "\\'");
-                    return `<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-top:1px solid #f0f0f0;">
-                        <span style="flex:1;font-size:14px;color:#2c3e50;">${p.name}</span>
-                        <button class="btn btn-sm btn-secondary" onclick="renamePartner('${p.id}','${esc}')">改名</button>
-                        <button class="btn btn-sm btn-danger" onclick="deletePartner('${p.id}','${esc}')">✕</button>
-                    </div>`;
-                }).join('');
         }
 
         function cancelAddService() {
@@ -2682,63 +2672,13 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
             renderSettingsPage();
         }
 
-        function cancelAddPartner() {
-            document.getElementById('new-partner-input').value = '';
-            document.getElementById('add-partner-box').style.display = 'none';
-            renderPartners();
+        /* 服務人員改成自由填（原本是「代班人員」名單的下拉）。
+           一人接案的使用者用不到名單，想寫誰就寫誰。留空＝自己前往。 */
+        function renderStaffOptions(name) {
+            const el = document.getElementById('booking-staff');
+            if (el) el.value = name || '';
         }
-
-        function addPartner() {
-            const input = document.getElementById('new-partner-input');
-            const name = (input.value || '').trim();
-            if (!name) { showToast('請輸入夥伴姓名'); return; }
-            if (ensurePartners(store.data).some(p => p.name === name)) { showToast('已經有同名夥伴'); return; }
-            store.data.partners.push({ id: 'p_' + Date.now(), name: name });
-            store.save();
-            input.value = '';
-            document.getElementById('add-partner-box').style.display = 'none';
-            renderPartners();
-            showToast('✅ 已新增夥伴');
-        }
-
-        function renamePartner(id, oldName) {
-            const name = prompt('夥伴姓名', oldName);
-            if (name === null) return;
-            const t = name.trim();
-            if (!t) { showToast('請輸入名稱'); return; }
-            const p = (store.data.partners || []).find(x => x.id === id);
-            if (!p) return;
-            p.name = t;
-            store.save();
-            renderPartners();
-            updateAllTabs();
-        }
-
-        function deletePartner(id, name) {
-            const used = (store.data.bookings || []).filter(b => b.staffId === id).length;
-            const msg = used > 0
-                ? `「${name}」有 ${used} 筆預約紀錄。刪除後那些預約會顯示「已刪除」，確定嗎？`
-                : `確定刪除夥伴「${name}」嗎？`;
-            showConfirm(msg, () => {
-                store.data.partners = (store.data.partners || []).filter(p => p.id !== id);
-                store.save();
-                renderPartners();
-                updateAllTabs();
-                showToast('✅ 已刪除');
-            });
-        }
-
-        function renderStaffOptions(selectedId) {
-            const grp = document.getElementById('booking-staff-group');
-            const sel = document.getElementById('booking-staff');
-            if (!hasPartners()) { grp.style.display = 'none'; sel.innerHTML = ''; return; }
-            grp.style.display = 'block';
-            const me = store.data.providerName || '我自己';
-            sel.innerHTML = `<option value="me">${me}（我自己）</option>` +
-                store.data.partners.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
-            sel.value = selectedId || 'me';
-            if (!sel.value) sel.value = 'me';
-        }
+        function staffLabel(b) { return (b && b.staffName) ? b.staffName : '自己'; }
 
         function editServiceType(typeId) {
             const st = store.getServiceType(typeId);
@@ -2992,13 +2932,11 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
         function renderSetMenu() {
             const put = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
             const types = store.getServiceTypes();
-            const ps = (store.data.partners || []);
 
             put('sv-basic', store.data.providerName || '尚未設定');
             put('sv-service', types.length === 0 ? '尚未設定'
                 : types.length === 1 ? types[0].typeName
                 : types.length + ' 種服務');
-            put('sv-partner', ps.length === 0 ? '只有我自己' : ps.length + ' 位夥伴');
             const c = SVC();
             const cur = store.getServiceType(store.data.selectedServiceType);
             const bits = [];
@@ -3129,6 +3067,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
             updateAllTabs();
             setActiveTab('clients');
             showToast('✅ 設定完成，可以開始新增客戶了');
+            setTimeout(crmFlushNotices, 1200);   // 等 toast 看完再跳試用提示
         }
 
         // 依設定顯示／隱藏「自接、公司派」選項
@@ -3979,7 +3918,6 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                     if (!client) return '';
                     let statusBadgeClass = 'pending';
                     if (booking.status === '完成') statusBadgeClass = 'completed';
-                    if (booking.status === '進行中') statusBadgeClass = 'inprogress';
                     const expandId = `booking-expand-${booking.id}`;
                     const canDelete = booking.status !== '完成';
 
@@ -3995,7 +3933,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                             </div>
                             <div id="${expandId}" style="display: none; margin-top: 10px; padding-top: 10px; border-top: 1px solid #ecf0f1;">
                                 <p>${booking.homeType ? '住家: ' + booking.homeType + ' | ' : ''}地址: ${booking.address || ''}</p>
-                                ${hasPartners() ? `<p>服務人員: ${partnerName(booking.staffId)}</p>` : ''}
+                                ${booking.staffName ? `<p>服務人員: ${booking.staffName}</p>` : ''}
                                 ${booking.useEssentialOil ? '<p>✓ 使用精油</p>' : ''}
                                 ${booking.serviceNotes ? `<p><strong>備註:</strong> ${booking.serviceNotes}` : ''}
                                 <div class="list-item-actions" style="margin-top: 10px;">
@@ -4202,7 +4140,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                 date: document.getElementById('booking-date').value,
                 time: document.getElementById('booking-time').value,
                 hours: serviceHours,
-                staffId: hasPartners() ? (document.getElementById('booking-staff').value || 'me') : 'me'
+                staffName: (document.getElementById('booking-staff').value || '').trim()
             });
             if (conflict && !document.getElementById('booking-modal').dataset.conflictOk) {
                 confirmDialog({ message: conflict, okText: '仍要排定', accent: '#4A7A9B' })
@@ -4226,6 +4164,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                 address: (document.getElementById('booking-address').value || '').trim() || client.address,
                 serviceHours: serviceHours,
                 serviceNotes: document.getElementById('booking-notes').value,
+                staffName: (document.getElementById('booking-staff').value || '').trim(),
                 status: '未開始'
             };
 
@@ -4238,17 +4177,13 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                 }
             }
 
-            if (hasPartners()) {
-                booking.staffId = document.getElementById('booking-staff').value || 'me';
-            }
-
             if (SVC().useOil) {
                 booking.useEssentialOil = document.getElementById('booking-essential-oil').checked;
             }
 
             if (bookingId) {
                 const existing = store.getBooking(bookingId);
-                delete booking.status;              // 修：編輯時不要覆蓋「完成／進行中」狀態
+                delete booking.status;              // 修：編輯時不要覆蓋「完成／未完成」狀態
                 Object.assign(existing, booking);
                 /* 這筆若已經產生收款單，時數或金額改了就要跟著重算，
                    否則報表會對不起來（使用者手動改過金額的就不動，尊重他的修改）。 */
@@ -4320,7 +4255,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
             document.getElementById('booking-time').value = booking.bookingTime;
             document.getElementById('booking-hours').value = booking.serviceHours;
             document.getElementById('booking-notes').value = booking.serviceNotes || '';
-            renderStaffOptions(booking.staffId);
+            renderStaffOptions(booking.staffName);
 
             if (SVC().useOil) {
                 document.getElementById('booking-essential-oil-group').style.display = 'block';
@@ -4810,9 +4745,9 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                 monthlyHtml += '</div>';
             }
 
-            // 各人場次與時數（只有夥伴時才出現）
+            // 各人場次與時數：只有真的指派過別人才出現，自己做的不必列
             let staffHtml = '';
-            if (hasPartners()) {
+            {
                 const doneBookings = store.getBookings().filter(b => {
                     if (b.status !== '完成') return false;
                     if (filterMonth) return (b.bookingDate || '').startsWith(filterMonth);
@@ -4821,15 +4756,15 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                 });
                 const tally = {};
                 doneBookings.forEach(b => {
-                    const k = b.staffId || 'me';
+                    const k = staffLabel(b);
                     if (!tally[k]) tally[k] = { jobs: 0, hours: 0 };
                     tally[k].jobs++;
                     tally[k].hours += parseFloat(b.serviceHours) || 0;
                 });
                 const keys = Object.keys(tally).sort((a, b) => tally[b].jobs - tally[a].jobs);
-                if (keys.length) {
+                if (keys.length > 1 || (keys.length === 1 && keys[0] !== '自己')) {
                     staffHtml = `<div class="info-box"><h3>👷 各人場次與時數 ${periodLabel}</h3>` +
-                        keys.map(k => `<p>${partnerName(k)}: <strong>${tally[k].jobs} 場</strong> · ${tally[k].hours} 小時</p>`).join('') +
+                        keys.map(k => `<p>${k}: <strong>${tally[k].jobs} 場</strong> · ${tally[k].hours} 小時</p>`).join('') +
                         `</div>`;
                 }
             }
@@ -5072,7 +5007,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
 
             let bookingsHtml = '<p style="color:#95a5a6;font-size:13px;">尚無預約紀錄</p>';
             if (allBookings.length > 0) {
-                const statusColor = { '完成': '#27ae60', '未開始': '#7f8c8d', '進行中': '#4A7A9B' };
+                const statusColor = { '完成': '#27ae60', '未開始': '#7f8c8d' };
                 bookingsHtml = allBookings.map(b => `
                     <div style="padding:10px 0;border-bottom:1px solid #ecf0f1;">
                         <div style="display:flex;justify-content:space-between;align-items:center;">
@@ -5349,21 +5284,8 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
         window.editServiceType = editServiceType;
         window.saveEditServiceType = saveEditServiceType;
         window.closeEditServiceModal = closeEditServiceModal;
-        window.addPartner = addPartner;
         window.cancelAddService = cancelAddService;
-        window.cancelAddPartner = cancelAddPartner;
-        window.renamePartner = renamePartner;
-        window.deletePartner = deletePartner;
         (function () {
-            const pt = document.getElementById('add-partner-toggle');
-            if (pt) pt.addEventListener('click', function () {
-                const box = document.getElementById('add-partner-box');
-                const open = !(box.style.display === 'none' || !box.style.display);
-                if (open) { cancelAddPartner(); return; }
-                box.style.display = 'block';
-                this.textContent = '− 收起';
-                document.getElementById('new-partner-input').focus();
-            });
             const at = document.getElementById('contract-adv-toggle');
             if (at) at.addEventListener('click', function () {
                 const box = document.getElementById('contract-adv-box');
@@ -5577,6 +5499,18 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
     { id:'trv',  icon:'✈️', name:'旅遊計畫', path:'travel_subscribers/' },
     { id:'crm',  icon:'👥', name:'客戶管理', path:'crm_subscribers/' }
   ];
+  // 支援「刪除帳號與全部資料」的 App，以及它們各自的資料位置
+  var WIPE_APPS = {
+    crm: { dataRoot:'servicecrm_v6/', trialApp:'crm', resetRoot:'servicecrm_resets/' }
+  };
+  var DEL_LOG_PATH = 'deletion_log/';          // 只存 email／時間／執行者／原因，不含任何業務資料
+  var DEL_REASONS = [
+    { v:'request', t:'客戶要求刪除' },
+    { v:'test',    t:'測試用' },
+    { v:'other',   t:'其他' }
+  ];
+  function reasonText(v){ for(var i=0;i<DEL_REASONS.length;i++) if(DEL_REASONS[i].v===v) return DEL_REASONS[i].t; return v||'未註明'; }
+
   var PLAN_TXT = { trial:'試用', full:'完整版', basic:'完整版', family:'完整版', free:'免費版' };
   function devLimit(p){ return (p==='full'||p==='basic'||p==='family'||p==='trial') ? 3 : 1; }
 
@@ -5848,7 +5782,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
         '<button type="button" class="subs-mini" id="mTog">'+(st.disabled?'恢復':'停用')+'</button></div>'+
       '<button type="button" class="subs-ghost" onclick="subsAdmin.closeSheet()">關閉</button>'+
       '<button type="button" class="subs-danger" id="mDel">清除訂閱紀錄</button>'+
-      (app.id==='crm' ? '<button type="button" class="subs-danger" id="mWipe" style="margin-top:8px;">完整重置（含客戶資料）</button>' : '')
+      (WIPE_APPS[app.id] ? '<button type="button" class="subs-danger" id="mWipe" style="margin-top:8px;">刪除帳號與全部資料</button>' : '')
     );
 
     var path=app.path+key;
@@ -5888,23 +5822,43 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
       });
     };
     var wipeBtn=document.getElementById('mWipe');
-    if(wipeBtn) wipeBtn.onclick=function(){ wipeCrmAccount(email, key, path); };
+    if(wipeBtn) wipeBtn.onclick=function(){ openWipeSheet(email, key, path, app); };
   }
 
-  /* 完整重置（只有客戶管理有）：把一個帳號打回「從沒用過」的狀態。
-     要清五個地方，少一個都會殘留：
-       1 訂閱紀錄            crm_subscribers/<key>
-       2 App 資料            servicecrm_v6/<key>
-       3 試用紀錄（email）   trial_devices/crm/e_<key>
-       4 試用紀錄（裝置）    trial_devices/crm/<devId>，從訂閱裡的 devices 取得
-       5 客戶手機的本機快取  程式碰不到，改寫一個時間戳記，客戶下次登入時自清
-     第 5 項不做的話，客戶手機上的舊資料會在登入時被推回雲端，重置等於白做。*/
-  async function wipeCrmAccount(email, key, subPath){
-    var typed = window.prompt('完整重置會刪除「'+email+'」的訂閱、客戶名單、服務設定與試用紀錄，無法復原。\n\n確定的話，請輸入這個 Email：');
-    if(typed === null) return;
-    if(String(typed).trim().toLowerCase() !== String(email).trim().toLowerCase()){
-      toast('Email 不符，已取消'); return;
-    }
+  /* 刪除帳號與全部資料。
+     主要用途是履行隱私權政策承諾的刪除請求（三十日內），其次才是測試。
+     要清的地方（少一個都會殘留）：
+       1 訂閱紀錄      <app>_subscribers/<key>
+       2 App 資料      各 App 自己的根路徑
+       3 試用紀錄      trial_devices/<app>/e_<key> 與各裝置 ID
+       4 重置訊號      <resetRoot><key>，客戶下次登入時據此清掉手機本機快取
+       5 操作紀錄      deletion_log/，只記 email／時間／執行者／原因，不含業務資料
+     第 4 項不做的話，客戶手機上的舊資料會在登入時被推回雲端。 */
+  function openWipeSheet(email, key, subPath, app){
+    var cfg = WIPE_APPS[app.id]; if(!cfg) return;
+    var opts = DEL_REASONS.map(function(r){ return '<option value="'+r.v+'">'+r.t+'</option>'; }).join('');
+    sheet(
+      '<div class="subs-sh-title">刪除帳號與全部資料</div>'+
+      '<div class="subs-sh-sub">'+esc(email)+'　'+app.icon+' '+app.name+'</div>'+
+      '<div class="subs-warn">將刪除此帳號的訂閱、'+(app.id==='crm'?'客戶名單、服務設定':'全部資料')+'與試用紀錄，無法復原。<br>'+
+        '依隱私權政策，使用者得請求刪除其資料。</div>'+
+      '<div class="subs-label">刪除原因</div>'+
+      '<select class="subs-input" id="wpReason">'+opts+'</select>'+
+      '<div class="subs-label">請輸入該 Email 以確認</div>'+
+      '<input type="email" class="subs-input" id="wpEmail" placeholder="'+esc(email)+'" autocomplete="off" autocapitalize="off" spellcheck="false">'+
+      '<button type="button" class="subs-ghost" onclick="subsAdmin.closeSheet()">取消</button>'+
+      '<button type="button" class="subs-danger" id="wpGo">確定刪除</button>'
+    );
+    document.getElementById('wpGo').onclick=function(){
+      var typed=(document.getElementById('wpEmail').value||'').trim().toLowerCase();
+      if(typed !== String(email).trim().toLowerCase()){ toast('Email 不符，已取消'); return; }
+      var reason=document.getElementById('wpReason').value;
+      this.disabled=true; this.textContent='刪除中…';
+      doWipe(email, key, subPath, app, cfg, reason);
+    };
+  }
+
+  async function doWipe(email, key, subPath, app, cfg, reason){
     try{
       var db2 = firebase.database();
       var devIds = [];
@@ -5915,17 +5869,24 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
       var tKey = (typeof crmTrialEmailKey === 'function')
         ? crmTrialEmailKey(email)
         : String(email).toLowerCase().replace(/[.#$\[\]]/g,'_');
-      await db2.ref(subPath).remove();                              // 1
-      await db2.ref('servicecrm_v6/'+key).remove();                 // 2
-      await db2.ref('trial_devices/crm/e_'+tKey).remove();          // 3
-      for(var i=0;i<devIds.length;i++){                             // 4
-        try{ await db2.ref('trial_devices/crm/'+devIds[i]).remove(); }catch(e){}
+      await db2.ref(subPath).remove();                                   // 1
+      await db2.ref(cfg.dataRoot + key).remove();                        // 2
+      await db2.ref('trial_devices/'+cfg.trialApp+'/e_'+tKey).remove();  // 3
+      for(var i=0;i<devIds.length;i++){
+        try{ await db2.ref('trial_devices/'+cfg.trialApp+'/'+devIds[i]).remove(); }catch(e){}
       }
-      await db2.ref('servicecrm_resets/'+key).set({ at: Date.now() });  // 5
-      toast('已完整重置');
+      var now = Date.now();
+      await db2.ref(cfg.resetRoot + key).set({ at: now });                // 4
+      await db2.ref(DEL_LOG_PATH).push({                                  // 5
+        email: email, app: app.id, appName: app.name,
+        at: now, by: (window.crmUserEmail || 'admin'), reason: reason
+      });
+      toast('已刪除帳號與全部資料');
       closeSheet(); await load();
-    }catch(e){ toast(fail('重置', e)); }
+    }catch(e){ toast(fail('刪除', e)); }
   }
+
+
 
   // 續約：從「原到期日」往後加，已過期才從今天算，剩餘天數不會被吃掉
   async function extend(path, months){
@@ -5950,6 +5911,78 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
   }
 
   /* ---------- 容器 ---------- */
+  function openMore(){
+    sheet(
+      '<div class="subs-sh-title">更多</div>'+
+      '<div class="subs-sh-sub">管理工具</div>'+
+      '<button type="button" class="subs-primary" onclick="subsAdmin.openDelLog()">🗒️ 刪除紀錄</button>'+
+      '<button type="button" class="subs-ghost" onclick="subsAdmin.closeSheet()">關閉</button>'
+    );
+  }
+
+  /* 刪除紀錄：唯讀。資料已刪，這份紀錄是「何時刪、誰刪、為什麼」的憑證，
+     客戶日後對刪除時點有爭議時拿得出來。本身不含任何業務資料。 */
+  var _dlCache = [], _dlFilter = 'all';
+  async function openDelLog(){
+    sheet('<div class="subs-sh-title">刪除紀錄</div><div class="subs-sh-sub">讀取中…</div>');
+    try{
+      var snap = await firebase.database().ref(DEL_LOG_PATH).once('value');
+      var v = snap.val() || {};
+      _dlCache = Object.keys(v).map(function(k){ var o=v[k]||{}; o._id=k; return o; })
+                   .sort(function(a,b){ return (b.at||0)-(a.at||0); });
+    }catch(e){ _dlCache = null; }
+    _dlFilter = 'all';
+    renderDelLog();
+  }
+  function renderDelLog(){
+    if(_dlCache === null){
+      sheet('<div class="subs-sh-title">刪除紀錄</div><div class="subs-warn">讀取失敗，請確認 Firebase 規則已加入 deletion_log。</div>'+
+            '<button type="button" class="subs-ghost" onclick="subsAdmin.closeSheet()">關閉</button>');
+      return;
+    }
+    var list = _dlFilter==='all' ? _dlCache : _dlCache.filter(function(r){ return (r.reason||'other')===_dlFilter; });
+    var chips = [{v:'all',t:'全部'}].concat(DEL_REASONS).map(function(r){
+      return '<button type="button" class="subs-chip'+(_dlFilter===r.v?' on':'')+'" data-f="'+r.v+'">'+r.t+'</button>';
+    }).join('');
+    var body = list.length ? list.map(function(r){
+      return '<div class="dl-row"><div class="dl-top">'+esc(r.email||'(未知)')+
+        '<span class="dl-tag'+(r.reason==='request'?' req':'')+'">'+esc(reasonText(r.reason))+'</span></div>'+
+        '<div class="dl-meta">'+fmtTs(r.at)+'　'+esc(r.appName||r.app||'')+'　執行：'+esc(r.by||'')+'</div></div>';
+    }).join('') : '<div class="dl-meta" style="padding:16px 2px;">沒有符合的紀錄</div>';
+    sheet(
+      '<div class="subs-sh-title">刪除紀錄</div>'+
+      '<div class="subs-sh-sub">共 '+_dlCache.length+' 筆</div>'+
+      '<div class="subs-chips" id="dlF">'+chips+'</div>'+
+      '<div style="max-height:46vh;overflow:auto;margin-top:10px;">'+body+'</div>'+
+      '<button type="button" class="subs-primary" onclick="subsAdmin.exportDelLog()">⬇️ 匯出 CSV</button>'+
+      '<button type="button" class="subs-ghost" onclick="subsAdmin.closeSheet()">關閉</button>'
+    );
+    var f=document.getElementById('dlF');
+    if(f) f.querySelectorAll('.subs-chip').forEach(function(b){
+      b.onclick=function(){ _dlFilter=b.getAttribute('data-f'); renderDelLog(); };
+    });
+  }
+  function fmtTs(t){
+    if(!t) return '';
+    var d=new Date(Number(t)), p=function(n){ return String(n).padStart(2,'0'); };
+    return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes());
+  }
+  function exportDelLog(){
+    if(!_dlCache || !_dlCache.length){ toast('沒有紀錄可匯出'); return; }
+    var q=function(x){ return '"'+String(x==null?'':x).replace(/"/g,'""')+'"'; };
+    var rows=[['時間','Email','App','原因','執行者'].map(q).join(',')];
+    _dlCache.forEach(function(r){
+      rows.push([fmtTs(r.at), r.email||'', r.appName||r.app||'', reasonText(r.reason), r.by||''].map(q).join(','));
+    });
+    var blob=new Blob(['\ufeff'+rows.join('\r\n')], {type:'text/csv;charset=utf-8;'});
+    var a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download='刪除紀錄_'+fmtTs(Date.now()).replace(/[-: ]/g,'')+'.csv';
+    document.body.appendChild(a); a.click();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+    toast('已匯出');
+  }
+
   function sheet(html){
     var w=document.getElementById('subsSheet');
     w.querySelector('.subs-sheet').innerHTML=html;
@@ -5966,7 +5999,8 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
     d.innerHTML=
       '<div id="subsPage">'+
         '<div class="subs-head"><button type="button" class="subs-back" onclick="subsAdmin.close()">‹ 返回</button>'+
-          '<span class="subs-title">訂閱管理</span><span class="subs-count" id="subsCount"></span></div>'+
+          '<span class="subs-title">訂閱管理</span><span class="subs-count" id="subsCount"></span>'+
+          '<button type="button" class="subs-more" title="更多" onclick="subsAdmin.openMore()">⋯</button></div>'+
         '<div class="subs-tools">'+
           '<input type="search" class="subs-search" id="subsQ" placeholder="搜尋 Email" autocomplete="off">'+
           '<div class="subs-tabs">'+tabs+'</div>'+
@@ -5983,6 +6017,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
   }
 
   window.subsAdmin={
+    openMore: openMore, openDelLog: openDelLog, exportDelLog: exportDelLog,
     open: function(){ mount(); document.getElementById('subsPage').classList.add('on'); load(); },
     close: function(){ closeSheet(); var p=document.getElementById('subsPage'); if(p) p.classList.remove('on'); },
     add: openAdd,
@@ -6169,7 +6204,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
       p('前開服務各有其隱私權政策。')) +
     sec(5,'保存期限', ol(
       '資料於帳號存續期間持續保存。',
-      '使用者得隨時請求刪除帳號，本服務應於七日內刪除其全部資料。刪除後無法回復，請先自行匯出。')) +
+      '使用者得隨時請求刪除帳號，本服務應於三十日內刪除其全部資料；備份系統中之副本亦於同期間內一併移除。刪除後無法回復，請先自行匯出。')) +
     sec(6,'使用者之權利', p(
       '使用者就其個人資料，得行使查詢、閱覽、製給複製本、補充或更正、請求停止蒐集處理利用及請求刪除之權利。多數項目於本服務內即可自行完成，其餘得以電子郵件或官方 LINE 聯繫。')) +
     sec(7,'Cookie 與本機儲存', p(
@@ -6213,7 +6248,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
     sec(4,'事故通知', p(
       '發生個人資料遭竊取、竄改、毀損、滅失或洩漏之情事時，本服務應於知悉後儘速通知使用者，並提供已掌握之事故範圍及影響資訊，以利使用者依法辦理後續事宜。')) +
     sec(5,'資料刪除', p(
-      '使用者得隨時請求刪除帳號及其全部客戶資料，本服務應於七日內完成。')) +
+      '使用者得隨時請求刪除帳號及其全部客戶資料，本服務應於三十日內完成；備份系統中之副本亦於同期間內一併移除。')) +
     sec(6,'聯絡方式', CONTACT);
 
   var DOCS = [ h('服務條款', TERMS), h('隱私權政策', PRIVACY), h('付款與退款', PAY) ];
