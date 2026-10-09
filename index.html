@@ -2037,7 +2037,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
         function isCrmAdminEmail(e){ return String(e||'').toLowerCase() === ADMIN_EMAIL.toLowerCase(); }
         // 只用於「這個信箱用過試用沒」的比對，不可當資料路徑
         function crmTrialEmailKey(e){ return normEmail(e).replace(/[.#$\[\]]/g,'_'); }
-        const CRM_APP_VER = 'v1.0', CRM_BUILD_ID = '1009-26';
+        const CRM_APP_VER = 'v1.0', CRM_BUILD_ID = '1009-27';
         const CRM_EMAIL_FOR_SIGNIN = 'crmEmailForSignIn';
         const LINE_SUPPORT_URL = 'https://line.me/R/ti/p/@373pfdee';
         var crmUserEmail = null;
@@ -2045,15 +2045,21 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
         // ==================== 方案與試用（智在生活共用規則）====================
         const CRM_SUBS_PATH = 'crm_subscribers/';
         const CRM_TRIAL_DAYS = 30;             // CRM：30 天試用
-        const CRM_FREE_CLIENT_QUOTA = 5;       // 免費版累計可建 5 位客戶
+        const CRM_TRIAL_CLIENT_QUOTA = 5;      // 試用期累計可建 5 位客戶（刪掉不退還）
         const CRM_VERIFY_TIMEOUT = 8000;
-        const CRM_PLAN_LABEL = { trial:'試用中', free:'免費版', basic:'完整版', full:'完整版', family:'完整版' };
+        // CRM 沒有免費版：只有「試用 → 完整版」。資料庫裡的 'free' 代表試用已到期。
+        const CRM_PLAN_LABEL = { trial:'試用中', free:'已到期', basic:'完整版', full:'完整版', family:'完整版' };
+        const CRM_PLAN_CACHE_KEY = 'crm_plan_cache';
+        const CRM_PLAN_GRACE_MS = 3 * 86400000;   // 斷網時沿用上次方案最多 3 天（與另外三支相同）
 
         var crmPlan = 'free', crmExpiry = '', crmClientsCreated = 0, crmIsAdmin = false;
         var CRM_READONLY = false;
 
         function crmIsPaid(p){ return p==='basic'||p==='full'||p==='family'; }
-        function crmDeviceLimit(p){ if(crmIsPaid(p)||p==='trial') return 3; return 1; }
+        function crmIsFull(){ return crmIsAdmin || crmIsPaid(crmPlan); }          // 可用全部功能
+        function crmIsTrial(){ return !crmIsAdmin && crmPlan === 'trial'; }
+        function crmIsExpired(){ return !crmIsAdmin && !crmIsPaid(crmPlan) && crmPlan !== 'trial'; }
+        function crmDeviceLimit(p){ return crmIsPaid(p) ? 3 : 1; }                 // 試用 1 台、完整版 3 台
 
         function _crmDevId(){
             var k='crm_dev_id', v=null;
@@ -2062,23 +2068,43 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                     try{ localStorage.setItem(k,v); }catch(e){} }
             return v;
         }
+        function _crmDevName(){
+            var ua=navigator.userAgent||'';
+            return /iPhone|iPad/i.test(ua)?'iPhone':/Android/i.test(ua)?'Android':/Windows/i.test(ua)?'Windows':/Mac/i.test(ua)?'Mac':'裝置';
+        }
         function _crmYmd(ts){ var d=new Date(ts); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
         function _crmTimeout(p, ms){ return Promise.race([p, new Promise((_,rj)=>setTimeout(()=>rj(new Error('timeout')), ms))]); }
+        function _crmDenied(e){ var c=String((e&&e.code)||'').toUpperCase(), m=String((e&&e.message)||''); return c.indexOf('PERMISSION')>=0 || /permission/i.test(m); }
 
-        // 還能不能再建客戶（累計計算，刪掉不退還）
+        // 方案快取：斷網時拿來用，避免付費客人在地下室被鎖（與另外三支同一套規則）
+        function crmSavePlanCache(email, plan, expiry){
+            try{ localStorage.setItem(CRM_PLAN_CACHE_KEY, JSON.stringify({ email:String(email||'').toLowerCase(), plan:plan, expiry:expiry||'', verifiedAt:Date.now() })); }catch(e){}
+        }
+        function crmPlanFromCache(email){
+            var c=null; try{ c=JSON.parse(localStorage.getItem(CRM_PLAN_CACHE_KEY)||'null'); }catch(e){}
+            if(!c || c.email!==String(email||'').toLowerCase() || !c.verifiedAt) return 'free';
+            var now=Date.now();
+            if(now < c.verifiedAt || now - c.verifiedAt > CRM_PLAN_GRACE_MS) return 'free';
+            if(c.expiry){ var exp=Date.parse(c.expiry+'T23:59:59'); if(exp && now>exp) return 'free'; }
+            return c.plan || 'free';
+        }
+        async function crmServerTime(){
+            try{ var snap=await _crmTimeout(db.ref('.info/serverTimeOffset').once('value'), 3000); return Date.now()+(snap.val()||0); }
+            catch(e){ return Date.now(); }
+        }
+
+        // 還能不能再建客戶（試用期累計計算，刪掉不退還）
         function crmCanAddClient(){
-            if(crmIsAdmin || crmIsPaid(crmPlan) || crmPlan==='trial') return true;
-            return crmClientsCreated < CRM_FREE_CLIENT_QUOTA;
+            if(crmIsFull()) return true;
+            if(crmIsExpired()) return false;
+            return crmClientsCreated < CRM_TRIAL_CLIENT_QUOTA;
         }
-        // 超過額度 → 全部唯讀
-        function crmOverQuota(){
-            return !crmIsAdmin && !crmIsPaid(crmPlan) && crmPlan!=='trial'
-                   && crmClientsCreated > CRM_FREE_CLIENT_QUOTA;
-        }
+        // 試用到期 → 全部唯讀（資料可看、可匯出）
+        function crmOverQuota(){ return crmIsExpired(); }
         // 任何會改資料的動作先問這個
         function crmBlocked(){
             if(!CRM_READONLY) return false;
-            showToast('🔒 升級完整版即可繼續編輯');
+            showToast('🔒 試用已到期，升級完整版即可繼續編輯');
             return true;
         }
         async function crmBumpClients(){
@@ -2090,18 +2116,23 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
         async function crmVerify(email){
             crmIsAdmin = isCrmAdminEmail(email);
             if(crmIsAdmin) return { ok:true, plan:'full', expiry:'', clientsCreated:0 };
-            var key = crmEmailKey(email), now = Date.now(), snap;
+            var key = crmEmailKey(email), now = await crmServerTime(), snap;
             try{ snap = await _crmTimeout(db.ref(CRM_SUBS_PATH+key).once('value'), CRM_VERIFY_TIMEOUT); }
-            catch(e){ return { ok:true, plan:'free', expiry:'', clientsCreated:0, offline:true }; }
+            catch(e){
+                // 讀不到：權限問題 → 視為到期；網路問題 → 沿用上次方案（3 天寬限）
+                if(_crmDenied(e)) return { ok:true, plan:'free', expiry:'', clientsCreated:0, offline:true };
+                return { ok:true, plan:crmPlanFromCache(email), expiry:'', clientsCreated:0, offline:true };
+            }
             var sub = snap.val();
             if(!sub){
-                // 這台裝置用過試用了嗎？用過就直接給免費版
+                // 這台裝置或這個 Email 用過試用了嗎？用過就直接是「已到期」（CRM 沒有免費版）
                 var used=false;
                 try{ var t=await _crmTimeout(db.ref('trial_devices/crm/'+_crmDevId()).once('value'), CRM_VERIFY_TIMEOUT); used=!!t.val(); }catch(e){}
                 if(!used){ try{ var e2=await _crmTimeout(db.ref('trial_devices/crm/e_'+crmTrialEmailKey(email)).once('value'), CRM_VERIFY_TIMEOUT); used=!!e2.val(); }catch(e){} }
                 if(used){
                     var recF={ email:email, plan:'free', expiry:'', status:'active', deviceLimit:1, clientsCreated:0, createdAt:now, lastSeen:now, devices:{} };
                     try{ await db.ref(CRM_SUBS_PATH+key).set(recF); }catch(e){}
+                    crmSavePlanCache(email, 'free', '');
                     return { ok:true, plan:'free', expiry:'', clientsCreated:0, trialUsedOnDevice:true };
                 }
                 var expTs = now + CRM_TRIAL_DAYS*86400000;
@@ -2110,14 +2141,68 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                 try{ await db.ref(CRM_SUBS_PATH+key).set(rec); }catch(e){}
                 try{ await db.ref('trial_devices/crm/'+_crmDevId()).set({ firstTrialAt:now }); }catch(e){}
                 try{ await db.ref('trial_devices/crm/e_'+crmTrialEmailKey(email)).set({ firstTrialAt:now }); }catch(e){}
+                crmSavePlanCache(email, 'trial', rec.expiry);
                 return { ok:true, plan:'trial', expiry:rec.expiry, clientsCreated:0, newTrial:true };
             }
             if(sub.status === 'disabled') return { ok:false, msg:'此帳號已停用，請聯繫客服' };
             try{ db.ref(CRM_SUBS_PATH+key+'/lastSeen').set(now); }catch(e){}
             var expMs = sub.expiry ? Date.parse(sub.expiry+'T23:59:59') : 0;
             var expired = expMs && now > expMs;
-            return { ok:true, plan: expired ? 'free' : (sub.plan||'free'),
+            var effPlan = expired ? 'free' : (sub.plan||'free');
+            crmSavePlanCache(email, effPlan, sub.expiry||'');
+            return { ok:true, plan: effPlan,
                      expiry: sub.expiry||'', clientsCreated: Number(sub.clientsCreated||0), expired: !!expired };
+        }
+
+        /* 裝置數上限（試用 1 台、完整版 3 台；管理員不限）。
+           與另外三支同一套：30 天沒登入的裝置自動釋放，客戶可自行登出其他裝置。 */
+        async function crmCheckDevice(email, plan){
+            if(crmIsAdmin) return { ok:true };
+            var key=crmEmailKey(email), id=_crmDevId(), now=Date.now(), limit=crmDeviceLimit(plan), snap;
+            try{ snap=await _crmTimeout(db.ref(CRM_SUBS_PATH+key+'/devices').once('value'), CRM_VERIFY_TIMEOUT); }
+            catch(e){ return { ok:true }; }
+            var devs=snap.val()||{}, CUT=30*86400000, changed=false;
+            Object.keys(devs).forEach(function(k){
+                if(k!==id && devs[k] && devs[k].last && (now-devs[k].last)>CUT){ delete devs[k]; changed=true; }
+            });
+            if(changed){ try{ await db.ref(CRM_SUBS_PATH+key+'/devices').set(devs); }catch(e){} }
+            if(devs[id]){
+                var ids=Object.keys(devs);
+                if(ids.length>limit){
+                    ids.sort(function(a,b){ return (devs[b].last||0)-(devs[a].last||0); });
+                    if(ids.slice(0,limit).indexOf(id)<0) return { ok:false, limit:limit };
+                }
+                try{ db.ref(CRM_SUBS_PATH+key+'/devices/'+id+'/last').set(now); }catch(e){}
+                return { ok:true };
+            }
+            if(Object.keys(devs).length >= limit) return { ok:false, limit:limit };
+            try{ await db.ref(CRM_SUBS_PATH+key+'/devices/'+id).set({ name:_crmDevName(), last:now, first:now }); }catch(e){}
+            return { ok:true };
+        }
+        async function crmKickOtherDevices(email){
+            var key=crmEmailKey(email), id=_crmDevId(), now=Date.now(), only={};
+            only[id]={ name:_crmDevName(), last:now, first:now };
+            try{ await db.ref(CRM_SUBS_PATH+key+'/devices').set(only); return true; }catch(e){ return false; }
+        }
+        function crmShowDeviceLimit(email, limit){
+            var old=document.getElementById('crmDevSheet'); if(old) old.remove();
+            var d=document.createElement('div');
+            d.id='crmDevSheet';
+            d.style.cssText='position:fixed;inset:0;z-index:99999;background:rgba(18,22,20,.5);display:flex;align-items:center;justify-content:center;padding:24px;';
+            d.innerHTML='<div style="background:#fff;border-radius:16px;padding:24px 20px;max-width:340px;width:100%;text-align:center;">'+
+              '<div style="font-size:42px;line-height:1;margin-bottom:10px">📱</div>'+
+              '<h3 style="margin:0 0 8px;color:#2c3e50;">已達裝置上限</h3>'+
+              '<p style="font-size:14px;color:#5B6F79;line-height:1.7;margin:0 0 16px;">您目前的方案可在 <b style="color:#4A7A9B">'+limit+' 台裝置</b>使用。<br>若這是您的新手機，可登出其他裝置。</p>'+
+              '<button type="button" id="crmDlKick" style="width:100%;border:none;background:#4A7A9B;color:#fff;border-radius:10px;padding:13px;font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;">這是我的新裝置，登出其他裝置</button>'+
+              '<a href="'+LINE_SUPPORT_URL+'" target="_blank" rel="noopener" style="display:block;margin-top:10px;font-size:14px;color:#4A7A9B;text-decoration:none;padding:8px;">💬 聯繫客服</a>'+
+              '</div>';
+            document.body.appendChild(d);
+            document.getElementById('crmDlKick').addEventListener('click', async function(){
+                this.disabled=true; this.textContent='處理中…';
+                var ok=await crmKickOtherDevices(email);
+                if(ok){ location.reload(); }
+                else { this.disabled=false; this.textContent='這是我的新裝置，登出其他裝置'; showToast('處理失敗，請確認網路後再試'); }
+            });
         }
 
         function crmApplyPlan(){
@@ -2131,7 +2216,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                     bar.style.cssText = 'position:sticky;top:0;z-index:9990;background:#FDF3E3;border-bottom:1px solid #F0DFC0;'
                         + 'margin:-10px -10px 10px;padding:10px 14px;font-size:13px;color:#8A6112;'
                         + 'display:flex;align-items:center;gap:10px;line-height:1.5';
-                    bar.innerHTML = '<span style="flex:1">🔒 唯讀中，升級完整版可繼續新增與編輯</span>'
+                    bar.innerHTML = '<span style="flex:1">🔒 試用已到期，資料可查看與匯出；升級完整版即可繼續編輯</span>'
                         + '<button type="button" onclick="openCrmUpgrade()" '
                         + 'style="flex:0 0 auto;background:#4A7A9B;color:#fff;border:none;padding:7px 14px;'
                         + 'border-radius:8px;font-family:inherit;font-weight:700;font-size:12.5px;cursor:pointer">看方案</button>';
@@ -2142,8 +2227,8 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
         }
 
         function crmShowQuotaSheet(){
-            showConfirm('免費版可以建立 ' + CRM_FREE_CLIENT_QUOTA + ' 位客戶，已經用完了。\n\n升級完整版後不限客戶數，現有資料都會保留。',
-                function(){ window.open(LINE_SUPPORT_URL, '_blank', 'noopener'); }, '聯繫客服升級');
+            showConfirm('試用期可以建立 ' + CRM_TRIAL_CLIENT_QUOTA + ' 位客戶，已經用完了。\n\n升級完整版後不限客戶數，現有資料都會保留。',
+                function(){ openCrmUpgrade(); }, '看完整版方案');
         }
 
         function crmAllowed(email){
@@ -2158,9 +2243,9 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
             if (pl) {
                 if (crmIsAdmin) pl.textContent = '管理員';
                 else {
-                    var t = CRM_PLAN_LABEL[crmPlan] || '免費版';
-                    if (crmExpiry) t += '　·　到期 ' + crmExpiry;
-                    if (crmPlan === 'free') t += '　·　已建 ' + crmClientsCreated + '/' + CRM_FREE_CLIENT_QUOTA + ' 位客戶';
+                    var t = CRM_PLAN_LABEL[crmPlan] || '已到期';
+                    if (crmExpiry) t += '　·　' + (crmIsExpired() ? '到期於 ' : '到期 ') + crmExpiry;
+                    if (crmIsTrial()) t += '　·　已建 ' + crmClientsCreated + '/' + CRM_TRIAL_CLIENT_QUOTA + ' 位客戶';
                     pl.textContent = t;
                 }
             }
@@ -2261,11 +2346,20 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                 document.getElementById('loading-overlay').style.display = 'flex';
                 var res = await crmVerify(crmUserEmail);
                 if(!res.ok){ document.getElementById('loading-overlay').style.display='none'; showCrmLogin(res.msg||'無法使用'); return; }
+                if(!res.offline){
+                    var dev = await crmCheckDevice(crmUserEmail, res.plan);
+                    if(!dev.ok){
+                        document.getElementById('loading-overlay').style.display='none';
+                        showCrmLogin('已達裝置上限（' + dev.limit + ' 台）');
+                        crmShowDeviceLimit(crmUserEmail, dev.limit);
+                        return;
+                    }
+                }
                 crmPlan = res.plan; crmExpiry = res.expiry || ''; crmClientsCreated = Number(res.clientsCreated||0);
                 _crmNotices = [];
                 _crmNotices.push(function(){
                   expiryNotice.check({ app:'crm', appName:'客戶管理', plan:crmPlan, expiry:crmExpiry,
-                    isAdmin:crmIsAdmin, accent:'#4A7A9B',
+                    isAdmin:crmIsAdmin, accent:'#4A7A9B', noFree:true,
                     onUpgrade:function(){ openCrmUpgrade(); } });
                 });
                 await crmMigrateIfNeeded();
@@ -2444,6 +2538,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
         function crmUpdateTrackBadge(){
             var b = document.getElementById('crmTrackBadge');
             if(!b) return;
+            if(!crmIsFull()){ b.style.display = 'none'; return; }   // 追蹤是完整版功能，試用期不顯示紅點
             var n = crmTrackAlertCount();
             if(n > 0){ b.textContent = n > 99 ? '99+' : String(n); b.style.display = 'block'; }
             else { b.style.display = 'none'; }
@@ -2956,11 +3051,11 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
             var _em=document.getElementById('acc-em');
             if(_em) _em.textContent = crmUserEmail || '—';
             var _pl=document.getElementById('acc-pl');
-            if(_pl) _pl.textContent = crmIsAdmin ? '管理員' : (CRM_PLAN_LABEL[crmPlan] || '免費版');
+            if(_pl) _pl.textContent = crmIsAdmin ? '管理員' : (CRM_PLAN_LABEL[crmPlan] || '已到期');
             var _ex=document.getElementById('acc-ex');
             if(_ex) _ex.textContent = (!crmIsAdmin && crmExpiry) ? ('到期日：' + crmExpiry) : '';
             var svp = document.getElementById('sv-plan');
-            if (svp) svp.textContent = crmIsAdmin ? '管理員' : (CRM_PLAN_LABEL[crmPlan] || '免費版');
+            if (svp) svp.textContent = crmIsAdmin ? '管理員' : (CRM_PLAN_LABEL[crmPlan] || '已到期');
             // 整張卡一起顯示／隱藏，只收單一列會留下一張空卡
             var upCard = document.getElementById('set-upgrade-card');
             if (upCard) upCard.style.display = (crmIsAdmin || crmIsPaid(crmPlan)) ? 'none' : 'block';
@@ -4649,8 +4744,46 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
         }
 
         // ==================== Dashboard ====================
+        /* 試用期與到期後，營運儀表板與客戶追蹤顯示「示意畫面」：
+           固定的範例資料（不是客人自己的資料）＋下方升級卡。看得到功能長怎樣，但不能用。 */
+        function crmLockPreview(kind){
+            var blur = 'filter:blur(.6px);opacity:.8;pointer-events:none;user-select:none;';
+            var card = 'background:#fff;border-radius:12px;padding:14px;box-shadow:0 1px 4px rgba(0,0,0,.06);';
+            var demo, title, desc;
+            if(kind === 'dash'){
+                title = '營運儀表板';
+                desc = '一眼看清每月營收、完成場次、<br>合約剩餘時數與未收款';
+                demo = '<div style="display:flex;gap:10px;margin-bottom:10px;">'+
+                  '<div style="flex:1;'+card+'"><div style="font-size:12px;color:#7f8c8d">本月營收</div><div style="font-size:22px;font-weight:700;color:#4A7A9B;margin-top:4px">$48,600</div></div>'+
+                  '<div style="flex:1;'+card+'"><div style="font-size:12px;color:#7f8c8d">完成場次</div><div style="font-size:22px;font-weight:700;color:#4A7A9B;margin-top:4px">27</div></div></div>'+
+                  '<div style="'+card+'margin-bottom:10px;"><div style="font-size:12px;color:#7f8c8d;margin-bottom:8px">合約剩餘時數</div>'+
+                  '<div style="height:10px;border-radius:5px;background:#4A7A9B;width:80%;margin:6px 0"></div>'+
+                  '<div style="height:10px;border-radius:5px;background:#7fa9c4;width:55%;margin:6px 0"></div>'+
+                  '<div style="height:10px;border-radius:5px;background:#b8d0e0;width:30%;margin:6px 0"></div></div>'+
+                  '<div style="'+card+'"><div style="font-size:12px;color:#7f8c8d">未收款</div><div style="font-size:22px;font-weight:700;color:#c0392b;margin-top:4px">$6,400</div></div>';
+            } else {
+                title = '客戶追蹤';
+                desc = '自動提醒該回訪的客戶<br>🔴 超過 90 天、🟡 超過 60 天';
+                var row = function(c, n, t){ return '<div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f0f0f0;font-size:14px;"><span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:'+c+';margin-right:6px"></span>'+n+'</span><span style="color:#5B6F79">'+t+'</span></div>'; };
+                demo = '<div style="'+card+'">'+ row('#e74c3c','王先生','92 天未服務') + row('#e74c3c','陳小姐','95 天未服務') +
+                  row('#f1c40f','林太太','64 天未服務') + row('#f1c40f','張先生','61 天未服務') + row('#2ecc71','李小姐','18 天前') + '</div>';
+            }
+            var btn = crmIsExpired() ? '升級完整版，恢復全部功能' : '升級完整版';
+            return '<div style="position:relative;">'+
+              '<div style="'+blur+'">'+demo+'</div>'+
+              '<div style="background:#fff;border-radius:16px;padding:16px;margin-top:-30px;position:relative;text-align:center;box-shadow:0 8px 30px rgba(0,0,0,.12);">'+
+                '<span style="display:inline-block;background:#fdf3e1;color:#c87d1e;font-size:11px;padding:3px 9px;border-radius:999px;margin-bottom:6px">示意畫面</span>'+
+                '<div style="font-size:15.5px;font-weight:700;color:#2c3e50;margin:4px 0">🔒 '+title+'是完整版功能</div>'+
+                '<div style="font-size:13px;color:#7f8c8d;line-height:1.6;margin-bottom:12px">'+desc+'</div>'+
+                '<button type="button" onclick="openCrmUpgrade()" style="width:100%;background:#4A7A9B;color:#fff;border:none;border-radius:10px;padding:12px;font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;">'+btn+'</button>'+
+              '</div></div>';
+        }
+        function crmShowFilters(id, on){ var el=document.getElementById(id); if(el && el.parentElement) el.parentElement.style.display = on ? 'flex' : 'none'; }
+
         function renderDashboard() {
             const dashboardContent = document.getElementById('dashboard-content');
+            if (!crmIsFull()) { crmShowFilters('dash-year', false); if (dashboardContent) dashboardContent.innerHTML = crmLockPreview('dash'); return; }
+            crmShowFilters('dash-year', true);
             const filterYear = document.getElementById('dash-year') ? document.getElementById('dash-year').value : '';
             const filterMonth = document.getElementById('dash-month') ? document.getElementById('dash-month').value : '';
 
@@ -4840,6 +4973,8 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
         function renderTrackingList() {
             const container = document.getElementById('tracking-content');
             if (!container) return;
+            if (!crmIsFull()) { crmShowFilters('tracking-filter', false); container.innerHTML = crmLockPreview('track'); return; }
+            crmShowFilters('tracking-filter', true);
             const filterVal = document.getElementById('tracking-filter')?.value || '';
             const today = new Date();
             today.setHours(0,0,0,0);
@@ -5512,6 +5647,9 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
   function reasonText(v){ for(var i=0;i<DEL_REASONS.length;i++) if(DEL_REASONS[i].v===v) return DEL_REASONS[i].t; return v||'未註明'; }
 
   var PLAN_TXT = { trial:'試用', full:'完整版', basic:'完整版', family:'完整版', free:'免費版' };
+  // 沒有免費版的 App：試用到期轉唯讀，後台不提供「改為免費版」，到期顯示為「已到期」
+  var NO_FREE_APPS = { crm:true };
+  function planText(appId, plan){ return (plan==='free' && NO_FREE_APPS[appId]) ? '已到期' : (PLAN_TXT[plan]||plan); }
   function devLimit(p){ return (p==='full'||p==='basic'||p==='family'||p==='trial') ? 3 : 1; }
 
   var S = { data:{}, tab:'all', q:'', loading:false, sel:null, selApp:null,
@@ -5561,10 +5699,10 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
              expiry:sub.expiry||'', expired:expired, days:days,
              disabled: sub.status==='disabled', raw:sub };
   }
-  function statHtml(st){
+  function statHtml(st, appId){
     if(!st) return '<span class="subs-stat subs-none">－</span>';
     if(st.disabled) return '<span class="subs-stat subs-gray">已停用</span>';
-    var name = PLAN_TXT[st.rawPlan]||st.rawPlan;
+    var name = planText(appId, st.rawPlan);
     if(st.expired) return '<span class="subs-stat subs-bad">已過期 · 過期 '+Math.abs(st.days)+' 天</span>';
     if(st.days==null) return '<span class="subs-stat subs-gray">'+name+'</span>';
     if(st.days<=7)  return '<span class="subs-stat subs-bad">'+name+' · 剩 '+st.days+' 天</span>';
@@ -5649,7 +5787,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
         return '<div class="subs-line" data-k="'+esc(r.key)+'" data-a="'+a.id+'">'+
                '<span class="subs-ico">'+a.icon+'</span>'+
                '<span class="subs-app">'+a.name+'</span>'+
-               statHtml(st)+
+               statHtml(st, a.id)+
                '<span class="subs-arrow">›</span></div>';
       }).join('');
       return '<div class="subs-card"><div class="subs-email">'+esc(r.email)+'</div>'+
@@ -5763,10 +5901,10 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
     sheet(
       '<div class="subs-sh-title">'+esc(email)+'</div>'+
       '<div class="subs-sh-sub">'+app.icon+' '+app.name+'　'+
-        (st.expiry ? (PLAN_TXT[st.rawPlan]||st.rawPlan)+' · '+slash(st.expiry) : (PLAN_TXT[st.rawPlan]||st.rawPlan))+
+        (st.expiry ? planText(app.id, st.rawPlan)+' · '+slash(st.expiry) : planText(app.id, st.rawPlan))+
         '</div>'+
       '<button type="button" class="subs-primary" id="mRenew">續約一年</button>'+
-      (isPaid ? '<div class="subs-label">取消付費</div>'+
+      (isPaid && !NO_FREE_APPS[app.id] ? '<div class="subs-label">取消付費</div>'+
         '<div class="subs-chips" id="mp">'+
           '<button type="button" class="subs-chip" data-v="free">改為免費版</button>'+
         '</div>' : '')+
@@ -6137,7 +6275,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
     cal:  { name:'生活管家', trial:'二十一', price:'999' },
     cook: { name:'食在料理', trial:'十四',   price:'999' },
     trv:  { name:'旅遊計畫', trial:'十四',   price:'999' },
-    crm:  { name:'客戶管理', trial:'三十',   price:'7,200' }
+    crm:  { name:'客戶管理', trial:'三十',   price:'7,200', noFree:true }   // noFree：沒有免費版，試用到期轉唯讀
   };
   var C = CFG[APP] || CFG.cal;
   var PRICE_TXT = { cal:'新臺幣 999 元／年', cook:'新臺幣 999 元／年', trv:'新臺幣 999 元／年',
@@ -6161,7 +6299,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
       '本條款如有修訂，將於本服務內公告；公告後使用者繼續使用者，視為同意修訂後之條款。')) +
     sec(2,'帳號', ol(
       '本服務以電子郵件驗證連結辨識使用者身分，不另設密碼。使用者應妥善保管其電子郵件帳號；凡經由該帳號所為之操作，均推定為使用者本人所為。',
-      '完整版之同一帳號至多得於三台裝置登入，免費版為一台。',
+      C.noFree ? '完整版之同一帳號至多得於三台裝置登入，試用期間為一台。' : '完整版之同一帳號至多得於三台裝置登入，免費版為一台。',
       '使用者於共用裝置使用後應即登出，以避免第三人存取其資料。',
       '未滿十八歲者，應經法定代理人同意後始得使用本服務。')) +
     sec(3,'智慧財產權', ol(
@@ -6217,8 +6355,12 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
       '<table class="lg-t"><tbody><tr><td>'+C.name+'　完整版</td><td>'+C.priceTxt+'</td></tr></tbody></table>' +
       p('其他產品之方案與費用，請參閱官方網站 handyassist-system.github.io。')) +
     sec(2,'免費試用', ol(
-      C.name+'提供'+C.trial+'日免費試用，試用期間功能全部開放。',
-      '試用期屆滿後轉為免費版。免費版功能受限但無使用期限，使用者既有資料仍予保留。')) +
+      C.noFree
+        ? C.name+'提供'+C.trial+'日免費試用。試用期間得建立五位客戶，並使用客戶、合約、預約及收款功能；營運儀表板及客戶追蹤為完整版功能。'
+        : C.name+'提供'+C.trial+'日免費試用，試用期間功能全部開放。',
+      C.noFree
+        ? '試用期屆滿後，帳號轉為唯讀：使用者既有資料仍予保留，得查看及匯出，惟不得新增或編輯；升級完整版後即恢復。'
+        : '試用期屆滿後轉為免費版。免費版功能受限但無使用期限，使用者既有資料仍予保留。')) +
     sec(3,'付款', ol(
       '本服務採藍新金流線上刷卡付款。',
       '使用者付款時應填寫其登入本服務所使用之電子郵件位址，作為開通之依據；填寫錯誤者，本服務無從開通。')) +
@@ -6400,6 +6542,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
     list.innerHTML='';
     (CFG && CFG.modes || ['free','trial','full']).forEach(function(k){
       var m=MODES[k]; if(!m) return;
+      if(CFG && CFG.labels && CFG.labels[k]) m = Object.assign({}, m, CFG.labels[k]);
       var b=document.createElement('button');
       b.type='button'; b.className='pv-opt';
       b.innerHTML='<b>'+m.label+'</b><span>'+m.tip+'</span>';
@@ -6415,7 +6558,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
     close();
     css();
     var b=bar();
-    b.innerHTML='🧪 '+(MODES[mode]?MODES[mode].label:mode)+'預覽中'+
+    b.innerHTML='🧪 '+((CFG&&CFG.labels&&CFG.labels[mode]&&CFG.labels[mode].label)||(MODES[mode]?MODES[mode].label:mode))+'預覽中'+
                 '<button type="button" id="pvEnd">結束預覽</button>';
     b.classList.add('on');
     document.getElementById('pvEnd').onclick=stop;
@@ -6437,6 +6580,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
 /* 預覽設定：客戶管理 */
 previewMode.init({
   modes: ['free','trial','full'],
+  labels: { free: { label:'已到期', tip:'試用到期後的樣子（唯讀）' } },
   apply: function(mode){
     crmPlan = mode; crmIsAdmin = false;
     document.body.style.paddingTop = '44px';
@@ -6521,12 +6665,12 @@ previewMode.init({
     if(d === 0){
       title = isTrial ? '試用今天到期' : '完整版今天到期';
       desc  = isTrial
-        ? '明日起轉為免費版，部分功能停用。<br><b>既有資料完整保留。</b>'
-        : '明日起轉為免費版。<br><b>資料完整保留，續約後即可恢復。</b>';
+        ? (cfg.noFree ? '明日起轉為唯讀。<br><b>資料完整保留，可查看與匯出。</b>' : '明日起轉為免費版，部分功能停用。<br><b>既有資料完整保留。</b>')
+        : (cfg.noFree ? '明日起轉為唯讀。<br><b>資料完整保留，續約後即可恢復編輯。</b>' : '明日起轉為免費版。<br><b>資料完整保留，續約後即可恢復。</b>');
     } else {
       title = isTrial ? ('試用還有 ' + d + ' 天') : ('完整版還有 ' + d + ' 天到期');
       desc  = isTrial
-        ? ('試用到 <b>' + cfg.expiry + '</b> 為止。<br>到期後轉為免費版，部分功能停用，資料完整保留。')
+        ? ('試用到 <b>' + cfg.expiry + '</b> 為止。<br>' + (cfg.noFree ? '到期後轉為唯讀，資料完整保留，可查看與匯出。' : '到期後轉為免費版，部分功能停用，資料完整保留。'))
         : ('使用到 <b>' + cfg.expiry + '</b> 為止。<br>現在續約會從原到期日往後延長，剩下的天數不會被吃掉。');
     }
     btn = isTrial ? '看方案' : '我要續約';
@@ -6928,9 +7072,9 @@ appInstall.init({ appName:'客戶管理系統' });
     }
     document.getElementById('upT').textContent = feat ? ('「'+feat+'」需要完整版') : ('升級 '+c.name+' 完整版');
     document.getElementById('upS').textContent = c.trial
-      ? ('免費試用 '+c.trial+' 天，期間功能全部開放') : '';
+      ? (c.trialNote || ('免費試用 '+c.trial+' 天，期間功能全部開放')) : '';
 
-    var rows = '<div class="up-row"><span></span><span>免費版</span><span>完整版</span></div>';
+    var rows = '<div class="up-row"><span></span><span>'+esc(c.freeLabel||'免費版')+'</span><span>完整版</span></div>';
     (c.rows||[]).forEach(function(r){
       function cell(v){
         if(v === true)  return '<span class="up-yes">✓</span>';
@@ -6964,16 +7108,17 @@ appInstall.init({ appName:'客戶管理系統' });
 upgradeSheet.init({
   app:'crm', name:'客戶管理', accent:'#4A7A9B', price:6000, per:500, trial:30,
   payNote:'早鳥價', lineUrl:LINE_SUPPORT_URL,
+  freeLabel:'試用期',
+  trialNote:'免費試用 30 天，可建立 5 位客戶',
   rows:[
     ['客戶數', '5 位', '不限'],
-    ['合約管理', false, true],
-    ['預約排程', false, true],
-    ['收款紀錄', false, true],
-    ['營運儀表板', false, true],
-    ['服務追蹤', false, true],
-    ['同帳號裝置數', '1 台', '3 台']
+    ['合約、預約、收款', true, true],
+    ['營運儀表板', '示意', true],
+    ['服務追蹤', '示意', true],
+    ['同帳號裝置數', '1 台', '3 台'],
+    ['到期後', '唯讀', '—']
   ],
-  note:'原價 $7,200，前 15 位早鳥價 $6,000，續約維持同價。超過免費版客戶數的資料不會刪除，只是轉為唯讀。'
+  note:'原價 $7,200，前 15 位早鳥價 $6,000，續約維持同價。試用到期後資料完整保留，可查看與匯出，升級後即恢復編輯。'
 });
 </script>
 
