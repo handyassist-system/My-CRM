@@ -2050,7 +2050,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
         function isCrmAdminEmail(e){ return String(e||'').toLowerCase() === ADMIN_EMAIL.toLowerCase(); }
         // 只用於「這個信箱用過試用沒」的比對，不可當資料路徑
         function crmTrialEmailKey(e){ return normEmail(e).replace(/[.#$\[\]]/g,'_'); }
-        const CRM_APP_VER = 'v1.0', CRM_BUILD_ID = '1009-30';
+        const CRM_APP_VER = 'v1.0', CRM_BUILD_ID = '1009-31';
         const CRM_EMAIL_FOR_SIGNIN = 'crmEmailForSignIn';
         const LINE_SUPPORT_URL = 'https://line.me/R/ti/p/@373pfdee';
         var crmUserEmail = null;
@@ -2494,7 +2494,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
 
         /* 📋 追蹤的紅點：沿用追蹤頁本來的門檻，不另外定義一套，
            免得紅點說有 3 位、點進去卻看到別的數字。
-           兩種都要警示：太久沒預約（紅燈天數）、可排時數快用完。 */
+           只數「紅燈」客戶（太久沒服務，天數達紅燈門檻），與追蹤頁的紅燈卡片一致。 */
         function crmTrackAlertCount(){
             try{
                 // 單次計費：數「保養週期已到期」的設備筆數
@@ -2538,11 +2538,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                         var days = Math.floor((today - new Date(done[0].bookingDate)) / 86400000);
                         overdue = days >= redDays;
                     }
-                    var lowHours = live.some(function(c){
-                        var u = contractHours(c).usable;
-                        return u > 0 && u < 3;
-                    });
-                    if(overdue || lowHours) n++;
+                    if(overdue) n++;
                 });
                 return n;
             }catch(e){ return 0; }
@@ -6108,7 +6104,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
     sheet(
       '<div class="subs-sh-title">更多</div>'+
       '<div class="subs-sh-sub">管理工具</div>'+
-      '<button type="button" class="subs-primary" onclick="subsAdmin.openDelLog()">🗒️ 刪除紀錄</button>'+
+      '<button type="button" class="subs-primary" onclick="subsAdmin.openDelLog()">🗒️ 查看刪除紀錄</button>'+
       '<button type="button" class="subs-ghost" onclick="subsAdmin.closeSheet()">關閉</button>'
     );
   }
