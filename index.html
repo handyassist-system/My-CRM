@@ -1749,6 +1749,11 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                 crmCacheSet(JSON.stringify(this.data));
                 if (!this._firebaseReady) {
                     console.warn('Firebase 未就緒，跳過雲端儲存');
+                    // 只有「雲端讀取確實失敗過」才提醒（一次），避免啟動過程中誤跳
+                    if (this._loadFailed && !this._notReadyWarned) {
+                        this._notReadyWarned = true;
+                        try { showToast('目前無法同步到雲端，變更只存在這支手機，請檢查網路後重新開啟', 5000); } catch (e) {}
+                    }
                     return;
                 }
 
@@ -1773,6 +1778,12 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                 if (!FB_KEY) { console.warn('尚未登入，跳過雲端儲存'); return; }
                 db.ref(FB_KEY).update(updateData).catch(err => {
                     console.error('Firebase 儲存失敗:', err);
+                    // 儲存失敗要讓使用者知道；10 秒內只提醒一次，避免連續操作時一直跳
+                    const now = Date.now();
+                    if (!this._lastSaveWarn || now - this._lastSaveWarn > 10000) {
+                        this._lastSaveWarn = now;
+                        try { showToast(failMsg('儲存', err), 4000); } catch (e) {}
+                    }
                 });
             }
 
@@ -1794,9 +1805,11 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                         }
                     }
                     this._firebaseReady = true;
+                    this._loadFailed = false;
                     this._originalClientsCount = this.data.clients?.length || 0;
                 } catch (err) {
                     console.error('Firebase 載入失敗，使用本機資料:', err);
+                    this._loadFailed = true;
                     this.initData();
                     this.applyCompatibility();
                     this._firebaseReady = false; // ❌ 載入失敗，禁止寫入保護資料
@@ -2037,7 +2050,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
         function isCrmAdminEmail(e){ return String(e||'').toLowerCase() === ADMIN_EMAIL.toLowerCase(); }
         // 只用於「這個信箱用過試用沒」的比對，不可當資料路徑
         function crmTrialEmailKey(e){ return normEmail(e).replace(/[.#$\[\]]/g,'_'); }
-        const CRM_APP_VER = 'v1.0', CRM_BUILD_ID = '1009-27';
+        const CRM_APP_VER = 'v1.0', CRM_BUILD_ID = '1009-30';
         const CRM_EMAIL_FOR_SIGNIN = 'crmEmailForSignIn';
         const LINE_SUPPORT_URL = 'https://line.me/R/ti/p/@373pfdee';
         var crmUserEmail = null;
@@ -2500,8 +2513,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                         var k = b.clientId + '|' + ((b.serviceItem||'').trim());
                         if (seen0[k]) return;
                         seen0[k] = true;
-                        var due = new Date(b.bookingDate);
-                        due.setMonth(due.getMonth() + (parseInt(b.remindMonths,10)||0));
+                        var due = addMonthsClamp(new Date(b.bookingDate), (parseInt(b.remindMonths,10)||0));
                         if (due <= t0) n0++;
                       });
                     return n0;
@@ -3181,6 +3193,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
         }
 
         function saveProviderName() {
+            if (crmBlocked()) return;
             const name = document.getElementById('provider-name-input').value.trim();
             if (!name) { showToast('請輸入店名或稱呼'); return; }
             store.data.providerName = name;
@@ -3323,13 +3336,13 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                         || (store.data.payments || []).some(p => p.clientId === client.id);
                     const deleteBtn = locked
                         ? `<button class="btn btn-sm btn-secondary" disabled style="opacity:0.5;cursor:not-allowed;" title="有關聯資料，無法刪除">刪除</button>`
-                        : `<button class="btn btn-sm btn-danger" onclick="deleteClient('${client.id}', '${client.clientName}')">刪除</button>`;
+                        : `<button class="btn btn-sm btn-danger" onclick="deleteClient('${client.id}', '${escJsArg(client.clientName)}')">刪除</button>`;
                     return `
                         <div class="list-item">
                             <div style="display: flex; justify-content: space-between; align-items: center;">
                                 <div style="flex: 1;">
-                                    <h4>${client.clientName}${statusBadge}</h4>
-                                    <p>📞 ${client.phone}</p>
+                                    <h4>${escHtml(client.clientName)}${statusBadge}</h4>
+                                    <p>📞 ${escHtml(client.phone)}</p>
                                     ${(function(){
                                         const bits = [];
                                         if (SVC().companyDispatch && client.clientSource) bits.push('來源: ' + client.clientSource);
@@ -3340,7 +3353,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                                 <button class="btn btn-sm btn-secondary" style="margin-left: 10px;" onclick="toggleExpand('${expandId}')">展開</button>
                             </div>
                             <div id="${expandId}" style="display: none; margin-top: 10px; padding-top: 10px; border-top: 1px solid #ecf0f1;">
-                                <p>📍 ${client.address}</p>
+                                <p>📍 ${escHtml(client.address)}</p>
                                 ${client.rooms ? `<p>房間數: ${client.rooms}` : ''}
                                 ${client.hasChildren ? '| 有小孩' : ''}
                                 ${client.hasPets ? '| 有寵物' : ''}
@@ -3608,7 +3621,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                         <div class="list-item" style="${itemStyle}">
                             <div style="display: flex; justify-content: space-between; align-items: center;">
                                 <div style="flex: 1;">
-                                    <h4>${client.clientName}${alertIcon}${statusBadge}</h4>
+                                    <h4>${escHtml(client.clientName)}${alertIcon}${statusBadge}</h4>
                                     <p>時數: ${contract.totalHours}h + 贈送 ${bonusHours}h | 單價: ${contract.hourlyRate} 元/h${contract.cooperationMethod === '公司派' ? ` | 收款費率: ${paymentRate} 元/h` : ''}</p>
                                     ${contract.signDate ? `<p>簽約 ${contract.signDate}${contract.expireDate ? ` ｜ 到期 ${contract.expireDate}` : ''}</p>` : ''}
                                 </div>
@@ -3623,7 +3636,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                                 <div class="list-item-actions" style="margin-top: 10px;">
                                     ${!isEnded ? `<button class="btn btn-sm btn-secondary" onclick="editContract('${contract.id}')">編輯</button>` : ''}
                                     ${!isEnded ? `<button class="btn btn-sm btn-secondary" onclick="terminateContract('${contract.id}')">終止</button>` : ''}
-                                    <button class="btn btn-sm btn-danger" onclick="deleteContract('${contract.id}', '${client.clientName}')">刪除</button>
+                                    <button class="btn btn-sm btn-danger" onclick="deleteContract('${contract.id}', '${escJsArg(client.clientName)}')">刪除</button>
                                 </div>
                             </div>
                         </div>
@@ -3633,6 +3646,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
         }
 
         function terminateContract(contractId) {
+            if (crmBlocked()) return;
             showConfirm('確定要終止此合約嗎？狀態將改為「已結束」', () => {
                 const contract = store.getContract(contractId);
                 if (contract) { contract.contractStatus = '已結束'; store.save(); updateAllTabs(); showToast('✅ 合約已終止'); }
@@ -3692,9 +3706,9 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                 dropdown.innerHTML = clients.length === 0
                     ? '<div style="padding:10px;color:#7f8c8d;">無匹配客戶</div>'
                     : clients.map(c => `
-                        <div style="padding:10px;border-bottom:1px solid #ecf0f1;cursor:pointer;" onclick="selectContractClient('${c.id}','${c.clientName.replace(/'/g,"\\'")}','${(c.address||'').replace(/'/g,"\\'")}')">
-                            <strong>${c.clientName}</strong> (${c.phone})<br>
-                            <small style="color:#7f8c8d;">${c.address || '未填寫地址'}</small>
+                        <div style="padding:10px;border-bottom:1px solid #ecf0f1;cursor:pointer;" onclick="selectContractClient('${c.id}','${escJsArg(c.clientName)}','${escJsArg(c.address||'')}')">
+                            <strong>${escHtml(c.clientName)}</strong> (${escHtml(c.phone)})<br>
+                            <small style="color:#7f8c8d;">${escHtml(c.address) || '未填寫地址'}</small>
                         </div>`).join('');
                 dropdown.style.display = 'block';
             });
@@ -3704,7 +3718,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
             document.getElementById('contract-client-id-hidden').value = clientId;
             document.getElementById('contract-client-search-input').value = clientName;
             document.getElementById('contract-client-dropdown').style.display = 'none';
-            document.getElementById('contract-client-selected-info').innerHTML = `✅ 已選擇：<strong>${clientName}</strong>`;
+            document.getElementById('contract-client-selected-info').innerHTML = `✅ 已選擇：<strong>${escHtml(clientName)}</strong>`;
             document.getElementById('contract-client-selected-info').style.display = 'block';
             document.getElementById('contract-modal').dataset.clientId = clientId;
         }
@@ -3739,9 +3753,11 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
         function autoFillExpireDate() {
             const signDate = document.getElementById('contract-sign-date').value;
             if (!signDate) return;
-            const expire = new Date(signDate);
-            expire.setFullYear(expire.getFullYear() + (SVC().contractYears || 0));
-            document.getElementById('contract-expire-date').value = expire.toISOString().split('T')[0];
+            // 直接用文字計算年月日（2/29 加 1 年 = 隔年 2/28），不經過時區轉換
+            const sp = signDate.split('-').map(Number);
+            const ey = sp[0] + (SVC().contractYears || 0);
+            const ed = Math.min(sp[2], new Date(ey, sp[1], 0).getDate());
+            document.getElementById('contract-expire-date').value = ey + '-' + String(sp[1]).padStart(2, '0') + '-' + String(ed).padStart(2, '0');
         }
 
         function updateContractTotalPrice() {
@@ -4021,7 +4037,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                             <div style="display: flex; justify-content: space-between; align-items: center;">
                                 <div style="flex: 1;">
                                     <h4>${booking.bookingDate} ${booking.bookingTime}</h4>
-                                    <p>${client.clientName} | ${booking.serviceHours}小時</p>
+                                    <p>${escHtml(client.clientName)} | ${booking.serviceHours}小時</p>
                                     <p>狀態: <span class="status-badge ${statusBadgeClass}">${booking.status}</span></p>
                                 </div>
                                 <button class="btn btn-sm btn-secondary" style="margin-left: 10px;" onclick="toggleExpand('${expandId}')">展開</button>
@@ -4034,7 +4050,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                                 <div class="list-item-actions" style="margin-top: 10px;">
                                     <button class="btn btn-sm btn-primary" onclick="openBookingStatusModal('${booking.id}')">更新狀態</button>
                                     <button class="btn btn-sm btn-secondary" onclick="editBooking('${booking.id}')">編輯</button>
-                                    ${canDelete ? `<button class="btn btn-sm btn-danger" onclick="deleteBooking('${booking.id}', '${client.clientName}')">刪除</button>` : ''}
+                                    ${canDelete ? `<button class="btn btn-sm btn-danger" onclick="deleteBooking('${booking.id}', '${escJsArg(client.clientName)}')">刪除</button>` : ''}
                                 </div>
                             </div>
                         </div>
@@ -4067,7 +4083,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
             document.getElementById('booking-client-id-hidden').value = '';
             document.getElementById('booking-client-selected-info').style.display = 'none';
             document.getElementById('booking-client-dropdown').style.display = 'none';
-            const today = new Date().toISOString().split('T')[0];
+            const today = ymdLocal(new Date());
             document.getElementById('booking-date').value = today;
             renderStaffOptions('me');
             document.getElementById('booking-modal').dataset.conflictOk = '';
@@ -4093,9 +4109,9 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                 dropdown.innerHTML = clients.length === 0
                     ? '<div style="padding:10px;color:#7f8c8d;">無匹配客戶</div>'
                     : clients.map(c => `
-                        <div style="padding:10px;border-bottom:1px solid #ecf0f1;cursor:pointer;" onclick="selectBookingClient('${c.id}','${c.clientName.replace(/'/g,"\\'")}')">
-                            <strong>${c.clientName}</strong> (${c.phone})<br>
-                            <small style="color:#7f8c8d;">${c.address || '未填寫地址'}</small>
+                        <div style="padding:10px;border-bottom:1px solid #ecf0f1;cursor:pointer;" onclick="selectBookingClient('${c.id}','${escJsArg(c.clientName)}')">
+                            <strong>${escHtml(c.clientName)}</strong> (${escHtml(c.phone)})<br>
+                            <small style="color:#7f8c8d;">${escHtml(c.address) || '未填寫地址'}</small>
                         </div>`).join('');
                 dropdown.style.display = 'block';
             });
@@ -4111,7 +4127,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
             // 單次計費：沒有合約也能排，直接帶出客戶資料
             if (isSingleBilling()) {
                 document.getElementById('booking-modal').dataset.contractId = '';
-                document.getElementById('booking-client-selected-info').innerHTML = `✅ 已選擇：<strong>${clientName}</strong>`;
+                document.getElementById('booking-client-selected-info').innerHTML = `✅ 已選擇：<strong>${escHtml(clientName)}</strong>`;
                 document.getElementById('booking-client-selected-info').style.display = 'block';
                 document.getElementById('booking-info-client').textContent = clientName;
                 document.getElementById('booking-info-home').textContent = client0?.homeType || '';
@@ -4138,7 +4154,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                    這一筆改用單次計費，填金額就能排，不必先去建一張合約。 */
                 document.getElementById('booking-modal').dataset.contractId = '';
                 document.getElementById('booking-client-selected-info').innerHTML =
-                    `✅ 已選擇：<strong>${clientName}</strong><br>` +
+                    `✅ 已選擇：<strong>${escHtml(clientName)}</strong><br>` +
                     `<span style="color:#9c640c;">ℹ️ 此客戶無進行中合約，本次以單次計費處理</span>`;
                 document.getElementById('booking-client-selected-info').style.display = 'block';
                 document.getElementById('booking-info-client').textContent = clientName;
@@ -4169,7 +4185,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
             const remaining = H.usable;
 
             document.getElementById('booking-client-selected-info').innerHTML =
-                `✅ 已選擇：<strong>${clientName}</strong>　合約：${contract.totalHours}h（還能排 ${H.usable}h${H.booked > 0 ? `，另有 ${H.booked}h 已排未做` : ''}）`;
+                `✅ 已選擇：<strong>${escHtml(clientName)}</strong>　合約：${contract.totalHours}h（還能排 ${H.usable}h${H.booked > 0 ? `，另有 ${H.booked}h 已排未做` : ''}）`;
             document.getElementById('booking-client-selected-info').style.display = 'block';
 
             document.getElementById('booking-info-client').textContent = clientName;
@@ -4368,7 +4384,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
             const client = store.getClient(contract ? contract.clientId : booking.clientId);
 
             const info = `
-                <p>客戶: ${client.clientName}</p>
+                <p>客戶: ${escHtml(client.clientName)}</p>
                 <p>日期: ${booking.bookingDate} ${booking.bookingTime}</p>
                 <p>時數: ${booking.serviceHours} 小時</p>
                 <p>當前狀態: ${booking.status}</p>
@@ -4526,7 +4542,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                         <div class="list-item">
                             <div style="display: flex; justify-content: space-between; align-items: center;">
                                 <div style="flex: 1;">
-                                    <h4>${payment.clientName}${cooperationMethod ? `（${cooperationMethod}）` : ''}</h4>
+                                    <h4>${escHtml(payment.clientName)}${cooperationMethod ? `（${cooperationMethod}）` : ''}</h4>
                                     <p>預約日期: ${bookingDate} | 時數: ${payment.serviceHours}h</p>
                                     <p>${payment.flatRate ? '單次計費' : `單價: NT$${hourlyRate}/h`} | 金額: <strong>NT$${(payment.amountDue || 0).toLocaleString()}</strong></p>
                                     <p>狀態: <span class="status-badge ${statusBadgeClass}">${statusText}</span>${overdue ? ` <span style="color:#C0392B;font-size:12px;">已超過 ${S().overdueDays || 30} 天</span>` : ''}</p>
@@ -4613,7 +4629,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                     const warningInfo = `
                         <p><strong>原狀態：</strong>已收</p>
                         <p><strong>新狀態：</strong>${newStatus}</p>
-                        <p><strong>客戶：</strong>${client.clientName}</p>
+                        <p><strong>客戶：</strong>${escHtml(client.clientName)}</p>
                         <p><strong>原應收金額：</strong>NT$${payment.amountDue.toLocaleString()}</p>
                         <p><strong>新應收金額：</strong>NT$${newAmount.toLocaleString()}</p>
                     `;
@@ -4695,7 +4711,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                 return;
             }
 
-            let historyHtml = `<p><strong>客戶：${payment.clientName}</strong></p><hr>`;
+            let historyHtml = `<p><strong>客戶：${escHtml(payment.clientName)}</strong></p><hr>`;
             payment.modificationHistory.forEach((mod, index) => {
                 const timestamp = new Date(mod.timestamp).toLocaleString('zh-TW');
                 historyHtml += `
@@ -4729,13 +4745,13 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
             const booking = store.getBooking(payment.bookingId);
             const bookingSelect = document.getElementById('payment-booking');
 
-            bookingSelect.innerHTML = `<option value="${booking.id}">${payment.clientName} - ${booking.bookingDate}</option>`;
+            bookingSelect.innerHTML = `<option value="${booking.id}">${escHtml(payment.clientName)} - ${booking.bookingDate}</option>`;
             document.getElementById('payment-amount').value = payment.amountDue;
             document.querySelector(`input[name="payment-status"][value="${payment.paymentStatus}"]`).checked = true;
             document.getElementById('payment-date').value = payment.actualPaymentDate || '';
 
             document.getElementById('payment-booking-info').innerHTML = `
-                <p>客戶: ${payment.clientName}</p>
+                <p>客戶: ${escHtml(payment.clientName)}</p>
                 <p>服務時數: ${payment.serviceHours} 小時</p>
             `;
             document.getElementById('payment-booking-info').style.display = 'block';
@@ -4951,7 +4967,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                     <div style="border-left:4px solid ${cfg.border};background:${cfg.bg};padding:12px 14px;border-radius:6px;margin-bottom:10px;">
                         <div style="display:flex;justify-content:space-between;align-items:center;">
                             <div style="flex:1;">
-                                <p style="font-weight:bold;color:#2c3e50;">${cfg.icon} ${d.client.clientName}</p>
+                                <p style="font-weight:bold;color:#2c3e50;">${cfg.icon} ${escHtml(d.client.clientName)}</p>
                                 <p style="font-size:13px;color:#555;margin-top:4px;">
                                     最後服務：${timeText}
                                     ${dateText ? `<span style="color:#7f8c8d;">（${dateText}）</span>` : ''}
@@ -4975,6 +4991,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
             if (!container) return;
             if (!crmIsFull()) { crmShowFilters('tracking-filter', false); container.innerHTML = crmLockPreview('track'); return; }
             crmShowFilters('tracking-filter', true);
+            updateTrackingFilterLabels();
             const filterVal = document.getElementById('tracking-filter')?.value || '';
             const today = new Date();
             today.setHours(0,0,0,0);
@@ -5005,7 +5022,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                         const rm = parseInt(b.remindMonths, 10) || 0;
                         let level = 'green', note = '';
                         if (rm > 0) {
-                            const due = new Date(last); due.setMonth(due.getMonth() + rm);
+                            const due = addMonthsClamp(new Date(last), rm);
                             const left = Math.ceil((due - today) / 86400000);
                             if (left <= 0)       { level = 'red';    note = `每 ${rm} 個月保養，已逾期 ${Math.abs(left)} 天`; }
                             else if (left <= 30) { level = 'yellow'; note = `每 ${rm} 個月保養，${left} 天後到期`; }
@@ -5086,12 +5103,12 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                     <div style="border-left:4px solid ${cfg.border};background:${cfg.bg};padding:12px 14px;border-radius:6px;margin-bottom:10px;">
                         <div style="display:flex;justify-content:space-between;align-items:center;">
                             <div style="flex:1;">
-                                <p style="font-weight:bold;color:#2c3e50;">${cfg.icon} ${d.client.clientName}</p>
+                                <p style="font-weight:bold;color:#2c3e50;">${cfg.icon} ${escHtml(d.client.clientName)}</p>
                                 <p style="font-size:13px;color:#555;margin-top:4px;">
                                     最後服務：${timeText}
                                     ${dateText ? `<span style="color:#7f8c8d;">（${dateText}）</span>` : ''}
                                 </p>
-                                ${(d.stName || d.remainH !== null) ? `<p style="font-size:12px;color:#7f8c8d;">${d.stName}${(d.stName && d.remainH !== null) ? ' ｜ ' : ''}${d.remainH !== null ? `<span style="color:${d.remainH > 0 ? '#c0392b' : '#7f8c8d'};font-weight:${d.remainH > 0 ? 'bold' : 'normal'};">合約還剩 ${d.remainH}h</span>` : ''}</p>` : ''}
+                                ${(d.stName || d.remainH !== null) ? `<p style="font-size:12px;color:#7f8c8d;">${d.stName}${(d.stName && d.remainH !== null) ? ' ｜ ' : ''}${d.remainH !== null ? `<span style="color:${d.remainH > 0 ? '#c0392b' : '#7f8c8d'};font-weight:${d.remainH > 0 ? 'bold' : 'normal'};white-space:nowrap;">合約還剩 ${d.remainH}h</span>` : ''}</p>` : ''}
                             </div>
                             <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
                                 <span style="font-size:11px;background:white;padding:2px 8px;border-radius:10px;color:${cfg.border};border:1px solid ${cfg.border};">${cfg.label}</span>
@@ -5158,9 +5175,9 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
 
             document.getElementById('client-detail-content').innerHTML = `
                 <div style="padding:4px 0 12px;">
-                    <p style="font-size:16px;font-weight:bold;color:#2c3e50;">${client.clientName}</p>
-                    <p style="font-size:13px;color:#7f8c8d;">📞 ${client.phone} ｜ ${st?.typeName || ''}</p>
-                    ${client.address ? `<p style="font-size:13px;color:#7f8c8d;">📍 ${client.address}</p>` : ''}
+                    <p style="font-size:16px;font-weight:bold;color:#2c3e50;">${escHtml(client.clientName)}</p>
+                    <p style="font-size:13px;color:#7f8c8d;">📞 ${escHtml(client.phone)} ｜ ${st?.typeName || ''}</p>
+                    ${client.address ? `<p style="font-size:13px;color:#7f8c8d;">📍 ${escHtml(client.address)}</p>` : ''}
                 </div>
                 <div style="border-top:1px solid #ecf0f1;padding-top:12px;margin-bottom:12px;">
                     <p style="font-size:13px;font-weight:bold;color:#2c3e50;margin-bottom:8px;">📋 合約狀態</p>
@@ -5329,6 +5346,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
             if (!file) return;
             const fileRef = file;
             event.target.value = '';
+            if (crmBlocked()) return;
             showConfirm('⚠️ 匯入將會覆蓋現有所有資料，確定繼續嗎？', () => {
                 const reader = new FileReader();
                 reader.onload = function(e) {
@@ -5339,7 +5357,10 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                             return;
                         }
                         crmCacheSet(JSON.stringify(data));
-                        db.ref(FB_KEY).set(data).catch(err => console.error('Firebase同步失敗:', err));
+                        db.ref(FB_KEY).set(data).catch(err => {
+                            console.error('Firebase同步失敗:', err);
+                            showToast('⚠️ ' + failMsg('雲端同步', err) + '，匯入的資料尚未存到雲端', 6000);
+                        });
                         store.initData();
                         store.applyCompatibility();
                         updateAllTabs();
@@ -5360,6 +5381,40 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
             if(/permission|denied|unauthenticated|auth/i.test(code)) return act+"失敗，請重新登入再試一次";
             return act+"失敗，請稍後再試";
         }
+        // ---- 1009-30 新增的小工具 ----
+        // 把使用者輸入的文字轉成可安全放進畫面的文字（姓名含 < & " 等符號時不會弄壞畫面）
+        function escHtml(s) {
+            return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        }
+        // 放進 onclick="fn('...')" 的文字參數用：姓名含 ' 或 \ 時按鈕才不會壞掉
+        function escJsArg(s) {
+            return String(s == null ? '' : s).replace(/\\/g, '\\\\').replace(/'/g, "\\'")
+                .replace(/\r?\n/g, ' ').replace(/&/g, '&amp;').replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+        // 日期加 N 個月；月底不足時取該月最後一天（1/31 + 1 個月 = 2/28，不是 3/3）
+        function addMonthsClamp(d, n) {
+            const r = new Date(d.getTime());
+            const day = r.getDate();
+            r.setDate(1);
+            r.setMonth(r.getMonth() + n);
+            const dim = new Date(r.getFullYear(), r.getMonth() + 1, 0).getDate();
+            r.setDate(Math.min(day, dim));
+            return r;
+        }
+        // 追蹤頁下拉選單的天數文字，依目前設定的黃燈、紅燈天數顯示
+        function updateTrackingFilterLabels() {
+            const sel = document.getElementById('tracking-filter');
+            if (!sel) return;
+            const cfg = SVC() || {};
+            const y = cfg.trackYellow || 60, r = cfg.trackRed || 90;
+            for (const o of sel.options) {
+                if (o.value === 'yellow') o.textContent = '🟡 注意（' + y + '-' + Math.max(y, r - 1) + '天）';
+                else if (o.value === 'green') o.textContent = '🟢 正常（未滿' + y + '天）';
+            }
+        }
+
         function showToast(msg, duration) {
             const t = document.getElementById('toast');
             if (!t) return;
