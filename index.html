@@ -1776,15 +1776,64 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                 updateData.payments  = this.data.payments  || [];
 
                 if (!FB_KEY) { console.warn('尚未登入，跳過雲端儲存'); return; }
-                db.ref(FB_KEY).update(updateData).catch(err => {
-                    console.error('Firebase 儲存失敗:', err);
-                    // 儲存失敗要讓使用者知道；10 秒內只提醒一次，避免連續操作時一直跳
-                    const now = Date.now();
-                    if (!this._lastSaveWarn || now - this._lastSaveWarn > 10000) {
-                        this._lastSaveWarn = now;
-                        try { showToast(failMsg('儲存', err), 4000); } catch (e) {}
-                    }
+                // 雲端寫入一次一個排隊進行（連按幾次存檔不會自己跟自己衝突）
+                this._savePending = (this._savePending || 0) + 1;
+                this._saveChain = (this._saveChain || Promise.resolve())
+                    .then(() => this._cloudSave(updateData))
+                    .catch(err => {
+                        console.error('Firebase 儲存失敗:', err);
+                        // 儲存失敗要讓使用者知道；10 秒內只提醒一次，避免連續操作時一直跳
+                        const now = Date.now();
+                        if (!this._lastSaveWarn || now - this._lastSaveWarn > 10000) {
+                            this._lastSaveWarn = now;
+                            try { showToast(failMsg('儲存', err), 4000); } catch (e) {}
+                        }
+                    })
+                    .then(() => { this._savePending = Math.max(0, (this._savePending || 1) - 1); });
+            }
+
+            /* ---- 1009-32：兩台以上裝置用同一個帳號時的保護 ----
+               rev = 雲端這份資料的「版本標記」，每次存檔都換一個新的。
+               存檔前先確認雲端的標記還是我載入時的那一個；不是 = 別台已經更新過，
+               這時不寫入（免得把別台新增的資料蓋掉），改成請使用者按確定更新。 */
+            _newRev() { return Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 7); }
+
+            async _cloudSave(updateData) {
+                if (this._syncConflict) return;          // 已發現別台更新過，等使用者按確定，不再寫入
+                const expected = this._rev || null;
+                const newRev = this._newRev();
+                const res = await db.ref(FB_KEY + '/rev').transaction(function (cur) {
+                    if (cur === null) return newRev;                 // 雲端沒有標記（舊資料）或尚未取得：交給伺服器核對
+                    return cur === expected ? newRev : undefined;    // 標記不同 = 別台已更新，放棄寫入
                 });
+                if (!res.committed) { this._onSyncConflict(true); return; }
+                this._rev = newRev;
+                await db.ref(FB_KEY).update(updateData);
+            }
+
+            // 別台已更新：彈出一個訊息，按確定就重新載入最新資料
+            _onSyncConflict(lostAction) {
+                if (this._syncConflict) return;
+                this._syncConflict = true;
+                const msg = '另一台裝置已更新了資料。按「確定」載入最新資料。' +
+                            (lostAction ? '\n（剛才這筆操作沒有存入，請再做一次）' : '');
+                confirmDialog({ message: msg, okText: '確定', noCancel: true, accent: '#4A7A9B' })
+                    .then(function () { location.reload(); });
+            }
+
+            // App 從背景回到畫面時檢查：雲端若被別台更新過，提醒更新（讀一個小欄位，很省流量）
+            async checkCloudNewer() {
+                try {
+                    if (!FB_KEY || !this._firebaseReady || this._syncConflict) return;
+                    if (typeof PREVIEW !== 'undefined' && PREVIEW) return;
+                    if (this._savePending) return;
+                    const now = Date.now();
+                    if (this._lastRevCheck && now - this._lastRevCheck < 15000) return;
+                    this._lastRevCheck = now;
+                    const snap = await db.ref(FB_KEY + '/rev').get();
+                    const cloud = snap.exists() ? snap.val() : null;
+                    if (cloud !== null && cloud !== (this._rev || null)) this._onSyncConflict(false);
+                } catch (e) { /* 讀不到就不打擾使用者 */ }
             }
 
             async loadFromFirebase() {
@@ -1793,6 +1842,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                     const snapshot = await db.ref(FB_KEY).get();
                     if (snapshot.exists()) {
                         this.data = snapshot.val();
+                        this._rev = this.data.rev || null;     // 記下載入時雲端的版本標記
                         crmCacheSet(JSON.stringify(this.data));
                         this.applyCompatibility();
                     } else {
@@ -1805,6 +1855,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                         }
                     }
                     this._firebaseReady = true;
+                    this._syncConflict = false;
                     this._loadFailed = false;
                     this._originalClientsCount = this.data.clients?.length || 0;
                 } catch (err) {
@@ -2042,6 +2093,10 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
         }
 
         const store = new DataStore();
+        // App 從背景回到畫面時，檢查別台是否更新過資料
+        document.addEventListener('visibilitychange', function () {
+            if (!document.hidden) store.checkCloudNewer();
+        });
 
         // ==================== 登入（智在生活 Standard）====================
         // 拿掉原本寫在公開資料庫裡的授權碼，改用 Firebase 帳號驗證。
@@ -2050,7 +2105,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
         function isCrmAdminEmail(e){ return String(e||'').toLowerCase() === ADMIN_EMAIL.toLowerCase(); }
         // 只用於「這個信箱用過試用沒」的比對，不可當資料路徑
         function crmTrialEmailKey(e){ return normEmail(e).replace(/[.#$\[\]]/g,'_'); }
-        const CRM_APP_VER = 'v1.0', CRM_BUILD_ID = '1009-31';
+        const CRM_APP_VER = 'v1.0', CRM_BUILD_ID = '1009-32';
         const CRM_EMAIL_FOR_SIGNIN = 'crmEmailForSignIn';
         const LINE_SUPPORT_URL = 'https://line.me/R/ti/p/@373pfdee';
         var crmUserEmail = null;
@@ -5352,6 +5407,8 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                             showToast('這不是本 App 的備份檔');
                             return;
                         }
+                        data.rev = store._newRev();   // 換新的版本標記：別台會知道資料整份被換過
+                        store._rev = data.rev;
                         crmCacheSet(JSON.stringify(data));
                         db.ref(FB_KEY).set(data).catch(err => {
                             console.error('Firebase同步失敗:', err);
@@ -7021,6 +7078,7 @@ appInstall.init({ appName:'客戶管理系統' });
   }
 
   var resolver = null;
+  var noCancelNow = false;
   function finish(v){
     var w=document.getElementById('cfWrap'); if(w) w.classList.remove('on');
     var r=resolver; resolver=null;
@@ -7041,7 +7099,7 @@ appInstall.init({ appName:'客戶管理系統' });
           '<button type="button" class="cf-ok" id="cfOk"></button>'+
         '</div></div>';
       document.body.appendChild(w);
-      w.addEventListener('click', function(e){ if(e.target===w) finish(false); });
+      w.addEventListener('click', function(e){ if(e.target===w && !noCancelNow) finish(false); });
       document.getElementById('cfNo').addEventListener('click', function(){ finish(false); });
       document.getElementById('cfOk').addEventListener('click', function(){ finish(true); });
     }
@@ -7050,6 +7108,8 @@ appInstall.init({ appName:'客戶管理系統' });
     t.style.display = opts.title ? 'block' : 'none';
     var m=document.getElementById('cfM');
     if(opts.html) m.innerHTML = opts.html; else m.textContent = opts.message || '';
+    noCancelNow = !!opts.noCancel;
+    document.getElementById('cfNo').style.display = noCancelNow ? 'none' : '';
     document.getElementById('cfNo').textContent = opts.cancelText || '取消';
     document.getElementById('cfOk').textContent = opts.okText || '確定';
     w.classList.add('on');
