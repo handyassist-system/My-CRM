@@ -1467,6 +1467,17 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
 
     <script>
         // ==================== Firebase 初始化 ====================
+        // 載入失敗保護：Firebase 程式庫沒載入（網路不穩、訊號差）時，顯示說明與重新整理按鈕，避免整頁空白。
+        if(typeof firebase === "undefined"){
+          document.body.innerHTML =
+            '<div style="position:fixed;inset:0;z-index:2147483647;background:#fff;overflow:auto;padding:60px 30px;text-align:center;font-family:sans-serif;">' +
+            '<h2 style="margin-bottom:10px;">載入失敗</h2>' +
+            '<p style="color:#666; line-height:1.6;">部分必要資源沒有載入成功（可能是網路不穩），導致頁面無法運作。</p>' +
+            '<button onclick="location.reload()" style="margin-top:20px; padding:14px 28px; font-size:15px; border:none; border-radius:10px; background:#4A7A9B; color:#fff;">重新整理</button>' +
+            '</div>';
+          throw new Error("Firebase SDK failed to load - aborting script");
+        }
+
         const firebaseConfig = {
             apiKey: "AIzaSyBGfQ1oKOrt723tJ3w7LIwDLSh0nGwRF30",
             authDomain: "my-project-c89db.firebaseapp.com",
@@ -2105,7 +2116,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
         function isCrmAdminEmail(e){ return String(e||'').toLowerCase() === ADMIN_EMAIL.toLowerCase(); }
         // 只用於「這個信箱用過試用沒」的比對，不可當資料路徑
         function crmTrialEmailKey(e){ return normEmail(e).replace(/[.#$\[\]]/g,'_'); }
-        const CRM_APP_VER = 'v1.0', CRM_BUILD_ID = '1009-32';
+        const CRM_APP_VER = 'v1.0', CRM_BUILD_ID = '1009-35';
         const CRM_EMAIL_FOR_SIGNIN = 'crmEmailForSignIn';
         const LINE_SUPPORT_URL = 'https://line.me/R/ti/p/@373pfdee';
         var crmUserEmail = null;
@@ -2127,7 +2138,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
         function crmIsFull(){ return crmIsAdmin || crmIsPaid(crmPlan); }          // 可用全部功能
         function crmIsTrial(){ return !crmIsAdmin && crmPlan === 'trial'; }
         function crmIsExpired(){ return !crmIsAdmin && !crmIsPaid(crmPlan) && crmPlan !== 'trial'; }
-        function crmDeviceLimit(p){ return crmIsPaid(p) ? 3 : 1; }                 // 試用 1 台、完整版 3 台
+        function crmDeviceLimit(p){ return crmIsPaid(p) ? 2 : 1; }                 // 試用 1 台、完整版 2 台
 
         function _crmDevId(){
             var k='crm_dev_id', v=null;
@@ -2222,7 +2233,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                      expiry: sub.expiry||'', clientsCreated: Number(sub.clientsCreated||0), expired: !!expired };
         }
 
-        /* 裝置數上限（試用 1 台、完整版 3 台；管理員不限）。
+        /* 裝置數上限（試用 1 台、完整版 2 台；管理員不限）。
            與另外三支同一套：30 天沒登入的裝置自動釋放，客戶可自行登出其他裝置。 */
         async function crmCheckDevice(email, plan){
             if(crmIsAdmin) return { ok:true };
@@ -2439,7 +2450,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                 }
                 crmApplyPlan();
                 document.getElementById('loading-overlay').style.display = 'none';
-                if(res.newTrial) _crmNotices.unshift(function(){ showConfirm('已開啟 ' + CRM_TRIAL_DAYS + ' 天全功能免費試用，到 ' + res.expiry + ' 為止。\n\n試用期間不限客戶數，所有功能都能用。', function(){}, '開始使用'); });
+                if(res.newTrial) _crmNotices.unshift(function(){ showConfirm('已開啟 ' + CRM_TRIAL_DAYS + ' 天免費試用，到 ' + res.expiry + ' 為止。\n\n試用期間可建立 ' + CRM_TRIAL_CLIENT_QUOTA + ' 位客戶（刪除後名額不退還），客戶、合約、預約、收款功能都能用；營運儀表板與服務追蹤升級後解鎖。', function(){}, '開始使用'); });
                 else if(res.expired) _crmNotices.unshift(function(){ showConfirm('訂閱已到期。\n\n現有資料都看得到、也能匯出備份，升級後可繼續新增與編輯。', function(){ window.open(LINE_SUPPORT_URL,'_blank','noopener'); }, '聯繫客服'); });
                 renderCrmVerTag();
                 initStep1();
@@ -2793,11 +2804,11 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                 list.innerHTML = '<p style="font-size:13px;color:#e67e22;padding:10px;background:#fef5e7;border-radius:6px;">還沒有服務，先新增一個才能開始建立客戶。</p>';
             } else if (single) {
                 const st = types[0];
-                const esc = (st.typeName || '').replace(/'/g, "\\'");
+                const esc = escJsArg(st.typeName || '');
                 list.innerHTML = `
                     <div style="display:flex;align-items:center;gap:8px;padding:12px 0;">
                         <span style="flex:1;">
-                            <span style="font-weight:bold;font-size:15px;color:#2c3e50;">${st.typeName}</span>
+                            <span style="font-weight:bold;font-size:15px;color:#2c3e50;">${escHtml(st.typeName)}</span>
                             <br><small style="color:#95a5a6;">${recLabel(st)}</small>
                         </span>
                         <button class="btn btn-sm btn-secondary" onclick="editServiceType('${st.id}')">編輯</button>
@@ -2805,11 +2816,11 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
             } else {
                 list.innerHTML = types.map(st => {
                     const isActive = store.data.selectedServiceType === st.id;
-                    const esc = (st.typeName || '').replace(/'/g, "\\'");
+                    const esc = escJsArg(st.typeName || '');
                     return `
                     <div style="display:flex;align-items:center;gap:8px;padding:10px;border:2px solid ${isActive ? '#27ae60' : '#ecf0f1'};border-radius:8px;margin-bottom:8px;background:${isActive ? '#e8f5e9' : 'white'};">
                         <span style="flex:1;cursor:pointer;" onclick="switchServiceType('${st.id}')">
-                            <span style="font-weight:${isActive ? 'bold' : 'normal'};">${st.typeName}</span>${isActive ? ' <span style="color:#27ae60;font-size:12px;">使用中</span>' : ''}
+                            <span style="font-weight:${isActive ? 'bold' : 'normal'};">${escHtml(st.typeName)}</span>${isActive ? ' <span style="color:#27ae60;font-size:12px;">使用中</span>' : ''}
                             <br><small style="color:#95a5a6;">${recLabel(st)} ｜ ${cnt(st.id)} 位客戶</small>
                         </span>
                         <button class="btn btn-sm btn-secondary" onclick="editServiceType('${st.id}')">編輯</button>
@@ -2926,6 +2937,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
         }
 
         function saveEditServiceType() {
+            if (crmBlocked()) return;
             const typeId = document.getElementById('edit-service-modal').dataset.typeId;
             const st = store.getServiceType(typeId);
             if (!st) return;
@@ -3169,6 +3181,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
         }
 
         function finishSetup() {
+            if (crmBlocked()) return;
             const msg = document.getElementById('setupMsg');
             const who = (document.getElementById('setup-provider').value || '').trim();
             if (!who) { msg.textContent = '請填寫店名或稱呼'; return; }
@@ -3292,6 +3305,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
         }
 
         function switchServiceType(typeId) {
+            if (crmBlocked()) return;
             store.data.selectedServiceType = typeId;
             store.save();
             renderSettingsPage();
@@ -3408,9 +3422,9 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                                 ${client.rooms ? `<p>房間數: ${client.rooms}` : ''}
                                 ${client.hasChildren ? '| 有小孩' : ''}
                                 ${client.hasPets ? '| 有寵物' : ''}
-                                ${client.applianceName ? `<p>電器: ${client.applianceName} | 保固: ${client.warrantyStatus}` : ''}
+                                ${client.applianceName ? `<p>電器: ${escHtml(client.applianceName)} | 保固: ${escHtml(client.warrantyStatus)}` : ''}
                                 ${client.lineOfficial ? '<p>✓ 已加入官方LINE' : ''}
-                                ${client.notes ? `<p><strong>備註:</strong> ${client.notes}` : ''}
+                                ${client.notes ? `<p><strong>備註:</strong> ${escHtml(client.notes)}` : ''}
                                 <div class="list-item-actions" style="margin-top: 10px;">
                                     <button class="btn btn-sm btn-secondary" onclick="editClient('${client.id}')">編輯</button>
                                     ${deleteBtn}
@@ -3683,7 +3697,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                                 <p>類型: ${contract.contractType} | 合作: ${contract.cooperationMethod}</p>
                                 <p>我方使用: ${usedHours}h${preUsedNote} | 剩餘: <strong style="${remainingStyle}">${remainingHours}h</strong></p>
                                 ${H.booked > 0 ? `<p style="font-size:12.5px;color:#e67e22;">其中 ${H.booked}h 已排未做，還能再排 ${H.usable}h</p>` : ''}
-                                ${contract.notes ? `<p><strong>備註:</strong> ${contract.notes}` : ''}
+                                ${contract.notes ? `<p><strong>備註:</strong> ${escHtml(contract.notes)}` : ''}
                                 <div class="list-item-actions" style="margin-top: 10px;">
                                     ${!isEnded ? `<button class="btn btn-sm btn-secondary" onclick="editContract('${contract.id}')">編輯</button>` : ''}
                                     ${!isEnded ? `<button class="btn btn-sm btn-secondary" onclick="terminateContract('${contract.id}')">終止</button>` : ''}
@@ -3962,6 +3976,11 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
         let bkCalMonth = null;      // 月曆目前顯示的月份（當月 1 號）
         let bkCalPick = null;       // 使用者點選的日期 yyyy-mm-dd，null＝整個月
 
+        // 'YYYY-MM-DD' 當成「台灣當天」而不是 UTC 午夜（否則逾期天數會少算一天）
+        function parseYmdLocal(v) {
+            const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(v == null ? '' : v));
+            return m ? new Date(+m[1], +m[2] - 1, +m[3]) : new Date(v);
+        }
         function ymdLocal(d) {
             const p2 = n => String(n).padStart(2, '0');
             return d.getFullYear() + '-' + p2(d.getMonth() + 1) + '-' + p2(d.getDate());
@@ -4094,10 +4113,10 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                                 <button class="btn btn-sm btn-secondary" style="margin-left: 10px;" onclick="toggleExpand('${expandId}')">展開</button>
                             </div>
                             <div id="${expandId}" style="display: none; margin-top: 10px; padding-top: 10px; border-top: 1px solid #ecf0f1;">
-                                <p>${booking.homeType ? '住家: ' + booking.homeType + ' | ' : ''}地址: ${booking.address || ''}</p>
-                                ${booking.staffName ? `<p>服務人員: ${booking.staffName}</p>` : ''}
+                                <p>${booking.homeType ? '住家: ' + escHtml(booking.homeType) + ' | ' : ''}地址: ${escHtml(booking.address || '')}</p>
+                                ${booking.staffName ? `<p>服務人員: ${escHtml(booking.staffName)}</p>` : ''}
                                 ${booking.useEssentialOil ? '<p>✓ 使用精油</p>' : ''}
-                                ${booking.serviceNotes ? `<p><strong>備註:</strong> ${booking.serviceNotes}` : ''}
+                                ${booking.serviceNotes ? `<p><strong>備註:</strong> ${escHtml(booking.serviceNotes)}` : ''}
                                 <div class="list-item-actions" style="margin-top: 10px;">
                                     <button class="btn btn-sm btn-primary" onclick="openBookingStatusModal('${booking.id}')">更新狀態</button>
                                     <button class="btn btn-sm btn-secondary" onclick="editBooking('${booking.id}')">編輯</button>
@@ -4964,7 +4983,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                 const keys = Object.keys(tally).sort((a, b) => tally[b].jobs - tally[a].jobs);
                 if (keys.length > 1 || (keys.length === 1 && keys[0] !== '自己')) {
                     staffHtml = `<div class="info-box"><h3>👷 各人場次與時數 ${periodLabel}</h3>` +
-                        keys.map(k => `<p>${k}: <strong>${tally[k].jobs} 場</strong> · ${tally[k].hours} 小時</p>`).join('') +
+                        keys.map(k => `<p>${escHtml(k)}: <strong>${tally[k].jobs} 場</strong> · ${tally[k].hours} 小時</p>`).join('') +
                         `</div>`;
                 }
             }
@@ -4972,7 +4991,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
             const signName = store.data.providerName || '';
 
             dashboardContent.innerHTML = `
-                ${signName ? `<p style="font-size:13px;color:#7f8c8d;margin:0 0 12px;">${signName} · 報表${periodLabel}</p>` : ''}
+                ${signName ? `<p style="font-size:13px;color:#7f8c8d;margin:0 0 12px;">${escHtml(signName)} · 報表${periodLabel}</p>` : ''}
                 <div class="info-box">
                     <h3>📊 客戶統計</h3>
                     <p>現有客戶數（服務中）: <strong>${activeClients} 位</strong></p>
@@ -5012,7 +5031,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                 if (d.daysDiff !== null) {
                     timeText = (d.monthsDiff >= 1) ? `${d.monthsDiff} 個月前` : `${d.daysDiff} 天前`;
                 }
-                const dateText = d.lastDate ? d.lastDate.toISOString().split('T')[0] : '';
+                const dateText = d.lastDate ? ymdLocal(d.lastDate) : '';
                 const sub = [d.itemName, d.note].filter(Boolean).join(' ｜ ');
                 return `
                     <div style="border-left:4px solid ${cfg.border};background:${cfg.bg};padding:12px 14px;border-radius:6px;margin-bottom:10px;">
@@ -5067,7 +5086,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                         const key = (b.serviceItem || '').trim() || '（未填項目）';
                         if (seen[key]) return;              // 同一項目只看最近一次
                         seen[key] = true;
-                        const last = new Date(b.bookingDate);
+                        const last = parseYmdLocal(b.bookingDate);
                         const days = Math.floor((today - last) / 86400000);
                         const months = Math.floor(days / 30);
                         const rm = parseInt(b.remindMonths, 10) || 0;
@@ -5100,7 +5119,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                 ).sort((a, b) => new Date(b.bookingDate) - new Date(a.bookingDate));
 
                 const lastBooking = bookings[0] || null;
-                const lastDate = lastBooking ? new Date(lastBooking.bookingDate) : null;
+                const lastDate = lastBooking ? parseYmdLocal(lastBooking.bookingDate) : null;
                 const daysDiff = lastDate ? Math.floor((today - lastDate) / (1000 * 60 * 60 * 24)) : null;
                 const monthsDiff = daysDiff !== null ? Math.floor(daysDiff / 30) : null;
 
@@ -5149,7 +5168,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                         timeText = `${d.daysDiff} 天前`;
                     }
                 }
-                const dateText = d.lastDate ? d.lastDate.toISOString().split('T')[0] : '';
+                const dateText = d.lastDate ? ymdLocal(d.lastDate) : '';
                 return `
                     <div style="border-left:4px solid ${cfg.border};background:${cfg.bg};padding:12px 14px;border-radius:6px;margin-bottom:10px;">
                         <div style="display:flex;justify-content:space-between;align-items:center;">
@@ -5159,7 +5178,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                                     最後服務：${timeText}
                                     ${dateText ? `<span style="color:#7f8c8d;">（${dateText}）</span>` : ''}
                                 </p>
-                                ${(d.stName || d.remainH !== null) ? `<p style="font-size:12px;color:#7f8c8d;">${d.stName}${(d.stName && d.remainH !== null) ? ' ｜ ' : ''}${d.remainH !== null ? `<span style="color:${d.remainH > 0 ? '#c0392b' : '#7f8c8d'};font-weight:${d.remainH > 0 ? 'bold' : 'normal'};white-space:nowrap;">合約還剩 ${d.remainH}h</span>` : ''}</p>` : ''}
+                                ${(d.stName || d.remainH !== null) ? `<p style="font-size:12px;color:#7f8c8d;">${escHtml(d.stName)}${(d.stName && d.remainH !== null) ? ' ｜ ' : ''}${d.remainH !== null ? `<span style="color:${d.remainH > 0 ? '#c0392b' : '#7f8c8d'};font-weight:${d.remainH > 0 ? 'bold' : 'normal'};white-space:nowrap;">合約還剩 ${d.remainH}h</span>` : ''}</p>` : ''}
                             </div>
                             <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
                                 <span style="font-size:11px;background:white;padding:2px 8px;border-radius:10px;color:${cfg.border};border:1px solid ${cfg.border};">${cfg.label}</span>
@@ -5220,14 +5239,14 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                         <p style="font-size:13px;color:#555;margin-top:2px;">${b.serviceHours}h
                             ${b.useEssentialOil ? ' ｜ <span style="color:#8e44ad;">✓ 使用精油</span>' : ''}
                         </p>
-                        ${b.serviceNotes ? `<p style="font-size:12px;color:#7f8c8d;margin-top:4px;">備註：${b.serviceNotes}</p>` : ''}
+                        ${b.serviceNotes ? `<p style="font-size:12px;color:#7f8c8d;margin-top:4px;">備註：${escHtml(b.serviceNotes)}</p>` : ''}
                     </div>`).join('');
             }
 
             document.getElementById('client-detail-content').innerHTML = `
                 <div style="padding:4px 0 12px;">
                     <p style="font-size:16px;font-weight:bold;color:#2c3e50;">${escHtml(client.clientName)}</p>
-                    <p style="font-size:13px;color:#7f8c8d;">📞 ${escHtml(client.phone)} ｜ ${st?.typeName || ''}</p>
+                    <p style="font-size:13px;color:#7f8c8d;">📞 ${escHtml(client.phone)} ｜ ${escHtml(st?.typeName || '')}</p>
                     ${client.address ? `<p style="font-size:13px;color:#7f8c8d;">📍 ${escHtml(client.address)}</p>` : ''}
                 </div>
                 <div style="border-top:1px solid #ecf0f1;padding-top:12px;margin-bottom:12px;">
@@ -5382,7 +5401,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
             const blob = new Blob([data], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
-            const date = new Date().toISOString().split('T')[0];
+            const date = ymdLocal(new Date());
             const who = (store.data.providerName || '').replace(/[\\/:*?"<>|\s]/g, '');
             const fname = `${who ? who + '-' : ''}客戶管理備份-${date}.json`;
             a.href = url;
@@ -5758,7 +5777,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
   // 沒有免費版的 App：試用到期轉唯讀，後台不提供「改為免費版」，到期顯示為「已到期」
   var NO_FREE_APPS = { crm:true };
   function planText(appId, plan){ return (plan==='free' && NO_FREE_APPS[appId]) ? '已到期' : (PLAN_TXT[plan]||plan); }
-  function devLimit(p){ return (p==='full'||p==='basic'||p==='family'||p==='trial') ? 3 : 1; }
+  function devLimit(p){ return (p==='full'||p==='basic'||p==='family') ? 2 : 1; }   // CRM：試用 1 台、完整版 2 台
 
   var S = { data:{}, tab:'all', q:'', loading:false, sel:null, selApp:null,
             addPlan:'full', addMonths:12, addApp:'crm' };
@@ -6278,9 +6297,9 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
    ==================================================================== */
 (function(){
   var PAY_LINKS = {
-    cal:  '',   // 行事曆   $999／年
-    cook: '',   // 食在料理 $799／年
-    trv:  '',   // 旅遊計畫 $999／年
+    cal:  '',   // 行事曆   $990／年
+    cook: '',   // 食在料理 $990／年
+    trv:  '',   // 旅遊計畫 $990／年
     crm:  ''    // 客戶管理 $6,000／年（早鳥）
   };
   var LINE_URL = 'https://lin.ee/DwhMLJm';
@@ -6375,19 +6394,19 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
    ==================================================================== */
 (function(){
   var APP = (window.LEGAL_APP || 'cal');
-  var UPDATED = '2026/10/06';
+  var UPDATED = '2026/10/12';
   var MAIL = 'beyunself@hotmail.com';
   var LINE_NAME = '智在生活';
 
   var CFG = {
-    cal:  { name:'生活管家', trial:'二十一', price:'999' },
-    cook: { name:'食在料理', trial:'十四',   price:'999' },
-    trv:  { name:'旅遊計畫', trial:'十四',   price:'999' },
-    crm:  { name:'客戶管理', trial:'三十',   price:'7,200', noFree:true }   // noFree：沒有免費版，試用到期轉唯讀
+    cal:  { name:'生活管家', trial:'二十一', price:'990', devTxt:'完整版及試用期間之同一帳號至多得於三台裝置登入，免費版為一台。' },
+    cook: { name:'食在料理', trial:'十四',   price:'990', local:true, devTxt:'同一帳號限於一台裝置登入；更換裝置時，得於新裝置登入後登出舊裝置。' },
+    trv:  { name:'旅遊計畫', trial:'十四',   price:'990', devTxt:'完整版及試用期間之同一帳號至多得於三台裝置登入，免費版為一台。' },
+    crm:  { name:'客戶管理', trial:'三十',   price:'7,200', noFree:true, devTxt:'完整版之同一帳號至多得於二台裝置登入，試用期間為一台。' }   // noFree：沒有免費版，試用到期轉唯讀
   };
   var C = CFG[APP] || CFG.cal;
-  var PRICE_TXT = { cal:'新臺幣 999 元／年', cook:'新臺幣 999 元／年', trv:'新臺幣 999 元／年',
-                    crm:'新臺幣 7,200 元／年（前十五名早鳥價 6,000 元，續約維持同價）' };
+  var PRICE_TXT = { cal:'新臺幣 990 元／年', cook:'新臺幣 990 元／年', trv:'新臺幣 990 元／年',
+                    crm:'新臺幣 7,200 元／年（早鳥價：限 2026 年 12 月 30 日前購買之前三十名，6,000 元，並加贈生活管家一年；續約維持同價）' };
   C.priceTxt = PRICE_TXT[APP] || PRICE_TXT.cal;
 
   var CN = ['','一','二','三','四','五','六','七','八','九','十'];
@@ -6398,16 +6417,17 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
     .map(function(s){ return '<li>'+s+'</li>'; }).join('') + '</ol>'; }
   function h(t,b){ return { t:t, b:b }; }
 
+  /* 賣方資訊：目前僅以品牌名稱「智在生活」揭露。如需補充名稱、地址，於此處新增即可。 */
   var CONTACT = p('電子郵件：'+MAIL, '官方 LINE：'+LINE_NAME);
 
   /* ---------- 服務條款 ---------- */
   var TERMS =
     sec(1,'契約之成立與變更', ol(
       '本條款為使用者與「智在生活」（下稱本服務）間之契約。使用者開始使用本服務，即視為已閱讀並同意本條款全部內容。',
-      '本條款如有修訂，將於本服務內公告；公告後使用者繼續使用者，視為同意修訂後之條款。')) +
+      '本條款如有修訂，將於本服務內公告；公告後使用者繼續使用，視為同意修訂後之條款。')) +
     sec(2,'帳號', ol(
       '本服務以電子郵件驗證連結辨識使用者身分，不另設密碼。使用者應妥善保管其電子郵件帳號；凡經由該帳號所為之操作，均推定為使用者本人所為。',
-      C.noFree ? '完整版之同一帳號至多得於三台裝置登入，試用期間為一台。' : '完整版之同一帳號至多得於三台裝置登入，免費版為一台。',
+      C.devTxt,
       '使用者於共用裝置使用後應即登出，以避免第三人存取其資料。',
       '未滿十八歲者，應經法定代理人同意後始得使用本服務。')) +
     sec(3,'智慧財產權', ol(
@@ -6439,7 +6459,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
          '裝置識別碼：用於計算同一帳號之登入裝置數量。') +
       p('本服務不蒐集通訊錄、位置資訊、照片或其他裝置資料，亦未使用任何廣告或行為追蹤工具。')) +
     sec(2,'資料之儲存', ol(
-      '前條資料儲存於 Google 雲端服務。',
+      C.local ? '帳號及訂閱資料儲存於 Google 雲端服務；使用者於本服務建立之料理、菜單、庫存及採購等內容，僅儲存於使用者之裝置本機，不上傳至本服務。' : '前條資料儲存於 Google 雲端服務。',
       '各帳號之資料以使用者之電子郵件位址區隔，其他使用者無從讀取。')) +
     sec(3,'資料之存取與利用', ol(
       '本服務僅於使用者申告問題而有協助排除障礙之必要，或系統異常而有修復之必要時，存取使用者資料。',
@@ -6450,7 +6470,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
       p('前開服務各有其隱私權政策。')) +
     sec(5,'保存期限', ol(
       '資料於帳號存續期間持續保存。',
-      '使用者得隨時請求刪除帳號，本服務應於三十日內刪除其全部資料；備份系統中之副本亦於同期間內一併移除。刪除後無法回復，請先自行匯出。')) +
+      C.local ? '使用者得隨時請求刪除帳號，本服務應於三十日內刪除其帳號及訂閱資料；備份系統中之副本亦於同期間內一併移除。儲存於使用者裝置本機之內容，使用者得自行於該裝置清除。刪除後無法回復，請先自行匯出。' : '使用者得隨時請求刪除帳號，本服務應於三十日內刪除其全部資料；備份系統中之副本亦於同期間內一併移除。刪除後無法回復，請先自行匯出。')) +
     sec(6,'使用者之權利', p(
       '使用者就其個人資料，得行使查詢、閱覽、製給複製本、補充或更正、請求停止蒐集處理利用及請求刪除之權利。多數項目於本服務內即可自行完成，其餘得以電子郵件或官方 LINE 聯繫。')) +
     sec(7,'Cookie 與本機儲存', p(
@@ -6464,7 +6484,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
       p('其他產品之方案與費用，請參閱官方網站 handyassist-system.github.io。')) +
     sec(2,'免費試用', ol(
       C.noFree
-        ? C.name+'提供'+C.trial+'日免費試用。試用期間得建立五位客戶，並使用客戶、合約、預約及收款功能；營運儀表板及客戶追蹤為完整版功能。'
+        ? C.name+'提供'+C.trial+'日免費試用。試用期間得建立五位客戶（已建立之客戶即使刪除，名額不予退還），並使用客戶、合約、預約及收款功能；營運儀表板及客戶追蹤為完整版功能。'
         : C.name+'提供'+C.trial+'日免費試用，試用期間功能全部開放。',
       C.noFree
         ? '試用期屆滿後，帳號轉為唯讀：使用者既有資料仍予保留，得查看及匯出，惟不得新增或編輯；升級完整版後即恢復。'
@@ -7226,10 +7246,10 @@ upgradeSheet.init({
     ['合約、預約、收款', true, true],
     ['營運儀表板', '示意', true],
     ['服務追蹤', '示意', true],
-    ['同帳號裝置數', '1 台', '3 台'],
+    ['同帳號裝置數', '1 台', '2 台'],
     ['到期後', '唯讀', '—']
   ],
-  note:'原價 $7,200，前 15 位早鳥價 $6,000，續約維持同價。試用到期後資料完整保留，可查看與匯出，升級後即恢復編輯。'
+  note:'原價 $7,200；早鳥價 $6,000（12/30 前、限前 30 位，並加贈生活管家一年），續約維持同價。試用到期後資料完整保留，可查看與匯出，升級後即恢復編輯。'
 });
 </script>
 
