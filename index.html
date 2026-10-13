@@ -2126,7 +2126,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
         function isCrmAdminEmail(e){ return String(e||'').toLowerCase() === ADMIN_EMAIL.toLowerCase(); }
         // 只用於「這個信箱用過試用沒」的比對，不可當資料路徑
         function crmTrialEmailKey(e){ return normEmail(e).replace(/[.#$\[\]]/g,'_'); }
-        const CRM_APP_VER = 'v1.0', CRM_BUILD_ID = '1009-60';
+        const CRM_APP_VER = 'v1.0', CRM_BUILD_ID = '1009-62';
         const CRM_EMAIL_FOR_SIGNIN = 'crmEmailForSignIn';
         const LINE_SUPPORT_URL = 'https://line.me/R/ti/p/@373pfdee';
         var crmUserEmail = null;
@@ -5100,21 +5100,21 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                 const sub = [d.itemName, d.note].filter(Boolean).join(' ｜ ');
                 return `
                     <div style="border-left:4px solid ${cfg.border};background:${cfg.bg};padding:12px 14px;border-radius:6px;margin-bottom:10px;">
-                        <div style="display:flex;justify-content:space-between;align-items:center;">
-                            <div style="flex:1;">
-                                <p style="font-weight:bold;color:#2c3e50;">${cfg.icon} ${escHtml(d.client.clientName)}${clientLineChip(d.client)}</p>
+                        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
+                            <p style="font-weight:bold;color:#2c3e50;display:flex;align-items:center;flex-wrap:nowrap;min-width:0;"><span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${cfg.icon} ${escHtml(d.client.clientName)}</span>${clientLineChip(d.client)}</p>
+                            <span style="flex:0 0 auto;font-size:11px;background:white;padding:2px 8px;border-radius:10px;color:${cfg.border};border:1px solid ${cfg.border};">${cfg.label}</span>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:8px;margin-top:2px;">
+                            <div style="flex:1;min-width:0;">
                                 <p style="font-size:13px;color:#555;margin-top:4px;">
                                     最後服務：${timeText}
                                     ${dateText ? `<span style="color:#5f6b76;white-space:nowrap;">（${dateText}）</span>` : ''}
                                 </p>
                                 ${sub ? `<p style="font-size:12px;color:#7f8c8d;">${sub}</p>` : ''}
                             </div>
-                            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
-                                <span style="font-size:11px;background:white;padding:2px 8px;border-radius:10px;color:${cfg.border};border:1px solid ${cfg.border};">${cfg.label}</span>
-                                <div style="display:flex;gap:6px;">
-                                    ${d.client.phone ? `<a class="btn btn-sm btn-secondary" style="text-decoration:none;display:inline-block;min-width:72px;text-align:center;box-sizing:border-box;" href="tel:${String(d.client.phone).replace(/[^0-9+]/g,'')}">📞 撥號</a>` : ''}
-                                    <button class="btn btn-sm btn-secondary" style="min-width:72px;text-align:center;box-sizing:border-box;" onclick="openClientDetailModal('${d.client.id}')">查看</button>
-                                </div>
+                            <div style="display:flex;gap:6px;flex:0 0 auto;">
+                                    ${d.client.phone ? `<a class="btn btn-sm btn-secondary" style="text-decoration:none;display:inline-flex;align-items:center;justify-content:center;min-width:78px;height:36px;padding:0 10px;box-sizing:border-box;font-size:14px;font-weight:600;line-height:1;margin:0;vertical-align:top;" href="tel:${String(d.client.phone).replace(/[^0-9+]/g,'')}">📞 撥號</a>` : ''}
+                                    <button class="btn btn-sm btn-secondary" style="display:inline-flex;align-items:center;justify-content:center;min-width:78px;height:36px;padding:0 10px;box-sizing:border-box;font-size:14px;font-weight:600;line-height:1;margin:0;vertical-align:top;" onclick="openClientDetailModal('${d.client.id}')">查看</button>
                             </div>
                         </div>
                     </div>`;
@@ -5236,21 +5236,21 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                 const dateText = d.lastDate ? ymdLocal(d.lastDate) : '';
                 return `
                     <div style="border-left:4px solid ${cfg.border};background:${cfg.bg};padding:12px 14px;border-radius:6px;margin-bottom:10px;">
-                        <div style="display:flex;justify-content:space-between;align-items:center;">
-                            <div style="flex:1;">
-                                <p style="font-weight:bold;color:#2c3e50;">${cfg.icon} ${escHtml(d.client.clientName)}${clientLineChip(d.client)}</p>
+                        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
+                            <p style="font-weight:bold;color:#2c3e50;display:flex;align-items:center;flex-wrap:nowrap;min-width:0;"><span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${cfg.icon} ${escHtml(d.client.clientName)}</span>${clientLineChip(d.client)}</p>
+                            <span style="flex:0 0 auto;font-size:11px;background:white;padding:2px 8px;border-radius:10px;color:${cfg.border};border:1px solid ${cfg.border};">${cfg.label}</span>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:8px;margin-top:2px;">
+                            <div style="flex:1;min-width:0;">
                                 <p style="font-size:13px;color:#555;margin-top:4px;">
                                     最後服務：${timeText}
                                     ${dateText ? `<span style="color:#5f6b76;white-space:nowrap;">（${dateText}）</span>` : ''}
                                 </p>
                                 ${(d.remainH !== null) ? `<p style="font-size:12px;color:#7f8c8d;">${d.remainH !== null ? `<span style="color:${d.remainH > 0 ? '#c0392b' : '#7f8c8d'};font-weight:${d.remainH > 0 ? 'bold' : 'normal'};white-space:nowrap;">合約還剩 ${d.remainH}h</span>` : ''}</p>` : ''}
                             </div>
-                            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
-                                <span style="font-size:11px;background:white;padding:2px 8px;border-radius:10px;color:${cfg.border};border:1px solid ${cfg.border};">${cfg.label}</span>
-                                <div style="display:flex;gap:6px;">
-                                    ${d.client.phone ? `<a class="btn btn-sm btn-secondary" style="text-decoration:none;display:inline-block;min-width:72px;text-align:center;box-sizing:border-box;" href="tel:${String(d.client.phone).replace(/[^0-9+]/g,'')}">📞 撥號</a>` : ''}
-                                    <button class="btn btn-sm btn-secondary" style="min-width:72px;text-align:center;box-sizing:border-box;" onclick="openClientDetailModal('${d.client.id}')">查看</button>
-                                </div>
+                            <div style="display:flex;gap:6px;flex:0 0 auto;">
+                                    ${d.client.phone ? `<a class="btn btn-sm btn-secondary" style="text-decoration:none;display:inline-flex;align-items:center;justify-content:center;min-width:78px;height:36px;padding:0 10px;box-sizing:border-box;font-size:14px;font-weight:600;line-height:1;margin:0;vertical-align:top;" href="tel:${String(d.client.phone).replace(/[^0-9+]/g,'')}">📞 撥號</a>` : ''}
+                                    <button class="btn btn-sm btn-secondary" style="display:inline-flex;align-items:center;justify-content:center;min-width:78px;height:36px;padding:0 10px;box-sizing:border-box;font-size:14px;font-weight:600;line-height:1;margin:0;vertical-align:top;" onclick="openClientDetailModal('${d.client.id}')">查看</button>
                             </div>
                         </div>
                     </div>
