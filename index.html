@@ -1082,12 +1082,12 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
             <form id="client-form" autocomplete="off">
                 <div class="form-group">
                     <label for="client-name">客戶姓名 *</label>
-                    <input type="text" id="client-name" required autocomplete="off" autocapitalize="off" spellcheck="false">
+                    <input type="text" id="client-name" name="crm_f_cn7q" required autocomplete="nope" autocapitalize="off" spellcheck="false" data-lpignore="true" data-form-type="other">
                 </div>
 
                 <div class="form-group">
                     <label for="client-phone">聯絡電話 *</label>
-                    <input type="text" id="client-phone" required autocomplete="off">
+                    <input type="text" id="client-phone" name="crm_f_cp3k" required autocomplete="nope" data-lpignore="true" data-form-type="other">
                 </div>
 
                 <div class="form-group" id="client-source-group">
@@ -1108,7 +1108,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
 
                 <div class="form-group">
                     <label for="client-address">服務地址 *</label>
-                    <input type="text" id="client-address" autocomplete="off">
+                    <input type="text" id="client-address" name="crm_f_ca9w" autocomplete="nope" data-lpignore="true" data-form-type="other">
                 </div>
 
                 <div class="form-group">
@@ -1276,7 +1276,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
 
                 <div class="form-group" id="booking-address-group" style="display:none;">
                     <label for="booking-address">服務地址 *</label>
-                    <input type="text" id="booking-address" placeholder="服務地址" autocomplete="off">
+                    <input type="text" id="booking-address" name="crm_f_ba5z" placeholder="服務地址" autocomplete="nope" data-lpignore="true" data-form-type="other">
                     <p style="font-size:11px;color:#95a5a6;margin-top:4px;">預設帶入客戶的地址，這次要去別的地方就直接改，不會影響客戶資料</p>
                 </div>
 
@@ -2116,7 +2116,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
         function isCrmAdminEmail(e){ return String(e||'').toLowerCase() === ADMIN_EMAIL.toLowerCase(); }
         // 只用於「這個信箱用過試用沒」的比對，不可當資料路徑
         function crmTrialEmailKey(e){ return normEmail(e).replace(/[.#$\[\]]/g,'_'); }
-        const CRM_APP_VER = 'v1.0', CRM_BUILD_ID = '1009-40';
+        const CRM_APP_VER = 'v1.0', CRM_BUILD_ID = '1009-41';
         const CRM_EMAIL_FOR_SIGNIN = 'crmEmailForSignIn';
         const LINE_SUPPORT_URL = 'https://line.me/R/ti/p/@373pfdee';
         var crmUserEmail = null;
