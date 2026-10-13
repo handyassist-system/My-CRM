@@ -2126,7 +2126,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
         function isCrmAdminEmail(e){ return String(e||'').toLowerCase() === ADMIN_EMAIL.toLowerCase(); }
         // 只用於「這個信箱用過試用沒」的比對，不可當資料路徑
         function crmTrialEmailKey(e){ return normEmail(e).replace(/[.#$\[\]]/g,'_'); }
-        const CRM_APP_VER = 'v1.0', CRM_BUILD_ID = '1009-58';
+        const CRM_APP_VER = 'v1.0', CRM_BUILD_ID = '1009-59';
         const CRM_EMAIL_FOR_SIGNIN = 'crmEmailForSignIn';
         const LINE_SUPPORT_URL = 'https://line.me/R/ti/p/@373pfdee';
         var crmUserEmail = null;
@@ -5266,7 +5266,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
         // 客戶管理、客戶追蹤、客戶詳情三處共用，確保同一位客戶在各處看到的標記一致
         function clientLineChip(client) {
             return client && client.lineOfficial
-                ? '<span style="background:#27ae60;color:#fff;border:1.5px solid #fff;box-shadow:0 0 0 1px rgba(30,132,73,.55);padding:1px 7px;border-radius:10px;font-size:11px;margin-left:6px;font-weight:600;white-space:nowrap;">LINE ✓</span>'
+                ? '<span style="background:#06C755;color:#1a1a1a;padding:2px 7px;border-radius:3px;font-size:11px;margin-left:6px;font-weight:600;white-space:nowrap;">LINE ✓</span>'
                 : '';
         }
 
