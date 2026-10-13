@@ -676,6 +676,11 @@ input:focus, textarea:focus, select:focus{
     content:"›"; margin-left:auto; font-size:19px; line-height:1; color:#95a5a6; flex:0 0 auto;
   }
 
+/* 設定子頁的分組小標題（有分隔線；第一組不加線） */
+.set-sec{ font-size:12.5px; font-weight:700; color:#5f6b76; letter-spacing:.5px;
+  margin:24px 0 12px; padding-top:14px; border-top:1px solid #E7E2DA; }
+.shared-tag{ font-weight:400; font-size:12px; color:#5f6b76; }
+.set-sec.first{ margin-top:6px; padding-top:0; border-top:none; }
 /* 設定頁文字加深：原本淺灰（#95a5a6／#7f8c8d）在白底上不好讀，統一成較深的灰 */
 #step1 small, #step1 [style*="color:#95a5a6"], #step1 [style*="color:#7f8c8d"]{ color:#5f6b76 !important; }
 .set-row .set-val{ color:#5f6b76 !important; }
@@ -829,13 +834,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
 <!-- 服務設定 -->
                 <div>
 
-                    <div class="form-group">
-                        <div class="checkbox-group">
-                            <input type="checkbox" id="set-company-dispatch">
-                            <label for="set-company-dispatch">我有接「公司派案」</label>
-                        </div>
-                        <p style="font-size:11px;color:#95a5a6;margin-top:2px;">關閉則不顯示自接／公司派選項</p>
-                    </div>
+                    <div class="set-sec first">收費</div>
 
                     <!-- 按合約的服務不設一般收費（每份合約都不一樣）；單次計費才有預設金額 -->
                     <div class="form-group" id="set-hourly-rate-group" style="display:none;">
@@ -845,6 +844,14 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                             <input type="number" id="set-hourly-rate" min="0" step="1" placeholder="例如：1500">
                         </div>
                         <small style="color:#7f8c8d;">預約時自動帶入</small>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="set-company-dispatch">
+                            <label for="set-company-dispatch">我有接「公司派案」</label>
+                        </div>
+                        <p style="font-size:11px;color:#95a5a6;margin-top:2px;">關閉則不顯示自接／公司派選項</p>
                     </div>
 
                     <div class="form-group" id="set-payment-rate-group">
@@ -857,6 +864,8 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                         <small style="color:#7f8c8d;">新增合約時的預設值</small>
                     </div>
 
+                    <div class="set-sec">預約</div>
+
                     <div class="form-group">
                         <div class="checkbox-group">
                             <input type="checkbox" id="set-use-oil">
@@ -864,10 +873,18 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                         </div>
                     </div>
 
-                    <button type="button" id="advToggle" class="adv-toggle" onclick="toggleAdvSet()">
-                        <span>⚙️ 進階設定</span><span class="adv-ar" id="advArrow">›</span>
-                    </button>
-                    <div id="advBox" style="display:none;">
+                    <div class="form-group">
+                        <label>預約時段範圍 <span class="shared-tag">（全部服務共用）</span></label>
+                        <div style="display:flex;gap:8px;align-items:center;">
+                            <input type="number" id="set-slot-start" min="0" max="23" step="1" style="width:80px;">
+                            <span style="font-size:13px;">點 到</span>
+                            <input type="number" id="set-slot-end" min="1" max="23" step="1" style="width:80px;">
+                            <span style="font-size:13px;">點</span>
+                        </div>
+                    </div>
+
+                    <div class="set-sec">合約與追蹤</div>
+
                     <div class="form-group">
                         <label for="set-contract-years">合約年限（年）</label>
                         <input type="number" id="set-contract-years" min="0" step="1">
@@ -885,23 +902,12 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                         </div>
                     </div>
 
-                    <p style="font-size:12px;color:#95a5a6;margin:22px 0 10px;padding-top:14px;border-top:1px solid #ecf0f1;" id="set-account-note">以下兩項套用全部服務</p>
+                    <div class="set-sec">收款</div>
 
                     <div class="form-group">
-                        <label for="set-overdue-days">收款逾期天數</label>
+                        <label for="set-overdue-days">收款逾期天數 <span class="shared-tag">（全部服務共用）</span></label>
                         <input type="number" id="set-overdue-days" min="1" step="1">
                         <small style="color:#7f8c8d;">超過這天數未收款，標紅字</small>
-                    </div>
-
-                    <div class="form-group">
-                        <label>預約時段範圍</label>
-                        <div style="display:flex;gap:8px;align-items:center;">
-                            <input type="number" id="set-slot-start" min="0" max="23" step="1" style="width:80px;">
-                            <span style="font-size:13px;">點 到</span>
-                            <input type="number" id="set-slot-end" min="1" max="23" step="1" style="width:80px;">
-                            <span style="font-size:13px;">點</span>
-                        </div>
-                    </div>
                     </div>
 
                     <button class="btn btn-primary" style="width:100%" onclick="saveServiceSettings()">儲存服務設定</button>
@@ -2118,7 +2124,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
         function isCrmAdminEmail(e){ return String(e||'').toLowerCase() === ADMIN_EMAIL.toLowerCase(); }
         // 只用於「這個信箱用過試用沒」的比對，不可當資料路徑
         function crmTrialEmailKey(e){ return normEmail(e).replace(/[.#$\[\]]/g,'_'); }
-        const CRM_APP_VER = 'v1.0', CRM_BUILD_ID = '1009-43';
+        const CRM_APP_VER = 'v1.0', CRM_BUILD_ID = '1009-47';
         const CRM_EMAIL_FOR_SIGNIN = 'crmEmailForSignIn';
         const LINE_SUPPORT_URL = 'https://line.me/R/ti/p/@373pfdee';
         var crmUserEmail = null;
@@ -2455,8 +2461,8 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                 // 試用歡迎提示跟「首次設定」綁在一起：只要還要做首次設定（會看到設定頁），完成後就跳一次。
                 // 不再只看「剛好是第一次登入」，免得設定頁中途離開、重新整理後就永遠看不到。
                 if(!crmIsAdmin && res.plan === 'trial' && res.expiry && needsSetup()) _crmNotices.unshift(function(){
-                    var head = res.newTrial ? ('已開啟 ' + CRM_TRIAL_DAYS + ' 天免費試用，到 ' + res.expiry + ' 為止。') : ('你目前是免費試用中，到 ' + res.expiry + ' 為止。');
-                    showConfirm(head + '\n\n試用期間可建立 ' + CRM_TRIAL_CLIENT_QUOTA + ' 位客戶（刪除後名額不退還），客戶、合約、預約、收款功能都能用；營運儀表板與服務追蹤升級後解鎖。', function(){}, '開始使用');
+                    var head = res.newTrial ? ('已開啟 ' + CRM_TRIAL_DAYS + ' 天免費試用，到 ' + res.expiry + ' 為止。') : ('免費試用中，到 ' + res.expiry + ' 為止。');
+                    showConfirm(head + '\n試用期間可建立 ' + CRM_TRIAL_CLIENT_QUOTA + ' 位客戶（刪除後名額不退還）。', function(){}, '開始使用');
                 });
                 else if(res.expired) _crmNotices.unshift(function(){ showConfirm('訂閱已到期。\n\n現有資料都看得到、也能匯出備份，升級後可繼續新增與編輯。', function(){ window.open(LINE_SUPPORT_URL,'_blank','noopener'); }, '聯繫客服'); });
                 renderCrmVerTag();
@@ -2651,23 +2657,28 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
         /* 「這個服務會記錄哪些客戶資料」—— 新增與編輯服務時共用，
            上半截灰字是一定會有的欄位，下半截才是可以勾的兩組。 */
         const REC_BASE_TXT = '客戶姓名、聯絡電話、客戶來源、服務地址、是否加入官方 LINE、備註、服務狀態';
-        function recInfoHtml(prefix, home, repair, locked) {
+        function recInfoHtml(prefix, home, repair, locked, noLabel) {
             var dis = locked ? ' disabled' : '';
-            return '' +
-            '<label style="font-size:13px;">客戶資料欄位</label>' +
+            return (noLabel ? '' : '<label style="font-size:13px;">額外記錄欄位</label>') +
             '<div style="background:#F7F6F3;border:1px solid #E7E2DA;border-radius:10px;padding:10px 12px;margin-top:6px;">' +
-              '<div style="font-size:12px;color:#95a5a6;font-weight:600;">基本欄位（已內建）</div>' +
-              '<div style="font-size:12px;color:#95a5a6;line-height:1.7;margin-top:2px;">' + REC_BASE_TXT + '</div>' +
-              '<div style="font-size:12px;color:#7f8c8d;font-weight:600;margin-top:12px;">選用欄位（可隨時調整）</div>' +
-              '<label style="display:block;margin-top:8px;font-size:13.5px;cursor:pointer;">' +
+              '<label style="display:block;font-size:13.5px;cursor:pointer;">' +
                 '<input type="checkbox" id="' + prefix + '-rec-home"' + (home ? ' checked' : '') + dis + '> 住家狀況' +
-                '<div style="font-size:11.5px;color:#95a5a6;margin:2px 0 0 22px;">住家類型、房間數、有無小孩、有無寵物</div>' +
+                '<div style="font-size:11.5px;color:#5f6b76;margin:2px 0 0 22px;">住家類型、房間數、有無小孩、有無寵物</div>' +
               '</label>' +
               '<label style="display:block;margin-top:10px;font-size:13.5px;cursor:pointer;">' +
                 '<input type="checkbox" id="' + prefix + '-rec-repair"' + (repair ? ' checked' : '') + dis + '> 電器與保固' +
-                '<div style="font-size:11.5px;color:#95a5a6;margin:2px 0 0 22px;">電器名稱、保固狀態</div>' +
+                '<div style="font-size:11.5px;color:#5f6b76;margin:2px 0 0 22px;">電器名稱、保固狀態</div>' +
               '</label>' +
             '</div>';
+        }
+        // 選了類別後的一行白話說明
+        function catSummary(cat) {
+            var a = [cat.billing === 'single' ? '單次計費' : '按合約計費（也可單次）', cat.addr ? '需填服務地址' : '服務地址選填'];
+            var f = [];
+            if (cat.home) f.push('住家狀況');
+            if (cat.repair) f.push('電器與保固');
+            if (f.length) a.push('會記錄' + f.join('、'));
+            return a.join(' · ');
         }
         // 新增服務：類別下拉換了就重畫下面的勾選，選「其他」才讓人自己填名稱
         function onNewServiceCatChange() {
@@ -2679,7 +2690,9 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
             if (g) g.style.display = other ? 'block' : 'none';
             var box = document.getElementById('new-service-fieldinfo');
             // 選了類別就照類別帶，只有「其他」要自己勾
-            if (box) box.innerHTML = recInfoHtml('new', cat.home, cat.repair, !other);
+            if (box) box.innerHTML = other
+                ? recInfoHtml('new', cat.home, cat.repair, false)
+                : '<div style="font-size:13px;color:#2c3e50;background:#F7F6F3;border:1px solid #E7E2DA;border-radius:10px;padding:10px 12px;line-height:1.6;">' + catSummary(cat) + '</div>';
         }
         function fillServiceCatSelect(selectId, current) {
             var sel = document.getElementById(selectId);
@@ -2792,11 +2805,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
             const types = store.getServiceTypes();
             const single = types.length === 1;
             const recLabel = function (st) {
-                var a = [];
-                if (svcRecHome(st))   a.push('住家狀況');
-                if (svcRecRepair(st)) a.push('電器與保固');
-                var t = a.length ? a.join('、') : '僅基本欄位';
-                return t + (st.billing === 'single' ? ' ｜ 只有單次' : ' ｜ 合約／單次皆可');
+                return st.billing === 'single' ? '單次計費' : '按合約計費（也可單次）';
             };
             const cnt = function (id) { return store.data.clients.filter(c => c.serviceTypeId === id).length; };
 
@@ -2868,7 +2877,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
             m.dataset.prevCat = cat ? cat.name : '其他';
             document.getElementById('edit-service-name').value = st.typeName || '';
             const box = document.getElementById('edit-service-fieldinfo');
-            if (box) box.innerHTML = recInfoHtml('edit', svcRecHome(st), svcRecRepair(st), false);
+            if (box) box.innerHTML = recInfoHtml('edit', svcRecHome(st), svcRecRepair(st), false, true);
             renderEditCatInfo(st.billing, st.addrRequired);
             document.getElementById('edit-billing-warn').style.display = 'none';
             const _cm = document.getElementById('edit-cat-msg');
@@ -2898,7 +2907,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
             if (nowB !== m.dataset.origBilling) {
                 warn.innerHTML = (nowB === 'single')
                   ? '⚠️ 改為<b>僅單次計費</b>後，此服務的「合約」分頁將隱藏。<br>既有合約資料完整保留，改回後即恢復顯示。'
-                  : '⚠️ 改為<b>合約／單次皆可</b>後，將顯示「合約」分頁。<br>無合約之客戶仍可直接排定單次預約，資料完整保留。';
+                  : '⚠️ 改為<b>按合約計費（也可單次）</b>後，將顯示「合約」分頁。<br>無合約之客戶仍可直接排定單次預約，資料完整保留。';
                 warn.style.display = 'block';
             } else warn.style.display = 'none';
         }
@@ -2920,15 +2929,15 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                 if (msg) msg.style.display = 'none';
             } else {
                 // 選了類別就以類別的預設值為準，全部覆蓋，並告訴使用者改了什麼
-                if (box) box.innerHTML = recInfoHtml('edit', cat.home, cat.repair, false);
+                if (box) box.innerHTML = recInfoHtml('edit', cat.home, cat.repair, false, true);
                 renderEditCatInfo(cat.billing, cat.addr);
                 const items = [];
-                items.push('計費方式：' + (cat.billing === 'single' ? '僅單次計費' : '合約／單次皆可'));
+                items.push('計費：' + (cat.billing === 'single' ? '單次計費' : '按合約計費（也可單次）'));
                 items.push('服務地址：' + (cat.addr ? '必填' : '選填'));
                 const f = [];
                 if (cat.home) f.push('住家狀況');
                 if (cat.repair) f.push('電器與保固');
-                items.push('記錄欄位：' + (f.length ? f.join('、') : '僅基本欄位'));
+                items.push('額外記錄：' + (f.length ? f.join('、') : '無'));
                 if (msg) {
                     msg.innerHTML = '已套用「<b>' + cat.name + '</b>」的預設設定<br>' +
                                     items.join('　｜　') + '<br>' +
@@ -2982,8 +2991,9 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                 scope.style.display = (types.length > 1 && cur) ? 'block' : 'none';
                 if (cur) document.getElementById('svcset-scope-name').textContent = cur.typeName;
             }
-            const anote = document.getElementById('set-account-note');
-            if (anote) anote.style.display = types.length > 1 ? 'block' : 'none';
+            document.querySelectorAll('.shared-tag').forEach(function (el) {
+                el.style.display = types.length > 1 ? 'inline' : 'none';
+            });
 
             // 一般收費只有「單次計費」的服務才出現（按合約的每份都不一樣，不設預設值）
             // 合約制也可能接沒合約的單次客，所以這個預設金額一律顯示
@@ -4949,22 +4959,10 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
             const paidAmount = allPayments.filter(p => p.paymentStatus === '已收').reduce((sum, p) => sum + (p.amountDue || 0), 0);
             const unpaidAmount = allPayments.filter(p => p.paymentStatus === '未收').reduce((sum, p) => sum + (p.amountDue || 0), 0);
 
-            // 月份別統計
-            const monthlyStats = {};
-            allPayments.forEach(p => {
-                const b = store.getBooking(p.bookingId);
-                if (!b || !b.bookingDate) return;
-                const month = b.bookingDate.substring(0, 7);
-                if (!monthlyStats[month]) monthlyStats[month] = { total: 0, paid: 0, unpaid: 0, totalCount: 0, paidCount: 0, unpaidCount: 0 };
-                monthlyStats[month].total += p.amountDue || 0;
-                monthlyStats[month].totalCount++;
-                if (p.paymentStatus === '已收') { monthlyStats[month].paid += p.amountDue || 0; monthlyStats[month].paidCount++; }
-                if (p.paymentStatus === '未收') { monthlyStats[month].unpaid += p.amountDue || 0; monthlyStats[month].unpaidCount++; }
-            });
-
             const periodLabel = filterMonth ? `（${filterMonth}）` : filterYear ? `（${filterYear} 年）` : '（全部）';
 
-            // 每月概況：已收金額、服務場次、跟上月比（上月用篩選前的資料算，單看一個月也有比較）
+            // 月份概況：本月已收（對照上月）＋ 服務時數、服務客戶數 ＋ 近 6 個月已收長條圖
+            // 上月與圖表用「篩選前」的資料算，單看一個月也有比較
             const paidAllByMonth = {};
             paymentsAll.forEach(p => {
                 const b = store.getBooking(p.bookingId);
@@ -4973,42 +4971,59 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                 if (!(m in paidAllByMonth)) paidAllByMonth[m] = 0;
                 if (p.paymentStatus === '已收') paidAllByMonth[m] += p.amountDue || 0;
             });
-            const jobsByMonth = {};
-            store.getBookings().forEach(b => {
-                if (b.status !== '完成' || !b.bookingDate) return;
-                const m = b.bookingDate.substring(0, 7);
-                jobsByMonth[m] = (jobsByMonth[m] || 0) + 1;
-            });
-            const prevMonthKey = m => {
-                let y = parseInt(m.substring(0, 4), 10), mo = parseInt(m.substring(5, 7), 10) - 1;
-                if (mo < 1) { mo = 12; y--; }
+            const shiftMonth = (m, n) => {
+                let y = parseInt(m.substring(0, 4), 10), mo = parseInt(m.substring(5, 7), 10) + n;
+                while (mo < 1) { mo += 12; y--; }
+                while (mo > 12) { mo -= 12; y++; }
                 return y + '-' + (mo < 10 ? '0' : '') + mo;
             };
+            const nowD = new Date();
+            const thisYM = nowD.getFullYear() + '-' + String(nowD.getMonth() + 1).padStart(2, '0');
+            let refMonth = thisYM;
+            if (filterMonth) refMonth = filterMonth;
+            else if (filterYear) {
+                const ks = Object.keys(paidAllByMonth).filter(k => k.startsWith(filterYear)).sort();
+                refMonth = ks.length ? ks[ks.length - 1] : filterYear + '-12';
+            }
+            const doneInRef = store.getBookings().filter(b => b.status === '完成' && b.bookingDate && b.bookingDate.substring(0, 7) === refMonth);
+            const refHours = Math.round(doneInRef.reduce((t, b) => t + (parseFloat(b.serviceHours) || 0), 0) * 10) / 10;
+            const refClientSet = new Set();
+            doneInRef.forEach(b => { const c = store.bookingClient(b); if (c) refClientSet.add(c.id); });
 
             let monthlyHtml = '';
-            const sortedMonths = Object.keys(monthlyStats).sort().reverse();
-            if (sortedMonths.length > 0) {
-                monthlyHtml = `<h3 style="margin-top:20px;">📅 每月概況</h3><div class="info-box">`;
-                sortedMonths.forEach(month => {
-                    const paid = paidAllByMonth[month] || 0;
-                    const jobs = jobsByMonth[month] || 0;
-                    const pk = prevMonthKey(month);
-                    let cmp = '<span style="color:#5f6b76;">上月無資料</span>';
-                    if (pk in paidAllByMonth) {
-                        const diff = paid - paidAllByMonth[pk];
-                        cmp = diff > 0 ? `<span style="color:#1e8449;">↑ 比上月多 NT$${diff.toLocaleString()}</span>`
-                            : diff < 0 ? `<span style="color:#c0392b;">↓ 比上月少 NT$${Math.abs(diff).toLocaleString()}</span>`
-                            : '<span style="color:#5f6b76;">與上月相同</span>';
-                    }
-                    monthlyHtml += `
-                        <div style="padding:9px 0;border-bottom:1px solid #ecf0f1;">
-                            <strong>${month}</strong>
-                            <div style="padding-left:10px;font-size:13px;color:#444;margin-top:4px;line-height:1.7;">
-                                已收 <strong>NT$${paid.toLocaleString()}</strong> · ${jobs} 場<br>${cmp}
-                            </div>
-                        </div>`;
-                });
-                monthlyHtml += '</div>';
+            if (paymentsAll.length > 0 || doneInRef.length > 0) {
+                const refPaid = paidAllByMonth[refMonth] || 0;
+                const prevKey = shiftMonth(refMonth, -1);
+                let cmp = '<span style="color:#5f6b76;">上月無資料</span>';
+                if (prevKey in paidAllByMonth) {
+                    const diff = refPaid - paidAllByMonth[prevKey];
+                    cmp = diff > 0 ? `<span style="color:#1e8449;">↑ 比上月多 NT$${diff.toLocaleString()}</span>`
+                        : diff < 0 ? `<span style="color:#c0392b;">↓ 比上月少 NT$${Math.abs(diff).toLocaleString()}</span>`
+                        : '<span style="color:#5f6b76;">與上月相同</span>';
+                }
+                const bars = [];
+                for (let i = 5; i >= 0; i--) bars.push(shiftMonth(refMonth, -i));
+                const maxPaid = Math.max.apply(null, bars.map(k => paidAllByMonth[k] || 0).concat([1]));
+                const fmtShort = n => n >= 10000 ? (Math.round(n / 1000) / 10) + '萬' : n.toLocaleString();
+                const chart = bars.map(k => {
+                    const v = paidAllByMonth[k] || 0;
+                    const h = v > 0 ? Math.max(4, Math.round(v / maxPaid * 84)) : 2;
+                    const cur = (k === refMonth);
+                    return `<div style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:118px;">
+                        <div style="font-size:11px;color:#5f6b76;margin-bottom:3px;white-space:nowrap;">${v > 0 ? fmtShort(v) : ''}</div>
+                        <div style="width:70%;max-width:34px;height:${h}px;background:${cur ? '#4A7A9B' : '#B7CBD9'};border-radius:5px 5px 0 0;"></div>
+                        <div style="font-size:11.5px;color:${cur ? '#2c3e50' : '#5f6b76'};font-weight:${cur ? 700 : 400};margin-top:5px;">${parseInt(k.substring(5, 7), 10)}月</div>
+                    </div>`;
+                }).join('');
+                monthlyHtml = `<div class="info-box">
+                    <h3>📅 ${refMonth} 月份概況</h3>
+                    <div style="font-size:13px;color:#5f6b76;margin-top:2px;">當月已收</div>
+                    <div style="font-size:26px;font-weight:800;color:#2c3e50;line-height:1.3;">NT$${refPaid.toLocaleString()}</div>
+                    <div style="font-size:13px;margin:2px 0 8px;">${cmp}</div>
+                    <p style="margin:0;">服務 <strong>${refHours}</strong> 小時 · <strong>${refClientSet.size}</strong> 位客戶</p>
+                    <div style="display:flex;gap:6px;align-items:flex-end;margin-top:14px;padding-top:10px;border-top:1px solid #ecf0f1;">${chart}</div>
+                    <div style="font-size:11.5px;color:#5f6b76;text-align:center;margin-top:6px;">近 6 個月已收金額</div>
+                </div>`;
             }
 
             // 各人場次與時數：只有真的指派過別人才出現，自己做的不必列
@@ -5039,6 +5054,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
 
             dashboardContent.innerHTML = `
                 ${signName ? `<p style="font-size:13px;color:#7f8c8d;margin:0 0 12px;">${escHtml(signName)} · 報表${periodLabel}</p>` : ''}
+                ${monthlyHtml}
                 <div class="info-box">
                     <h3>📊 客戶統計</h3>
                     <p>客戶總數: <strong>${allClients.length} 位</strong></p>
@@ -5052,7 +5068,6 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                     <p>○ 未收款: <strong>NT$${unpaidAmount.toLocaleString()}</strong>（${allPayments.filter(p => p.paymentStatus === '未收').length}筆）</p>
                 </div>
                 ${staffHtml}
-                ${monthlyHtml}
             `;
         }
 
@@ -6442,7 +6457,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
    ==================================================================== */
 (function(){
   var APP = (window.LEGAL_APP || 'cal');
-  var UPDATED = '2026/10/12';
+  var UPDATED = '2026/10/13';
   var MAIL = 'beyunself@hotmail.com';
   var LINE_NAME = '智在生活';
 
@@ -6454,7 +6469,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
   };
   var C = CFG[APP] || CFG.cal;
   var PRICE_TXT = { cal:'新臺幣 990 元／年', cook:'新臺幣 990 元／年', trv:'新臺幣 990 元／年',
-                    crm:'新臺幣 7,200 元／年（早鳥價：限 2026 年 12 月 30 日前購買之前三十名，6,000 元，並加贈生活管家一年；續約維持同價）' };
+                    crm:'新臺幣 7,200 元／年。限時優惠方案（如早鳥價），依購買頁面公告為準。' };
   C.priceTxt = PRICE_TXT[APP] || PRICE_TXT.cal;
 
   var CN = ['','一','二','三','四','五','六','七','八','九','十'];
@@ -6569,8 +6584,42 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
       '使用者得隨時請求刪除帳號及其全部客戶資料，本服務應於三十日內完成；備份系統中之副本亦於同期間內一併移除。')) +
     sec(6,'聯絡方式', CONTACT);
 
-  var DOCS = [ h('服務條款', TERMS), h('隱私權政策', PRIVACY), h('付款與退款', PAY) ];
-  if(APP === 'crm') DOCS.push(h('客戶資料處理', CLIENTDATA));
+  /* 重點摘要：給人先看的白話版，條文本身一個字都沒動，以條文為準。 */
+  function brief(items){
+    return '<div class="lg-brief"><div class="lg-brief-t">重點摘要</div><ul>' +
+      items.map(function(s){ return '<li>'+s+'</li>'; }).join('') +
+      '</ul><div class="lg-brief-n">以下為摘要，完整內容以條文為準。</div></div>';
+  }
+  var DEV_SHORT = { cal:'完整版與試用最多 3 台裝置，免費版 1 台', cook:'限 1 台裝置，換裝置時登出舊的即可',
+                    trv:'完整版與試用最多 3 台裝置，免費版 1 台', crm:'完整版最多 2 台裝置，試用期 1 台' };
+  var PRICE_SHORT = { cal:'完整版 NT$990／年', cook:'完整版 NT$990／年', trv:'完整版 NT$990／年',
+                      crm:'完整版 NT$7,200／年；限時優惠依購買頁面公告為準' };
+  var BRIEF_TERMS = brief([
+    '用電子郵件的登入連結進入，不設密碼，請自行保管信箱。',
+    (DEV_SHORT[APP] || DEV_SHORT.cal) + '。',
+    '你輸入的內容屬於你，隨時可匯出或請求刪除。',
+    '程式與介面屬本服務，請勿重製、轉售或出借帳號。',
+    '請定期匯出備份。']);
+  var BRIEF_PRIVACY = brief([
+    C.local ? '只蒐集：Email、裝置識別碼；你的內容只存在你的裝置。' : '只蒐集：Email、你輸入的內容、裝置識別碼。',
+    '除了協助排除問題或修復系統異常，不會查看你的資料；不作行銷、不提供第三人。',
+    '不蒐集通訊錄、位置、照片，也沒有廣告或行為追蹤。',
+    '可隨時請求刪除，30 天內完成。']);
+  var BRIEF_PAY = brief([
+    PRICE_SHORT[APP] || PRICE_SHORT.cal,
+    C.noFree ? C.name + '免費試用 30 天；到期轉唯讀，資料保留，可查看與匯出。'
+             : C.name + '免費試用 ' + (APP === 'cal' ? '21' : '14') + ' 天；到期後轉為免費版。',
+    '付款後一個工作日內開通，效期一年，提前續約順延。',
+    '付款並開通後恕不退款；試用期請先確認是否適用。']);
+  var BRIEF_CLIENT = brief([
+    '客戶資料由你蒐集，本服務只是受託代為儲存。',
+    '向客戶蒐集資料時，請依個資法告知客戶。',
+    '請勿儲存病歷、醫療、基因、性生活、健康檢查、犯罪前科等資料。',
+    '資料發生外洩時，本服務會儘速通知你。',
+    '可隨時請求刪除帳號與客戶資料，30 天內完成。']);
+
+  var DOCS = [ h('服務條款', BRIEF_TERMS + TERMS), h('隱私權政策', BRIEF_PRIVACY + PRIVACY), h('付款與退款', BRIEF_PAY + PAY) ];
+  if(APP === 'crm') DOCS.push(h('客戶資料處理', BRIEF_CLIENT + CLIENTDATA));
 
   function css(){
     if(document.getElementById('lgCss')) return;
@@ -6595,6 +6644,10 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
       '.lg-doc-s{font-size:11.5px;color:#9AA29B;margin-top:5px;letter-spacing:.06em;}'+
       '.lg-body h4{font-size:15px;color:#1F2724;margin:26px 0 8px;font-weight:700;letter-spacing:.02em;}'+
       '.lg-n{color:#14564A;}'+
+      '.lg-brief{background:#F1F6F4;border:1px solid #D6E4DE;border-radius:12px;padding:12px 14px;margin:6px 0 4px;}'+
+      '.lg-brief-t{font-size:13px;font-weight:700;color:#14564A;margin-bottom:4px;}'+
+      '.lg-brief ul{margin:0;padding-left:18px;font-size:13.5px;line-height:1.8;color:#2f3a34;}'+
+      '.lg-brief-n{font-size:11.5px;color:#5f6b76;margin-top:6px;}'+
       '.lg-body p{margin:0 0 10px;}'+
       '.lg-ol{margin:4px 0 12px;padding:0;list-style:none;counter-reset:lgi;}'+
       '.lg-ol>li{counter-increment:lgi;position:relative;padding-left:3.1em;margin-bottom:7px;}'+
@@ -7221,7 +7274,7 @@ appInstall.init({ appName:'客戶管理系統' });
       '.up-row span:nth-child(2),.up-row span:nth-child(3){text-align:center;}'+
       '.up-no{color:#A9B2AB;}'+
       '.up-yes{color:'+accent+';font-weight:700;}'+
-      '.up-note{font-size:12.5px;color:#7b8794;margin-top:12px;line-height:1.7;}'+
+      '.up-note{font-size:12.5px;color:#5f6b76;margin-top:12px;line-height:1.7;white-space:pre-line;}'+
       '.up-line{display:block;text-align:center;margin-top:14px;font-size:13.5px;color:'+accent+';'+
         'text-decoration:underline;}'+
       '.up-foot{flex:none;padding:10px 18px calc(14px + env(safe-area-inset-bottom));'+
@@ -7297,7 +7350,7 @@ upgradeSheet.init({
     ['同帳號裝置數', '1 台', '2 台'],
     ['到期後', '唯讀', '—']
   ],
-  note:'原價 $7,200；早鳥價 $6,000（12/30 前、限前 30 位，並加贈生活管家一年），續約維持同價。試用到期後資料完整保留，可查看與匯出，升級後即恢復編輯。'
+  note:'早鳥價 $6,000（原價 $7,200），12/30 前限前 30 位，加贈生活管家一年，續約同價。\n試用到期後資料保留，可查看、匯出，升級後恢復編輯。'
 });
 </script>
 
@@ -7345,15 +7398,22 @@ upgradeSheet.init({
     <div id="edit-service-modal" class="modal">
         <div class="modal-content">
             <div class="modal-header"><h3>編輯服務</h3></div>
+            <div class="set-sec first">基本</div>
             <div class="form-group">
                 <label for="edit-service-cat">服務類別</label>
                 <select id="edit-service-cat" onchange="onEditServiceCatChange()" style="width:100%;padding:9px 10px;border:1px solid #bdc3c7;border-radius:4px;box-sizing:border-box;font-size:16px;"></select>
                 <div id="edit-cat-msg" style="display:none;font-size:12px;color:#1e6f50;background:#e8f5e9;border:1px solid #c3e6cb;border-radius:8px;padding:8px 10px;margin-top:8px;line-height:1.6;"></div>
             </div>
             <div class="form-group">
+                <label for="edit-service-name">服務名稱</label>
+                <input type="text" id="edit-service-name" maxlength="20">
+                <small style="color:#7f8c8d;">可自訂名稱，不影響上方類別設定</small>
+            </div>
+            <div class="set-sec">計費與地址</div>
+            <div class="form-group">
                 <label>計費方式</label>
                 <div class="radio-group" style="flex-direction:column;align-items:flex-start;gap:6px;">
-                    <label><input type="radio" name="edit-billing" value="contract" onchange="onEditBillingChange()"> 合約／單次皆可</label>
+                    <label><input type="radio" name="edit-billing" value="contract" onchange="onEditBillingChange()"> 按合約計費（也可單次）</label>
                     <label><input type="radio" name="edit-billing" value="single" onchange="onEditBillingChange()"> 僅單次計費</label>
                 </div>
             </div>
@@ -7364,11 +7424,7 @@ upgradeSheet.init({
                     <label><input type="radio" name="edit-addr" value="0"> 選填</label>
                 </div>
             </div>
-            <div class="form-group">
-                <label for="edit-service-name">服務名稱</label>
-                <input type="text" id="edit-service-name" maxlength="20">
-                <small style="color:#7f8c8d;">可自訂名稱，不影響上方類別設定</small>
-            </div>
+            <div class="set-sec">額外記錄欄位</div>
             <div class="form-group">
                 <div id="edit-service-fieldinfo"></div>
                 <p style="font-size:11.5px;color:#95a5a6;margin-top:6px;">取消勾選後，既有資料仍保留，僅不再顯示欄位</p>
