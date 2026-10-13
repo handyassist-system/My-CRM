@@ -677,10 +677,10 @@ input:focus, textarea:focus, select:focus{
   }
 
 /* 設定子頁的分組小標題（有分隔線；第一組不加線） */
-.set-sec{ font-size:12.5px; font-weight:700; color:#5f6b76; letter-spacing:.5px;
-  margin:24px 0 12px; padding-top:14px; border-top:1px solid #E7E2DA; }
+.set-sec{ font-size:14px; font-weight:700; color:#2f5a78; letter-spacing:.5px;
+  margin:22px 0 12px; padding:8px 12px; background:#EAF1F6; border-left:4px solid #4A7A9B; border-radius:6px; }
 .shared-tag{ font-weight:400; font-size:12px; color:#5f6b76; }
-.set-sec.first{ margin-top:6px; padding-top:0; border-top:none; }
+.set-sec.first{ margin-top:6px; }
 /* 設定頁文字加深：原本淺灰（#95a5a6／#7f8c8d）在白底上不好讀，統一成較深的灰 */
 #step1 small, #step1 [style*="color:#95a5a6"], #step1 [style*="color:#7f8c8d"]{ color:#5f6b76 !important; }
 .set-row .set-val{ color:#5f6b76 !important; }
@@ -2124,7 +2124,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
         function isCrmAdminEmail(e){ return String(e||'').toLowerCase() === ADMIN_EMAIL.toLowerCase(); }
         // 只用於「這個信箱用過試用沒」的比對，不可當資料路徑
         function crmTrialEmailKey(e){ return normEmail(e).replace(/[.#$\[\]]/g,'_'); }
-        const CRM_APP_VER = 'v1.0', CRM_BUILD_ID = '1009-47';
+        const CRM_APP_VER = 'v1.0', CRM_BUILD_ID = '1009-49';
         const CRM_EMAIL_FOR_SIGNIN = 'crmEmailForSignIn';
         const LINE_SUPPORT_URL = 'https://line.me/R/ti/p/@373pfdee';
         var crmUserEmail = null;
@@ -6821,7 +6821,7 @@ previewMode.init({
     }
     if(typeof crmApplyPlan==='function') crmApplyPlan();
     if(typeof renderSettingsSummary==='function') renderSettingsSummary();
-    if(typeof render==='function') render();
+    if(typeof updateAllTabs==='function') updateAllTabs();   // 業績報表、客戶追蹤要依新方案重畫（鎖／解鎖）
   },
   exit: function(){ location.reload(); }
 });
