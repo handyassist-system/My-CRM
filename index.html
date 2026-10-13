@@ -2116,7 +2116,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
         function isCrmAdminEmail(e){ return String(e||'').toLowerCase() === ADMIN_EMAIL.toLowerCase(); }
         // 只用於「這個信箱用過試用沒」的比對，不可當資料路徑
         function crmTrialEmailKey(e){ return normEmail(e).replace(/[.#$\[\]]/g,'_'); }
-        const CRM_APP_VER = 'v1.0', CRM_BUILD_ID = '1009-36';
+        const CRM_APP_VER = 'v1.0', CRM_BUILD_ID = '1009-37';
         const CRM_EMAIL_FOR_SIGNIN = 'crmEmailForSignIn';
         const LINE_SUPPORT_URL = 'https://line.me/R/ti/p/@373pfdee';
         var crmUserEmail = null;
@@ -3153,6 +3153,12 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
             document.getElementById('setup-provider').value = store.data.providerName || '';
             document.getElementById('setupMsg').textContent = '';
             fillServiceCatSelect('setup-cat', SERVICE_CATS[0].name);
+            // 不預選任何類別，讓使用者自己選
+            const catSel = document.getElementById('setup-cat');
+            catSel.insertAdjacentHTML('afterbegin', '<option value="" disabled>請選擇服務類別</option>');
+            catSel.selectedIndex = 0;
+            const prEl = document.getElementById('setup-payrate');
+            if (prEl) prEl.value = '';
             onSetupCatChange();
             el.scrollTop = 0;
             const cb = document.getElementById('setup-company');
@@ -3165,8 +3171,9 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
         function onSetupCatChange() {
             const sel = document.getElementById('setup-cat');
             if (!sel) return;
+            const chosen = !!sel.value;
             const cat = serviceCat(sel.value) || SERVICE_CATS[SERVICE_CATS.length - 1];
-            const other = (cat.name === '其他');
+            const other = chosen && (cat.name === '其他');
             const ng = document.getElementById('setup-name-group');
             if (ng) ng.style.display = other ? 'block' : 'none';
             const rg = document.getElementById('setup-recinfo-group');
@@ -3187,10 +3194,14 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
             if (!who) { msg.textContent = '請填寫店名或稱呼'; return; }
 
             const sel = document.getElementById('setup-cat');
+            if (!sel || !sel.value) { msg.textContent = '請選擇主要服務類別'; return; }
             const cat = serviceCat(sel ? sel.value : '') || SERVICE_CATS[SERVICE_CATS.length - 1];
             const other = (cat.name === '其他');
             const svc = other ? ((document.getElementById('setup-service').value || '').trim()) : cat.name;
             if (!svc) { msg.textContent = '請填服務名稱'; return; }
+            if (document.getElementById('setup-company').checked && !String(document.getElementById('setup-payrate').value || '').trim()) {
+                msg.textContent = '請填寫公司派的每小時收款費率'; return;
+            }
 
             const num = function (id, min, max, fallback) {
                 let v = parseInt((document.getElementById(id) || {}).value, 10);
@@ -7337,7 +7348,7 @@ upgradeSheet.init({
             <div style="text-align:center;margin-bottom:20px;">
                 <div style="font-size:40px;margin-bottom:6px;">🏠</div>
                 <h2 style="color:#2c3e50;margin:0 0 4px;font-size:20px;">歡迎使用客戶管理系統</h2>
-                <p style="color:#95a5a6;font-size:12.5px;margin:0;">三項基本設定即可開始</p>
+                <p style="color:#95a5a6;font-size:12.5px;margin:0;">請先完成以下設定，才能開始使用</p>
             </div>
 
             <!-- 一頁搞定：只問店名、服務類別、公司派。其餘全用預設值，設定裡隨時能改 -->
@@ -7373,14 +7384,10 @@ upgradeSheet.init({
                 <label for="setup-payrate">公司派：我方收款費率</label>
                 <div class="money-in" style="border-color:#E7E2DA;border-radius:12px;">
                     <span class="cur">NT$</span>
-                    <input type="number" id="setup-payrate" min="0" step="1" value="600">
+                    <input type="number" id="setup-payrate" min="0" step="1" placeholder="例如：600">
                     <span class="suf">/ 小時</span>
                 </div>
             </div>
-
-            <p style="font-size:12px;color:#95a5a6;margin-top:16px;text-align:center;line-height:1.7;">
-                其餘參數採預設值<br>可於設定中調整
-            </p>
 
             <div style="margin-top:14px;">
                 <button type="button" id="setupGoBtn" onclick="finishSetup()"
