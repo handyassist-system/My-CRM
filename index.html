@@ -164,9 +164,11 @@
         #service-switch-bar {
             width: 100%; display: flex; align-items: center; gap: 6px;
             background: #EDF2F5; border: none; border-bottom: 1px solid #DCE4E9;
-            padding: 7px 16px; font-family: inherit; font-size: 13px;
-            color: #4A7A9B; text-align: left; cursor: pointer; min-height: 36px;
+            padding: 8px 16px; font-family: inherit; font-size: 13px;
+            color: #4A7A9B; text-align: left; cursor: pointer; min-height: 44px;
         }
+        .svc-cur-ar { background:#fff; border:1px solid #B9CAD6; border-radius:999px;
+            padding:5px 12px; color:#4A7A9B !important; font-weight:600; font-size:12.5px !important; }
         .svc-cur-lb { color: #7f8c8d; flex: 0 0 auto; }
         .svc-cur-nm { font-weight: 600; color: #2c3e50; flex: 1 1 auto;
             overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -744,7 +746,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
 
         <!-- 目前服務（點一下切換） -->
         <button type="button" id="service-switch-bar" style="display:none;">
-            <span class="svc-cur-lb">目前服務</span><span class="svc-cur-nm" id="svcCurName"></span><span class="svc-cur-ar">▾</span>
+            <span class="svc-cur-lb">目前服務</span><span class="svc-cur-nm" id="svcCurName"></span><span class="svc-cur-ar">切換 ▾</span>
         </button>
 
         
@@ -1058,7 +1060,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
 
             <!-- 客戶追蹤 -->
             <div id="tracking" class="tab-pane">
-                <h2>📋 客戶追蹤</h2>
+                <h2>客戶追蹤</h2>
                 <div style="display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap; align-items:center;">
                     <select id="tracking-filter" onchange="renderTrackingList()" style="padding:8px 10px;border:1px solid #bdc3c7;border-radius:4px;font-size:13px;">
                         <option value="">全部客戶</option>
@@ -2124,7 +2126,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
         function isCrmAdminEmail(e){ return String(e||'').toLowerCase() === ADMIN_EMAIL.toLowerCase(); }
         // 只用於「這個信箱用過試用沒」的比對，不可當資料路徑
         function crmTrialEmailKey(e){ return normEmail(e).replace(/[.#$\[\]]/g,'_'); }
-        const CRM_APP_VER = 'v1.0', CRM_BUILD_ID = '1009-49';
+        const CRM_APP_VER = 'v1.0', CRM_BUILD_ID = '1009-55';
         const CRM_EMAIL_FOR_SIGNIN = 'crmEmailForSignIn';
         const LINE_SUPPORT_URL = 'https://line.me/R/ti/p/@373pfdee';
         var crmUserEmail = null;
@@ -3434,25 +3436,28 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                         <div class="list-item">
                             <div style="display: flex; justify-content: space-between; align-items: center;">
                                 <div style="flex: 1;">
-                                    <h4>${escHtml(client.clientName)}${statusBadge}</h4>
+                                    <h4>${escHtml(client.clientName)}${statusBadge}${clientLineChip(client)}</h4>
                                     <p>📞 ${escHtml(client.phone)}</p>
                                     ${(function(){
                                         const bits = [];
-                                        if (SVC().companyDispatch && client.clientSource) bits.push('來源: ' + client.clientSource);
-                                        if (client.homeType) bits.push('住家: ' + client.homeType);
-                                        return bits.length ? '<p>' + bits.join(' | ') + '</p>' : '';
+                                        if (SVC().companyDispatch && client.clientSource) bits.push('來源：' + client.clientSource);
+                                        if (client.homeType) bits.push('住家：' + client.homeType);
+                                        return bits.length ? '<p>' + bits.join('　') + '</p>' : '';
                                     })()}
                                 </div>
-                                <button class="btn btn-sm btn-secondary" style="margin-left: 10px;" onclick="toggleExpand('${expandId}')">展開</button>
+                                <button class="btn btn-sm btn-secondary" style="margin-left: 10px;" onclick="toggleExpand('${expandId}', this)">展開</button>
                             </div>
                             <div id="${expandId}" style="display: none; margin-top: 10px; padding-top: 10px; border-top: 1px solid #ecf0f1;">
-                                <p>📍 ${escHtml(client.address)}</p>
-                                ${client.rooms ? `<p>房間數: ${client.rooms}` : ''}
-                                ${client.hasChildren ? '| 有小孩' : ''}
-                                ${client.hasPets ? '| 有寵物' : ''}
-                                ${client.applianceName ? `<p>電器: ${escHtml(client.applianceName)} | 保固: ${escHtml(client.warrantyStatus)}` : ''}
-                                ${client.lineOfficial ? '<p>✓ 已加入官方LINE' : ''}
-                                ${client.notes ? `<p><strong>備註:</strong> ${escHtml(client.notes)}` : ''}
+                                ${client.address ? `<p>📍 ${escHtml(client.address)}</p>` : ''}
+                                ${(function(){
+                                    const fam = [];
+                                    if (client.rooms) fam.push('房間 ' + client.rooms + ' 間');
+                                    if (client.hasChildren) fam.push('有小孩');
+                                    if (client.hasPets) fam.push('有寵物');
+                                    return fam.length ? '<p>家庭：' + fam.join('、') + '</p>' : '';
+                                })()}
+                                ${client.applianceName ? `<p>電器：${escHtml(client.applianceName)}${client.warrantyStatus ? '（' + escHtml(client.warrantyStatus) + '）' : ''}</p>` : ''}
+                                ${client.notes ? `<p>備註：${escHtml(client.notes)}</p>` : ''}
                                 <div class="list-item-actions" style="margin-top: 10px;">
                                     <button class="btn btn-sm btn-secondary" onclick="editClient('${client.id}')">編輯</button>
                                     ${deleteBtn}
@@ -3718,7 +3723,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                                     <p>時數: ${contract.totalHours}h + 贈送 ${bonusHours}h | 單價: ${contract.hourlyRate} 元/h${contract.cooperationMethod === '公司派' ? ` | 收款費率: ${paymentRate} 元/h` : ''}</p>
                                     ${contract.signDate ? `<p>簽約 ${contract.signDate}${contract.expireDate ? ` ｜ 到期 ${contract.expireDate}` : ''}</p>` : ''}
                                 </div>
-                                <button class="btn btn-sm btn-secondary" style="margin-left: 10px;" onclick="toggleExpand('${expandId}')">展開</button>
+                                <button class="btn btn-sm btn-secondary" style="margin-left: 10px;" onclick="toggleExpand('${expandId}', this)">展開</button>
                             </div>
                             <div id="${expandId}" style="display: none; margin-top: 10px; padding-top: 10px; border-top: 1px solid #ecf0f1;">
                                 <p>合約總價: <strong>NT$${(contract.totalPrice || 0).toLocaleString()}</strong></p>
@@ -4138,7 +4143,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                                     <p>${escHtml(client.clientName)} | ${booking.serviceHours}小時</p>
                                     <p>狀態: <span class="status-badge ${statusBadgeClass}">${booking.status}</span></p>
                                 </div>
-                                <button class="btn btn-sm btn-secondary" style="margin-left: 10px;" onclick="toggleExpand('${expandId}')">展開</button>
+                                <button class="btn btn-sm btn-secondary" style="margin-left: 10px;" onclick="toggleExpand('${expandId}', this)">展開</button>
                             </div>
                             <div id="${expandId}" style="display: none; margin-top: 10px; padding-top: 10px; border-top: 1px solid #ecf0f1;">
                                 <p>${booking.homeType ? '住家: ' + escHtml(booking.homeType) + ' | ' : ''}地址: ${escHtml(booking.address || '')}</p>
@@ -4645,7 +4650,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                                     <p>${payment.flatRate ? '單次計費' : `單價: NT$${hourlyRate}/h`} | 金額: <strong>NT$${(payment.amountDue || 0).toLocaleString()}</strong></p>
                                     <p>狀態: <span class="status-badge ${statusBadgeClass}">${statusText}</span>${overdue ? ` <span style="color:#C0392B;font-size:12px;">已超過 ${S().overdueDays || 30} 天</span>` : ''}</p>
                                 </div>
-                                <button class="btn btn-sm btn-secondary" style="margin-left: 10px;" onclick="toggleExpand('${expandId}')">展開</button>
+                                <button class="btn btn-sm btn-secondary" style="margin-left: 10px;" onclick="toggleExpand('${expandId}', this)">展開</button>
                             </div>
                             <div id="${expandId}" style="display: none; margin-top: 10px; padding-top: 10px; border-top: 1px solid #ecf0f1;">
                                 ${payment.actualPaymentDate ? `<p>實收日: ${payment.actualPaymentDate}</p>` : ''}
@@ -5050,10 +5055,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                 }
             }
 
-            const signName = store.data.providerName || '';
-
             dashboardContent.innerHTML = `
-                ${signName ? `<p style="font-size:13px;color:#7f8c8d;margin:0 0 12px;">${escHtml(signName)} · 報表${periodLabel}</p>` : ''}
                 ${monthlyHtml}
                 <div class="info-box">
                     <h3>📊 客戶統計</h3>
@@ -5100,18 +5102,18 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                     <div style="border-left:4px solid ${cfg.border};background:${cfg.bg};padding:12px 14px;border-radius:6px;margin-bottom:10px;">
                         <div style="display:flex;justify-content:space-between;align-items:center;">
                             <div style="flex:1;">
-                                <p style="font-weight:bold;color:#2c3e50;">${cfg.icon} ${escHtml(d.client.clientName)}</p>
+                                <p style="font-weight:bold;color:#2c3e50;">${cfg.icon} ${escHtml(d.client.clientName)}${clientLineChip(d.client)}</p>
                                 <p style="font-size:13px;color:#555;margin-top:4px;">
                                     最後服務：${timeText}
-                                    ${dateText ? `<span style="color:#7f8c8d;">（${dateText}）</span>` : ''}
+                                    ${dateText ? `<span style="color:#5f6b76;white-space:nowrap;">（${dateText}）</span>` : ''}
                                 </p>
                                 ${sub ? `<p style="font-size:12px;color:#7f8c8d;">${sub}</p>` : ''}
                             </div>
                             <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
                                 <span style="font-size:11px;background:white;padding:2px 8px;border-radius:10px;color:${cfg.border};border:1px solid ${cfg.border};">${cfg.label}</span>
                                 <div style="display:flex;gap:6px;">
-                                    ${d.client.phone ? `<a class="btn btn-sm btn-secondary" style="text-decoration:none;display:inline-block;" href="tel:${String(d.client.phone).replace(/[^0-9+]/g,'')}">📞 撥號</a>` : ''}
-                                    <button class="btn btn-sm btn-secondary" onclick="openClientDetailModal('${d.client.id}')">查看</button>
+                                    ${d.client.phone ? `<a class="btn btn-sm btn-secondary" style="text-decoration:none;display:inline-block;min-width:72px;text-align:center;box-sizing:border-box;" href="tel:${String(d.client.phone).replace(/[^0-9+]/g,'')}">📞 撥號</a>` : ''}
+                                    <button class="btn btn-sm btn-secondary" style="min-width:72px;text-align:center;box-sizing:border-box;" onclick="openClientDetailModal('${d.client.id}')">查看</button>
                                 </div>
                             </div>
                         </div>
@@ -5236,18 +5238,18 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                     <div style="border-left:4px solid ${cfg.border};background:${cfg.bg};padding:12px 14px;border-radius:6px;margin-bottom:10px;">
                         <div style="display:flex;justify-content:space-between;align-items:center;">
                             <div style="flex:1;">
-                                <p style="font-weight:bold;color:#2c3e50;">${cfg.icon} ${escHtml(d.client.clientName)}</p>
+                                <p style="font-weight:bold;color:#2c3e50;">${cfg.icon} ${escHtml(d.client.clientName)}${clientLineChip(d.client)}</p>
                                 <p style="font-size:13px;color:#555;margin-top:4px;">
                                     最後服務：${timeText}
-                                    ${dateText ? `<span style="color:#7f8c8d;">（${dateText}）</span>` : ''}
+                                    ${dateText ? `<span style="color:#5f6b76;white-space:nowrap;">（${dateText}）</span>` : ''}
                                 </p>
-                                ${(d.stName || d.remainH !== null) ? `<p style="font-size:12px;color:#7f8c8d;">${escHtml(d.stName)}${(d.stName && d.remainH !== null) ? ' ｜ ' : ''}${d.remainH !== null ? `<span style="color:${d.remainH > 0 ? '#c0392b' : '#7f8c8d'};font-weight:${d.remainH > 0 ? 'bold' : 'normal'};white-space:nowrap;">合約還剩 ${d.remainH}h</span>` : ''}</p>` : ''}
+                                ${(d.remainH !== null) ? `<p style="font-size:12px;color:#7f8c8d;">${d.remainH !== null ? `<span style="color:${d.remainH > 0 ? '#c0392b' : '#7f8c8d'};font-weight:${d.remainH > 0 ? 'bold' : 'normal'};white-space:nowrap;">合約還剩 ${d.remainH}h</span>` : ''}</p>` : ''}
                             </div>
                             <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
                                 <span style="font-size:11px;background:white;padding:2px 8px;border-radius:10px;color:${cfg.border};border:1px solid ${cfg.border};">${cfg.label}</span>
                                 <div style="display:flex;gap:6px;">
-                                    ${d.client.phone ? `<a class="btn btn-sm btn-secondary" style="text-decoration:none;display:inline-block;" href="tel:${String(d.client.phone).replace(/[^0-9+]/g,'')}">📞 撥號</a>` : ''}
-                                    <button class="btn btn-sm btn-secondary" onclick="openClientDetailModal('${d.client.id}')">查看</button>
+                                    ${d.client.phone ? `<a class="btn btn-sm btn-secondary" style="text-decoration:none;display:inline-block;min-width:72px;text-align:center;box-sizing:border-box;" href="tel:${String(d.client.phone).replace(/[^0-9+]/g,'')}">📞 撥號</a>` : ''}
+                                    <button class="btn btn-sm btn-secondary" style="min-width:72px;text-align:center;box-sizing:border-box;" onclick="openClientDetailModal('${d.client.id}')">查看</button>
                                 </div>
                             </div>
                         </div>
@@ -5261,6 +5263,13 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
         window.bkCalPickDay = bkCalPickDay;
         window.renderTrackingList = renderTrackingList;
 
+        // 客戶管理、客戶追蹤、客戶詳情三處共用，確保同一位客戶在各處看到的標記一致
+        function clientLineChip(client) {
+            return client && client.lineOfficial
+                ? '<span style="background:#e8f5e9;color:#1e8449;padding:2px 8px;border-radius:10px;font-size:11px;margin-left:6px;font-weight:600;white-space:nowrap;">LINE ✓</span>'
+                : '';
+        }
+
         function openClientDetailModal(clientId) {
             const client = store.getClient(clientId);
             if (!client) return;
@@ -5269,17 +5278,17 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
             const st = store.getServiceType(client.serviceTypeId);
 
             // 合約狀態
-            let contractHtml = '<p style="color:#95a5a6;font-size:13px;">尚無合約</p>';
+            let contractHtml = '<p style="color:#5f6b76;font-size:13px;">尚無合約</p>';
             if (contracts.length > 0) {
                 contractHtml = contracts.filter(c => (c.contractStatus || '進行中') === '進行中').map(contract => {
                     const H2 = contractHours(contract);
                     const bonus = contract.bonusHours || 0;
                     return `
                         <div style="background:#f8f9fa;border-radius:6px;padding:10px;margin-bottom:8px;">
-                            <p style="font-size:13px;"><strong>剩餘時數：${H2.remain}h</strong> / ${contract.totalHours + bonus}h${H2.booked > 0 ? `<span style="color:#e67e22;font-weight:normal;"> ｜ ${H2.booked}h 已排未做</span>` : ''}</p>
-                            <p style="font-size:12px;color:#7f8c8d;">${contract.cooperationMethod} ｜ NT$${contract.paymentRate || contract.hourlyRate}/h</p>
+                            <p style="font-size:13px;"><strong>剩餘 ${H2.remain} 小時</strong>（共 ${contract.totalHours + bonus} 小時）${H2.booked > 0 ? `<span style="color:#e67e22;font-weight:normal;">　已排 ${H2.booked} 小時未服務</span>` : ''}</p>
+                            <p style="font-size:12px;color:#7f8c8d;">${contract.cooperationMethod}　NT$${contract.paymentRate || contract.hourlyRate}／小時</p>
                         </div>`;
-                }).join('') || '<p style="color:#95a5a6;font-size:13px;">目前無進行中合約</p>';
+                }).join('') || '<p style="color:#5f6b76;font-size:13px;">目前沒有進行中的合約</p>';
             }
 
             // 預約紀錄（所有合約的所有預約，由新到舊）
@@ -5290,7 +5299,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                 (store.data.bookings || []).filter(b => !b.contractId && b.clientId === clientId)
             ).sort((a, b) => new Date(b.bookingDate) - new Date(a.bookingDate));
 
-            let bookingsHtml = '<p style="color:#95a5a6;font-size:13px;">尚無預約紀錄</p>';
+            let bookingsHtml = '<p style="color:#5f6b76;font-size:13px;">尚無預約紀錄</p>';
             if (allBookings.length > 0) {
                 const statusColor = { '完成': '#27ae60', '未開始': '#7f8c8d' };
                 bookingsHtml = allBookings.map(b => `
@@ -5299,8 +5308,8 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                             <p style="font-size:13px;font-weight:bold;color:#2c3e50;">${b.bookingDate} ${b.bookingTime}</p>
                             <span style="font-size:11px;color:${statusColor[b.status] || '#7f8c8d'};font-weight:bold;">${b.status}</span>
                         </div>
-                        <p style="font-size:13px;color:#555;margin-top:2px;">${b.serviceHours}h
-                            ${b.useEssentialOil ? ' ｜ <span style="color:#8e44ad;">✓ 使用精油</span>' : ''}
+                        <p style="font-size:13px;color:#555;margin-top:2px;">${b.serviceHours} 小時
+                            ${b.useEssentialOil ? '　<span style="color:#8e44ad;">有使用精油</span>' : ''}
                         </p>
                         ${b.serviceNotes ? `<p style="font-size:12px;color:#7f8c8d;margin-top:4px;">備註：${escHtml(b.serviceNotes)}</p>` : ''}
                     </div>`).join('');
@@ -5309,15 +5318,17 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
             document.getElementById('client-detail-content').innerHTML = `
                 <div style="padding:4px 0 12px;">
                     <p style="font-size:16px;font-weight:bold;color:#2c3e50;">${escHtml(client.clientName)}</p>
-                    <p style="font-size:13px;color:#7f8c8d;">📞 ${escHtml(client.phone)} ｜ ${escHtml(st?.typeName || '')}</p>
-                    ${client.address ? `<p style="font-size:13px;color:#7f8c8d;">📍 ${escHtml(client.address)}</p>` : ''}
+                    <p style="font-size:13px;color:#7f8c8d;">📞 ${escHtml(client.phone)}</p>
+                    ${client.address ? `<p style="font-size:13px;color:#5f6b76;">📍 ${escHtml(client.address)}</p>` : ''}
+                    ${client.applianceName ? `<p style="font-size:13px;color:#5f6b76;">電器：${escHtml(client.applianceName)}${client.warrantyStatus ? '（' + escHtml(client.warrantyStatus) + '）' : ''}</p>` : ''}
+                    ${client.notes ? `<p style="font-size:13px;color:#5f6b76;">備註：${escHtml(client.notes)}</p>` : ''}
                 </div>
                 <div style="border-top:1px solid #ecf0f1;padding-top:12px;margin-bottom:12px;">
-                    <p style="font-size:13px;font-weight:bold;color:#2c3e50;margin-bottom:8px;">📋 合約狀態</p>
+                    <p style="font-size:13px;font-weight:bold;color:#2c3e50;margin-bottom:8px;">進行中的合約</p>
                     ${contractHtml}
                 </div>
                 <div style="border-top:1px solid #ecf0f1;padding-top:12px;">
-                    <p style="font-size:13px;font-weight:bold;color:#2c3e50;margin-bottom:8px;">📅 預約紀錄</p>
+                    <p style="font-size:13px;font-weight:bold;color:#2c3e50;margin-bottom:8px;">預約紀錄</p>
                     ${bookingsHtml}
                 </div>
             `;
@@ -5333,10 +5344,12 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
         window.closeClientDetailModal = closeClientDetailModal;
 
         // ==================== UX 優化函數 ====================
-        function toggleExpand(expandId) {
+        function toggleExpand(expandId, btn) {
             const element = document.getElementById(expandId);
             if (element) {
-                element.style.display = element.style.display === 'none' ? 'block' : 'none';
+                const open = element.style.display === 'none';
+                element.style.display = open ? 'block' : 'none';
+                if (btn) btn.textContent = open ? '收合' : '展開';
             }
         }
 
