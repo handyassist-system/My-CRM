@@ -676,6 +676,11 @@ input:focus, textarea:focus, select:focus{
     content:"›"; margin-left:auto; font-size:19px; line-height:1; color:#95a5a6; flex:0 0 auto;
   }
 
+/* 設定頁文字加深：原本淺灰（#95a5a6／#7f8c8d）在白底上不好讀，統一成較深的灰 */
+#step1 small, #step1 [style*="color:#95a5a6"], #step1 [style*="color:#7f8c8d"]{ color:#5f6b76 !important; }
+.set-row .set-val{ color:#5f6b76 !important; }
+.set-acc .ex{ color:#5f6b76 !important; }
+
 /* 設定頁不顯示底部選單，用左上角返回鍵離開，跟另外三支 App 一致 */
 body:has(#step1.tab-pane.active) #crmNav{ display:none; }
 body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
@@ -819,8 +824,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
 <div class="setpg" id="setpg-svcset">
                     <div class="setpg-head"><button type="button" class="setpg-back" onclick="closeSetPage()">‹ 返回</button><span class="setpg-title">收費與規則</span></div>
                     <div id="svcset-scope" style="display:none;background:#eaf4fc;border-radius:8px;padding:10px 12px;margin-bottom:16px;font-size:13px;color:#2c3e50;line-height:1.6;">
-                        以下設定只套用在「<strong id="svcset-scope-name"></strong>」<br>
-                        <span style="color:#7f8c8d;font-size:12px;">要改別的服務，請先在上方切換</span>
+                        只套用在「<strong id="svcset-scope-name"></strong>」，換服務請在上方切換
                     </div>
 <!-- 服務設定 -->
                 <div>
@@ -830,7 +834,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                             <input type="checkbox" id="set-company-dispatch">
                             <label for="set-company-dispatch">我有接「公司派案」</label>
                         </div>
-                        <p style="font-size:11px;color:#95a5a6;margin-top:2px;">關閉的話，客戶和合約就不會出現「自接／公司派」的選項，畫面比較單純。</p>
+                        <p style="font-size:11px;color:#95a5a6;margin-top:2px;">關閉則不顯示自接／公司派選項</p>
                     </div>
 
                     <!-- 按合約的服務不設一般收費（每份合約都不一樣）；單次計費才有預設金額 -->
@@ -840,7 +844,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                             <span class="cur">NT$</span>
                             <input type="number" id="set-hourly-rate" min="0" step="1" placeholder="例如：1500">
                         </div>
-                        <small style="color:#7f8c8d;">排定預約時自動帶入，個別預約仍可調整</small>
+                        <small style="color:#7f8c8d;">預約時自動帶入</small>
                     </div>
 
                     <div class="form-group" id="set-payment-rate-group">
@@ -850,7 +854,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                             <input type="number" id="set-payment-rate" min="0" step="1" placeholder="例如：600">
                             <span class="suf">/ 小時</span>
                         </div>
-                        <small style="color:#7f8c8d;">新增公司派合約時的預設值，個別合約仍可改</small>
+                        <small style="color:#7f8c8d;">新增合約時的預設值</small>
                     </div>
 
                     <div class="form-group">
@@ -867,7 +871,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                     <div class="form-group">
                         <label for="set-contract-years">合約年限（年）</label>
                         <input type="number" id="set-contract-years" min="0" step="1">
-                        <small style="color:#7f8c8d;">到期日 = 簽約日 + 這個年數，仍可手動改</small>
+                        <small style="color:#7f8c8d;">到期日自動計算</small>
                     </div>
 
                     <div class="form-group">
@@ -881,12 +885,12 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                         </div>
                     </div>
 
-                    <p style="font-size:12px;color:#95a5a6;margin:22px 0 10px;padding-top:14px;border-top:1px solid #ecf0f1;" id="set-account-note">以下兩項是整個帳號共用，不分服務</p>
+                    <p style="font-size:12px;color:#95a5a6;margin:22px 0 10px;padding-top:14px;border-top:1px solid #ecf0f1;" id="set-account-note">以下兩項套用全部服務</p>
 
                     <div class="form-group">
                         <label for="set-overdue-days">收款逾期天數</label>
                         <input type="number" id="set-overdue-days" min="1" step="1">
-                        <small style="color:#7f8c8d;">服務日過了這麼多天還沒收到錢，收款清單會標紅字</small>
+                        <small style="color:#7f8c8d;">超過這天數未收款，標紅字</small>
                     </div>
 
                     <div class="form-group">
@@ -897,7 +901,6 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                             <input type="number" id="set-slot-end" min="1" max="23" step="1" style="width:80px;">
                             <span style="font-size:13px;">點</span>
                         </div>
-                        <small style="color:#7f8c8d;">每半小時一個時段</small>
                     </div>
                     </div>
 
@@ -1012,8 +1015,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
             <div id="payments" class="tab-pane">
                 <h2>收款管理</h2>
                 <p style="margin-bottom: 15px; color: #7f8c8d; font-size:13px; line-height:1.7;">
-                    預約標為「完成」時，系統自動產生收款紀錄。<br>
-                    若完成的預約未產生收款單，改回未完成再改回完成即可補開。
+                    預約標為「完成」會自動產生收款單。
                 </p>
 
                 <div id="payment-warning" class="alert alert-warning" style="display:none;">
@@ -2116,7 +2118,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
         function isCrmAdminEmail(e){ return String(e||'').toLowerCase() === ADMIN_EMAIL.toLowerCase(); }
         // 只用於「這個信箱用過試用沒」的比對，不可當資料路徑
         function crmTrialEmailKey(e){ return normEmail(e).replace(/[.#$\[\]]/g,'_'); }
-        const CRM_APP_VER = 'v1.0', CRM_BUILD_ID = '1009-41';
+        const CRM_APP_VER = 'v1.0', CRM_BUILD_ID = '1009-43';
         const CRM_EMAIL_FOR_SIGNIN = 'crmEmailForSignIn';
         const LINE_SUPPORT_URL = 'https://line.me/R/ti/p/@373pfdee';
         var crmUserEmail = null;
@@ -4892,6 +4894,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
             const allClients = store.getClients();
             const allContracts = store.getContracts();
             let allPayments = store.getPayments();
+            const paymentsAll = allPayments.slice();   // 篩選前的完整清單，算「比上月」要用
 
             // 客戶統計（服務中）
             const activeClients = allClients.filter(c => (c.serviceStatus || '服務中') === '服務中').length;
@@ -4961,19 +4964,47 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
 
             const periodLabel = filterMonth ? `（${filterMonth}）` : filterYear ? `（${filterYear} 年）` : '（全部）';
 
+            // 每月概況：已收金額、服務場次、跟上月比（上月用篩選前的資料算，單看一個月也有比較）
+            const paidAllByMonth = {};
+            paymentsAll.forEach(p => {
+                const b = store.getBooking(p.bookingId);
+                if (!b || !b.bookingDate) return;
+                const m = b.bookingDate.substring(0, 7);
+                if (!(m in paidAllByMonth)) paidAllByMonth[m] = 0;
+                if (p.paymentStatus === '已收') paidAllByMonth[m] += p.amountDue || 0;
+            });
+            const jobsByMonth = {};
+            store.getBookings().forEach(b => {
+                if (b.status !== '完成' || !b.bookingDate) return;
+                const m = b.bookingDate.substring(0, 7);
+                jobsByMonth[m] = (jobsByMonth[m] || 0) + 1;
+            });
+            const prevMonthKey = m => {
+                let y = parseInt(m.substring(0, 4), 10), mo = parseInt(m.substring(5, 7), 10) - 1;
+                if (mo < 1) { mo = 12; y--; }
+                return y + '-' + (mo < 10 ? '0' : '') + mo;
+            };
+
             let monthlyHtml = '';
             const sortedMonths = Object.keys(monthlyStats).sort().reverse();
             if (sortedMonths.length > 0) {
-                monthlyHtml = `<h3 style="margin-top:20px;">📅 月份收款統計</h3><div class="info-box">`;
+                monthlyHtml = `<h3 style="margin-top:20px;">📅 每月概況</h3><div class="info-box">`;
                 sortedMonths.forEach(month => {
-                    const s = monthlyStats[month];
+                    const paid = paidAllByMonth[month] || 0;
+                    const jobs = jobsByMonth[month] || 0;
+                    const pk = prevMonthKey(month);
+                    let cmp = '<span style="color:#5f6b76;">上月無資料</span>';
+                    if (pk in paidAllByMonth) {
+                        const diff = paid - paidAllByMonth[pk];
+                        cmp = diff > 0 ? `<span style="color:#1e8449;">↑ 比上月多 NT$${diff.toLocaleString()}</span>`
+                            : diff < 0 ? `<span style="color:#c0392b;">↓ 比上月少 NT$${Math.abs(diff).toLocaleString()}</span>`
+                            : '<span style="color:#5f6b76;">與上月相同</span>';
+                    }
                     monthlyHtml += `
-                        <div style="padding:8px 0;border-bottom:1px solid #ecf0f1;">
+                        <div style="padding:9px 0;border-bottom:1px solid #ecf0f1;">
                             <strong>${month}</strong>
-                            <div style="padding-left:10px;font-size:13px;color:#555;margin-top:4px;">
-                                <p>應收: NT$${s.total.toLocaleString()}（${s.totalCount}筆）&nbsp;
-                                   已收: NT$${s.paid.toLocaleString()}（${s.paidCount}筆）&nbsp;
-                                   未收: NT$${s.unpaid.toLocaleString()}（${s.unpaidCount}筆）</p>
+                            <div style="padding-left:10px;font-size:13px;color:#444;margin-top:4px;line-height:1.7;">
+                                已收 <strong>NT$${paid.toLocaleString()}</strong> · ${jobs} 場<br>${cmp}
                             </div>
                         </div>`;
                 });
@@ -5010,6 +5041,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                 ${signName ? `<p style="font-size:13px;color:#7f8c8d;margin:0 0 12px;">${escHtml(signName)} · 報表${periodLabel}</p>` : ''}
                 <div class="info-box">
                     <h3>📊 客戶統計</h3>
+                    <p>客戶總數: <strong>${allClients.length} 位</strong></p>
                     <p>現有客戶數（服務中）: <strong>${activeClients} 位</strong></p>
                     <p>自接客戶數: <strong>${selfClients} 位</strong></p>
                 </div>
