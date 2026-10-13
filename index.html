@@ -2127,7 +2127,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
         function isCrmAdminEmail(e){ return String(e||'').toLowerCase() === ADMIN_EMAIL.toLowerCase(); }
         // 只用於「這個信箱用過試用沒」的比對，不可當資料路徑
         function crmTrialEmailKey(e){ return normEmail(e).replace(/[.#$\[\]]/g,'_'); }
-        const CRM_APP_VER = 'v1.0', CRM_BUILD_ID = '1009-72';
+        const CRM_APP_VER = 'v1.0', CRM_BUILD_ID = '1009-73';
         const CRM_EMAIL_FOR_SIGNIN = 'crmEmailForSignIn';
         const LINE_SUPPORT_URL = 'https://line.me/R/ti/p/@373pfdee';
         var crmUserEmail = null;
@@ -2144,6 +2144,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
 
         var crmPlan = 'free', crmExpiry = '', crmClientsCreated = 0, crmIsAdmin = false;
         var CRM_READONLY = false;
+        var CRM_OFFLINE = false;          // 沒網路時用手機裡的備份開啟：只能查看，不能改（避免連上網路後被雲端資料蓋掉）
 
         function crmIsPaid(p){ return p==='basic'||p==='full'||p==='family'; }
         function crmIsFull(){ return crmIsAdmin || crmIsPaid(crmPlan); }          // 可用全部功能
@@ -2194,7 +2195,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
         // 任何會改資料的動作先問這個
         function crmBlocked(){
             if(!CRM_READONLY) return false;
-            showToast('🔒 試用已到期，升級完整版即可繼續編輯');
+            showToast(CRM_OFFLINE ? '📴 目前沒有網路，只能查看。連上網路後重新開啟 App 才能編輯' : '🔒 試用已到期，升級完整版即可繼續編輯');
             return true;
         }
         async function crmBumpClients(){
@@ -2296,7 +2297,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
         }
 
         function crmApplyPlan(){
-            CRM_READONLY = crmOverQuota();
+            CRM_READONLY = crmOverQuota() || CRM_OFFLINE;
             var bar = document.getElementById('crmRoBar');
             if(CRM_READONLY){
                 if(!bar){
@@ -2306,12 +2307,14 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                     bar.style.cssText = 'position:sticky;top:0;z-index:9990;background:#FDF3E3;border-bottom:1px solid #F0DFC0;'
                         + 'margin:-10px -10px 10px;padding:10px 14px;font-size:13px;color:#8A6112;'
                         + 'display:flex;align-items:center;gap:10px;line-height:1.5';
-                    bar.innerHTML = '<span style="flex:1">🔒 試用已到期，資料可查看與匯出；升級完整版即可繼續編輯</span>'
-                        + '<button type="button" onclick="openCrmUpgrade()" '
-                        + 'style="flex:0 0 auto;background:#4A7A9B;color:#fff;border:none;padding:7px 14px;'
-                        + 'border-radius:8px;font-family:inherit;font-weight:700;font-size:12.5px;cursor:pointer">看方案</button>';
                     document.body.insertBefore(bar, document.body.firstChild);
                 }
+                bar.innerHTML = CRM_OFFLINE
+                    ? '<span style="flex:1">📴 目前沒有網路，只能查看資料；連上網路後重新開啟即可編輯</span>'
+                    : ('<span style="flex:1">🔒 試用已到期，資料可查看與匯出；升級完整版即可繼續編輯</span>'
+                        + '<button type="button" onclick="openCrmUpgrade()" '
+                        + 'style="flex:0 0 auto;background:#4A7A9B;color:#fff;border:none;padding:7px 14px;'
+                        + 'border-radius:8px;font-family:inherit;font-weight:700;font-size:12.5px;cursor:pointer">看方案</button>');
                 bar.style.display = 'flex';
             } else if(bar){ bar.style.display = 'none'; }
         }
@@ -2366,7 +2369,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
             return new Promise(function(resolve){
                 if (!auth) { _crmAuthWhy = 'noauth'; resolve(null); return; }
                 var done = false;
-                var waitMs = (navigator.onLine === false) ? 30000 : 8000;
+                var waitMs = (navigator.onLine === false) ? 4000 : 8000;
                 var unsub = auth.onAuthStateChanged(function(u){
                     if (done) return; done = true;
                     try { unsub(); } catch(e){}
@@ -2375,6 +2378,36 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                 });
                 setTimeout(function(){ if (!done) { done = true; _crmAuthWhy = 'timeout'; try{ unsub(); }catch(e){} resolve(null); } }, waitMs);
             });
+        }
+        /* 沒網路、Firebase 又遲遲不回報登入狀態時（例如只關行動數據），
+           改用「這支手機上次登入的人」＋手機裡的資料備份直接開啟，只能查看。
+           不開放編輯：離線的修改連上網路後會被雲端資料蓋掉。 */
+        function crmEnterOffline(){
+            var m = null; try { m = JSON.parse(localStorage.getItem(CRM_LAST_USER_KEY) || 'null'); } catch(e){}
+            if (!m || !m.email || !crmAllowed(m.email)) return false;
+            var email = String(m.email).toLowerCase();
+            crmUserEmail = email;
+            setCrmPath(email);
+            if (!crmCacheGet()) { FB_KEY = null; return false; }   // 手機裡沒有備份就沒東西可看
+            _crmEntered = true;
+            CRM_OFFLINE = true;
+            crmIsAdmin = isCrmAdminEmail(email);
+            crmPlan = crmIsAdmin ? 'full' : crmPlanFromCache(email);
+            crmExpiry = '';
+            store._firebaseReady = false;
+            store.initData();                                // 讀手機裡的備份
+            store.applyCompatibility();
+            hideCrmLogin();
+            document.getElementById('loading-overlay').style.display = 'none';
+            crmApplyPlan();
+            renderCrmVerTag();
+            initStep1();
+            initBookingTimeOptions();
+            updateAllTabs();
+            setActiveTab('clients');
+            // 網路回來就自動重開，走正常登入流程
+            window.addEventListener('online', function(){ location.reload(); });
+            return true;
         }
         // 逾時後才拿到登入的人（網路慢），補一道自動進入
         var _crmEntered = false;
@@ -2470,6 +2503,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                     }
                 }
                 crmPlan = res.plan; crmExpiry = res.expiry || ''; crmClientsCreated = Number(res.clientsCreated||0);
+                if(!res.offline){ try{ localStorage.setItem(CRM_LAST_USER_KEY, JSON.stringify({ email:crmUserEmail, at:Date.now() })); }catch(e){} }
                 _crmNotices = [];
                 _crmNotices.push(function(){
                   expiryNotice.check({ app:'crm', appName:'客戶管理', plan:crmPlan, expiry:crmExpiry,
@@ -2572,7 +2606,9 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
         window.openCrmUpgrade = openCrmUpgrade;
         window.closeCrmUpgrade = closeCrmUpgrade;
 
+        var CRM_LAST_USER_KEY = 'crm_last_user';
         function crmLogout(){
+            try { localStorage.removeItem(CRM_LAST_USER_KEY); } catch(e){}
             crmCacheClear();
             var go = function(){ location.reload(); };
             try { if (auth) { auth.signOut().then(go, go); return; } } catch(e){}
@@ -5852,10 +5888,12 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
             } else {
                 var why = '';
                 if (navigator.onLine === false) {
-                    why = (_crmAuthWhy === 'timeout')
-                        ? '目前沒有網路，手機還在確認上次的登入狀態…若一直停在這裡，請連上網路後再開啟'
-                        : '目前沒有網路，而且這支手機沒有可用的登入記錄，請連上網路登入一次';
+                    var hasMark = false; try { hasMark = !!localStorage.getItem(CRM_LAST_USER_KEY); } catch(e){}
+                    why = hasMark
+                        ? '目前沒有網路，而且這支手機裡沒有可查看的資料備份，請連上網路後再開啟'
+                        : '目前沒有網路，而且這支手機沒有登入記錄，請連上網路登入一次';
                 }
+                if (navigator.onLine === false && crmEnterOffline()) return;
                 showCrmLogin(why);
                 crmLateAuthWatch();
             }
