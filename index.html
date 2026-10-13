@@ -1937,6 +1937,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                 const o = opt || {};
                 const st = {
                     id, typeName,
+                    cat: (o.cat && serviceCat(o.cat)) ? o.cat : (cat ? cat.name : '其他'),   // 類別要存起來，不能每次從名稱猜
                     rec: {
                         home:   (o.home   !== undefined) ? !!o.home   : !!(cat && cat.home),
                         repair: (o.repair !== undefined) ? !!o.repair : !!(cat && cat.repair)
@@ -2126,7 +2127,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
         function isCrmAdminEmail(e){ return String(e||'').toLowerCase() === ADMIN_EMAIL.toLowerCase(); }
         // 只用於「這個信箱用過試用沒」的比對，不可當資料路徑
         function crmTrialEmailKey(e){ return normEmail(e).replace(/[.#$\[\]]/g,'_'); }
-        const CRM_APP_VER = 'v1.0', CRM_BUILD_ID = '1009-67';
+        const CRM_APP_VER = 'v1.0', CRM_BUILD_ID = '1009-70';
         const CRM_EMAIL_FOR_SIGNIN = 'crmEmailForSignIn';
         const LINE_SUPPORT_URL = 'https://line.me/R/ti/p/@373pfdee';
         var crmUserEmail = null;
@@ -2880,7 +2881,8 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
             m.dataset.typeId = typeId;
             m.dataset.origBilling = st.billing || 'contract';
             // 類別：名稱對得上就選它，對不上（自己改過名）就選「其他」
-            const cat = serviceCat(st.typeName);
+            // 先用存起來的類別；舊資料沒有才用名稱去對
+            const cat = (st.cat && serviceCat(st.cat)) ? serviceCat(st.cat) : serviceCat(st.typeName);
             fillServiceCatSelect('edit-service-cat', cat ? cat.name : '其他');
             m.dataset.prevCat = cat ? cat.name : '其他';
             document.getElementById('edit-service-name').value = st.typeName || '';
@@ -2939,17 +2941,18 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                 // 選了類別就以類別的預設值為準，全部覆蓋，並告訴使用者改了什麼
                 if (box) box.innerHTML = recInfoHtml('edit', cat.home, cat.repair, false, true);
                 renderEditCatInfo(cat.billing, cat.addr);
-                const items = [];
-                items.push('計費：' + (cat.billing === 'single' ? '單次計費' : '按合約計費（也可單次）'));
-                items.push('服務地址：' + (cat.addr ? '必填' : '選填'));
                 const f = [];
                 if (cat.home) f.push('住家狀況');
                 if (cat.repair) f.push('電器與保固');
-                items.push('額外記錄：' + (f.length ? f.join('、') : '無'));
+                const row = function (k, v) {
+                    return '<div style="display:flex;gap:10px;padding:2px 0;"><span style="flex:0 0 64px;color:#5f6b76;">' + k + '</span><span style="flex:1;color:#2c3e50;">' + v + '</span></div>';
+                };
                 if (msg) {
-                    msg.innerHTML = '已套用「<b>' + cat.name + '</b>」的預設設定<br>' +
-                                    items.join('　｜　') + '<br>' +
-                                    '<span style="color:#5b7a6b;">如需調整，可於下方修改</span>';
+                    msg.innerHTML = '<div style="font-weight:700;color:#2c3e50;margin-bottom:4px;">已套用「' + cat.name + '」的預設設定</div>' +
+                        row('計費', cat.billing === 'single' ? '單次計費' : '按合約計費（也可單次）') +
+                        row('服務地址', cat.addr ? '必填' : '選填') +
+                        row('額外記錄', f.length ? f.join('、') : '無') +
+                        '<div style="color:#5f6b76;margin-top:4px;">需要的話，可在下方調整</div>';
                     msg.style.display = 'block';
                 }
             }
@@ -2975,6 +2978,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
             const cat = serviceCat(sel ? sel.value : '') || SERVICE_CATS[SERVICE_CATS.length - 1];
             const other = (cat.name === '其他');
             st.typeName = t;
+            st.cat = cat.name;     // 記住使用者選的類別
             st.rec = { home: ck('edit-rec-home'), repair: ck('edit-rec-repair') };
             st.billing = editBillingValue();    // 以畫面上的選擇為準（換類別時已自動帶入）
             st.addrRequired = editAddrValue();
@@ -3236,7 +3240,8 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                 home:   other ? ck('setup-rec-home')   : cat.home,
                 repair: other ? ck('setup-rec-repair') : cat.repair,
                 billing: cat.billing,
-                addrRequired: cat.addr
+                addrRequired: cat.addr,
+                cat: cat.name
             });
             store.data.selectedServiceType = id;
 
@@ -3296,6 +3301,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
         }
 
         function addServiceType() {
+            if (crmBlocked()) return;
             const sel = document.getElementById('new-service-cat');
             const catName = sel ? sel.value : '其他';
             const cat = serviceCat(catName) || SERVICE_CATS[SERVICE_CATS.length - 1];
@@ -3310,7 +3316,8 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                 home:   (cat.name === '其他') ? ck('new-rec-home')   : cat.home,
                 repair: (cat.name === '其他') ? ck('new-rec-repair') : cat.repair,
                 billing: cat.billing,
-                addrRequired: cat.addr
+                addrRequired: cat.addr,
+                cat: cat.name
             });
             if (input) input.value = '';
             const box = document.getElementById('add-service-box');
@@ -3320,6 +3327,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
         }
 
         function deleteServiceType(typeId, typeName) {
+            if (crmBlocked()) return;
             const hasClients = store.data.clients.some(c => c.serviceTypeId === typeId);
             if (hasClients) {
                 showToast('還有客戶使用此服務項目，無法刪除');
@@ -4752,8 +4760,8 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
             const newDate = document.getElementById('payment-status-warning-modal').dataset.newDate === 'null' ? null : document.getElementById('payment-status-warning-modal').dataset.newDate;
 
             const payment = store.data.payments.find(p => p.id === paymentId);
-            const booking = store.getBooking(payment.bookingId);
-            const client = store.bookingClient(booking);
+            const booking = payment ? store.getBooking(payment.bookingId) : null;
+            const client = booking ? store.bookingClient(booking) : null;
             if (!payment || !booking || !client) { showToast('找不到對應的預約或客戶'); return; }
 
             // 記錄修改歷史
@@ -7411,7 +7419,7 @@ upgradeSheet.init({
             <div class="form-group">
                 <label for="edit-service-cat">服務類別</label>
                 <select id="edit-service-cat" onchange="onEditServiceCatChange()" style="width:100%;padding:9px 10px;border:1px solid #bdc3c7;border-radius:4px;box-sizing:border-box;font-size:16px;"></select>
-                <div id="edit-cat-msg" style="display:none;font-size:12px;color:#1e6f50;background:#e8f5e9;border:1px solid #c3e6cb;border-radius:8px;padding:8px 10px;margin-top:8px;line-height:1.6;"></div>
+                <div id="edit-cat-msg" style="display:none;font-size:13px;color:#2c3e50;background:#F7F6F3;border:1px solid #E7E2DA;border-radius:10px;padding:10px 12px;margin-top:8px;line-height:1.6;"></div>
             </div>
             <div class="form-group">
                 <label for="edit-service-name">服務名稱</label>
