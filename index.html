@@ -2116,7 +2116,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
         function isCrmAdminEmail(e){ return String(e||'').toLowerCase() === ADMIN_EMAIL.toLowerCase(); }
         // 只用於「這個信箱用過試用沒」的比對，不可當資料路徑
         function crmTrialEmailKey(e){ return normEmail(e).replace(/[.#$\[\]]/g,'_'); }
-        const CRM_APP_VER = 'v1.0', CRM_BUILD_ID = '1009-37';
+        const CRM_APP_VER = 'v1.0', CRM_BUILD_ID = '1009-39';
         const CRM_EMAIL_FOR_SIGNIN = 'crmEmailForSignIn';
         const LINE_SUPPORT_URL = 'https://line.me/R/ti/p/@373pfdee';
         var crmUserEmail = null;
@@ -2450,7 +2450,12 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                 }
                 crmApplyPlan();
                 document.getElementById('loading-overlay').style.display = 'none';
-                if(res.newTrial) _crmNotices.unshift(function(){ showConfirm('已開啟 ' + CRM_TRIAL_DAYS + ' 天免費試用，到 ' + res.expiry + ' 為止。\n\n試用期間可建立 ' + CRM_TRIAL_CLIENT_QUOTA + ' 位客戶（刪除後名額不退還），客戶、合約、預約、收款功能都能用；營運儀表板與服務追蹤升級後解鎖。', function(){}, '開始使用'); });
+                // 試用歡迎提示跟「首次設定」綁在一起：只要還要做首次設定（會看到設定頁），完成後就跳一次。
+                // 不再只看「剛好是第一次登入」，免得設定頁中途離開、重新整理後就永遠看不到。
+                if(!crmIsAdmin && res.plan === 'trial' && res.expiry && needsSetup()) _crmNotices.unshift(function(){
+                    var head = res.newTrial ? ('已開啟 ' + CRM_TRIAL_DAYS + ' 天免費試用，到 ' + res.expiry + ' 為止。') : ('你目前是免費試用中，到 ' + res.expiry + ' 為止。');
+                    showConfirm(head + '\n\n試用期間可建立 ' + CRM_TRIAL_CLIENT_QUOTA + ' 位客戶（刪除後名額不退還），客戶、合約、預約、收款功能都能用；營運儀表板與服務追蹤升級後解鎖。', function(){}, '開始使用');
+                });
                 else if(res.expired) _crmNotices.unshift(function(){ showConfirm('訂閱已到期。\n\n現有資料都看得到、也能匯出備份，升級後可繼續新增與編輯。', function(){ window.open(LINE_SUPPORT_URL,'_blank','noopener'); }, '聯繫客服'); });
                 renderCrmVerTag();
                 initStep1();
