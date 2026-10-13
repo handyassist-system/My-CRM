@@ -2127,7 +2127,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
         function isCrmAdminEmail(e){ return String(e||'').toLowerCase() === ADMIN_EMAIL.toLowerCase(); }
         // 只用於「這個信箱用過試用沒」的比對，不可當資料路徑
         function crmTrialEmailKey(e){ return normEmail(e).replace(/[.#$\[\]]/g,'_'); }
-        const CRM_APP_VER = 'v1.0', CRM_BUILD_ID = '1009-70';
+        const CRM_APP_VER = 'v1.0', CRM_BUILD_ID = '1009-71';
         const CRM_EMAIL_FOR_SIGNIN = 'crmEmailForSignIn';
         const LINE_SUPPORT_URL = 'https://line.me/R/ti/p/@373pfdee';
         var crmUserEmail = null;
@@ -2490,6 +2490,10 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
           }
         }
         // 收信登入（直接開 CRM 網址、還沒登入時才用得到）
+        // 沒網路時，Firebase 登入會丟出網路錯誤；要明講是網路問題，不能說成帳號密碼錯
+        function crmIsNetErr(e){
+            return (e && e.code === 'auth/network-request-failed') || (typeof navigator !== 'undefined' && navigator.onLine === false);
+        }
         async function crmSendLink(){
             var msg = document.getElementById('crmLoginMsg');
             var input = document.getElementById('crmEmailInput');
@@ -2503,7 +2507,8 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                 try { localStorage.setItem(CRM_EMAIL_FOR_SIGNIN, email); } catch(e){}
                 msg.textContent = '📧 登入連結已寄到 ' + email + '，請到信箱點擊連結（找不到請看垃圾郵件夾）';
             } catch(e) {
-                msg.textContent = '寄送失敗：' + ((e && e.message) ? e.message : '請稍後再試');
+                msg.textContent = crmIsNetErr(e) ? '目前沒有網路，無法寄送登入信。請連上網路後再試'
+                                                 : '寄送失敗：' + ((e && e.message) ? e.message : '請稍後再試');
             }
             btn.disabled = false; btn.textContent = '登入';
         }
@@ -2527,7 +2532,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
             var em = (document.getElementById('crmAdminEmail').value || '').trim();
             var pw = document.getElementById('crmAdminPw').value || '';
             if (!em || !pw) { msg.textContent = '請輸入 Email 與密碼'; return; }
-            if (!auth) { msg.textContent = '登入服務暫時無法使用'; return; }
+            if (!auth) { msg.textContent = '登入服務暫時無法使用，請確認網路'; return; }
             msg.textContent = '登入中…';
             try {
                 var res = await auth.signInWithEmailAndPassword(em, pw);
@@ -2536,7 +2541,8 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                 msg.textContent = '';
                 await crmEnter(u.email);
             } catch(e) {
-                msg.textContent = '登入失敗，請確認 Email 與密碼';
+                msg.textContent = crmIsNetErr(e) ? '目前沒有網路，無法登入。請連上網路後再試'
+                                                 : '登入失敗，請確認 Email 與密碼';
             }
         }
         
