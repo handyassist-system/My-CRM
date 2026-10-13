@@ -2126,7 +2126,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
         function isCrmAdminEmail(e){ return String(e||'').toLowerCase() === ADMIN_EMAIL.toLowerCase(); }
         // 只用於「這個信箱用過試用沒」的比對，不可當資料路徑
         function crmTrialEmailKey(e){ return normEmail(e).replace(/[.#$\[\]]/g,'_'); }
-        const CRM_APP_VER = 'v1.0', CRM_BUILD_ID = '1009-62';
+        const CRM_APP_VER = 'v1.0', CRM_BUILD_ID = '1009-65';
         const CRM_EMAIL_FOR_SIGNIN = 'crmEmailForSignIn';
         const LINE_SUPPORT_URL = 'https://line.me/R/ti/p/@373pfdee';
         var crmUserEmail = null;
@@ -5113,8 +5113,8 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                                 ${sub ? `<p style="font-size:12px;color:#7f8c8d;">${sub}</p>` : ''}
                             </div>
                             <div style="display:flex;gap:6px;flex:0 0 auto;">
-                                    ${d.client.phone ? `<a class="btn btn-sm btn-secondary" style="text-decoration:none;display:inline-flex;align-items:center;justify-content:center;min-width:78px;height:36px;padding:0 10px;box-sizing:border-box;font-size:14px;font-weight:600;line-height:1;margin:0;vertical-align:top;" href="tel:${String(d.client.phone).replace(/[^0-9+]/g,'')}">📞 撥號</a>` : ''}
-                                    <button class="btn btn-sm btn-secondary" style="display:inline-flex;align-items:center;justify-content:center;min-width:78px;height:36px;padding:0 10px;box-sizing:border-box;font-size:14px;font-weight:600;line-height:1;margin:0;vertical-align:top;" onclick="openClientDetailModal('${d.client.id}')">查看</button>
+                                    ${d.client.phone ? `<a class="btn btn-sm btn-secondary" style="text-decoration:none;display:inline-flex;align-items:center;justify-content:center;width:66px;min-width:66px;height:30px;min-height:30px;padding:0;box-sizing:border-box;font-size:13px;font-weight:600;border-radius:7px;line-height:1;margin:0;vertical-align:top;font-family:inherit;" href="tel:${String(d.client.phone).replace(/[^0-9+]/g,'')}">📞 撥號</a>` : ''}
+                                    <button class="btn btn-sm btn-secondary" style="display:inline-flex;align-items:center;justify-content:center;width:66px;min-width:66px;height:30px;min-height:30px;padding:0;box-sizing:border-box;font-size:13px;font-weight:600;border-radius:7px;line-height:1;margin:0;vertical-align:top;font-family:inherit;" onclick="openClientDetailModal('${d.client.id}')">查看</button>
                             </div>
                         </div>
                     </div>`;
@@ -5249,8 +5249,8 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                                 ${(d.remainH !== null) ? `<p style="font-size:12px;color:#7f8c8d;">${d.remainH !== null ? `<span style="color:${d.remainH > 0 ? '#c0392b' : '#7f8c8d'};font-weight:${d.remainH > 0 ? 'bold' : 'normal'};white-space:nowrap;">合約還剩 ${d.remainH}h</span>` : ''}</p>` : ''}
                             </div>
                             <div style="display:flex;gap:6px;flex:0 0 auto;">
-                                    ${d.client.phone ? `<a class="btn btn-sm btn-secondary" style="text-decoration:none;display:inline-flex;align-items:center;justify-content:center;min-width:78px;height:36px;padding:0 10px;box-sizing:border-box;font-size:14px;font-weight:600;line-height:1;margin:0;vertical-align:top;" href="tel:${String(d.client.phone).replace(/[^0-9+]/g,'')}">📞 撥號</a>` : ''}
-                                    <button class="btn btn-sm btn-secondary" style="display:inline-flex;align-items:center;justify-content:center;min-width:78px;height:36px;padding:0 10px;box-sizing:border-box;font-size:14px;font-weight:600;line-height:1;margin:0;vertical-align:top;" onclick="openClientDetailModal('${d.client.id}')">查看</button>
+                                    ${d.client.phone ? `<a class="btn btn-sm btn-secondary" style="text-decoration:none;display:inline-flex;align-items:center;justify-content:center;width:66px;min-width:66px;height:30px;min-height:30px;padding:0;box-sizing:border-box;font-size:13px;font-weight:600;border-radius:7px;line-height:1;margin:0;vertical-align:top;font-family:inherit;" href="tel:${String(d.client.phone).replace(/[^0-9+]/g,'')}">📞 撥號</a>` : ''}
+                                    <button class="btn btn-sm btn-secondary" style="display:inline-flex;align-items:center;justify-content:center;width:66px;min-width:66px;height:30px;min-height:30px;padding:0;box-sizing:border-box;font-size:13px;font-weight:600;border-radius:7px;line-height:1;margin:0;vertical-align:top;font-family:inherit;" onclick="openClientDetailModal('${d.client.id}')">查看</button>
                             </div>
                         </div>
                     </div>
@@ -5308,7 +5308,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                             <p style="font-size:13px;font-weight:bold;color:#2c3e50;">${b.bookingDate} ${b.bookingTime}</p>
                             <span style="font-size:11px;color:${statusColor[b.status] || '#7f8c8d'};font-weight:bold;">${b.status}</span>
                         </div>
-                        <p style="font-size:13px;color:#555;margin-top:2px;">${b.serviceHours} 小時
+                        <p style="font-size:12px;color:#5f6b76;margin-top:2px;">${b.serviceHours} 小時
                             ${b.useEssentialOil ? '　<span style="color:#8e44ad;">有使用精油</span>' : ''}
                         </p>
                         ${b.serviceNotes ? `<p style="font-size:12px;color:#7f8c8d;margin-top:4px;">備註：${escHtml(b.serviceNotes)}</p>` : ''}
@@ -5318,19 +5318,15 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
             document.getElementById('client-detail-content').innerHTML = `
                 <div style="padding:4px 0 12px;">
                     <p style="font-size:16px;font-weight:bold;color:#2c3e50;">${escHtml(client.clientName)}</p>
-                    <p style="font-size:13px;color:#7f8c8d;">📞 ${escHtml(client.phone)}</p>
+                    <p style="font-size:13px;color:#5f6b76;margin-top:2px;">📞 ${escHtml(client.phone)}</p>
                     ${client.address ? `<p style="font-size:13px;color:#5f6b76;">📍 ${escHtml(client.address)}</p>` : ''}
                     ${client.applianceName ? `<p style="font-size:13px;color:#5f6b76;">電器：${escHtml(client.applianceName)}${client.warrantyStatus ? '（' + escHtml(client.warrantyStatus) + '）' : ''}</p>` : ''}
                     ${client.notes ? `<p style="font-size:13px;color:#5f6b76;">備註：${escHtml(client.notes)}</p>` : ''}
                 </div>
-                <div style="border-top:1px solid #ecf0f1;padding-top:12px;margin-bottom:12px;">
-                    <p style="font-size:13px;font-weight:bold;color:#2c3e50;margin-bottom:8px;">進行中的合約</p>
-                    ${contractHtml}
-                </div>
-                <div style="border-top:1px solid #ecf0f1;padding-top:12px;">
-                    <p style="font-size:13px;font-weight:bold;color:#2c3e50;margin-bottom:8px;">預約紀錄</p>
-                    ${bookingsHtml}
-                </div>
+                <div class="set-sec" style="margin:6px 0 10px;">進行中的合約</div>
+                <div style="margin-bottom:14px;">${contractHtml}</div>
+                <div class="set-sec" style="margin:6px 0 4px;">預約紀錄</div>
+                <div>${bookingsHtml}</div>
             `;
 
             document.getElementById('client-detail-modal').classList.add('show');
