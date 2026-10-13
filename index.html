@@ -2127,7 +2127,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
         function isCrmAdminEmail(e){ return String(e||'').toLowerCase() === ADMIN_EMAIL.toLowerCase(); }
         // 只用於「這個信箱用過試用沒」的比對，不可當資料路徑
         function crmTrialEmailKey(e){ return normEmail(e).replace(/[.#$\[\]]/g,'_'); }
-        const CRM_APP_VER = 'v1.0', CRM_BUILD_ID = '1009-71';
+        const CRM_APP_VER = 'v1.0', CRM_BUILD_ID = '1009-72';
         const CRM_EMAIL_FOR_SIGNIN = 'crmEmailForSignIn';
         const LINE_SUPPORT_URL = 'https://line.me/R/ti/p/@373pfdee';
         var crmUserEmail = null;
@@ -2359,17 +2359,34 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
             if (lg) lg.style.display = 'none';
         }
         // 等 Firebase 回報目前登入狀態（沿用行事曆的登入）
+        // 沒網路時 Firebase 確認「手機裡記住的登入」要等網路請求失敗才放行，可能超過 8 秒，
+        // 所以離線時多等一會兒，不要太早當成沒登入。window._crmAuthWhy 記錄結果，登入畫面會用來說明原因。
+        var _crmAuthWhy = '';
         function crmWaitAuth(){
             return new Promise(function(resolve){
-                if (!auth) { resolve(null); return; }
+                if (!auth) { _crmAuthWhy = 'noauth'; resolve(null); return; }
                 var done = false;
+                var waitMs = (navigator.onLine === false) ? 30000 : 8000;
                 var unsub = auth.onAuthStateChanged(function(u){
                     if (done) return; done = true;
                     try { unsub(); } catch(e){}
+                    _crmAuthWhy = u ? 'user' : 'none';
                     resolve(u || null);
                 });
-                setTimeout(function(){ if (!done) { done = true; try{ unsub(); }catch(e){} resolve(null); } }, 8000);
+                setTimeout(function(){ if (!done) { done = true; _crmAuthWhy = 'timeout'; try{ unsub(); }catch(e){} resolve(null); } }, waitMs);
             });
+        }
+        // 逾時後才拿到登入的人（網路慢），補一道自動進入
+        var _crmEntered = false;
+        function crmLateAuthWatch(){
+            try{
+                if (!auth) return;
+                var un = auth.onAuthStateChanged(function(u){
+                    if (_crmEntered || !u || !u.email || !crmAllowed(u.email)) return;
+                    try{ un(); }catch(e){}
+                    crmEnter(u.email);
+                });
+            }catch(e){}
         }
         // 舊資料搬到自己的帳號底下（只跑一次，你不用做任何事）
         async function crmMigrateIfNeeded(){
@@ -2432,6 +2449,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
         }
 
         async function crmEnter(email){
+          _crmEntered = true;
           // 整段包起來：驗證之後的任何一步出錯，也要把登入畫面放回來
           // 並說明原因，不能讓使用者只看到一片空白。
           try{
@@ -5832,7 +5850,14 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
             } else if (u && u.email) {
                 showCrmLogin('這個帳號（' + u.email + '）沒有權限使用本系統');
             } else {
-                showCrmLogin('');
+                var why = '';
+                if (navigator.onLine === false) {
+                    why = (_crmAuthWhy === 'timeout')
+                        ? '目前沒有網路，手機還在確認上次的登入狀態…若一直停在這裡，請連上網路後再開啟'
+                        : '目前沒有網路，而且這支手機沒有可用的登入記錄，請連上網路登入一次';
+                }
+                showCrmLogin(why);
+                crmLateAuthWatch();
             }
         });
 /* ==================== 訂閱管理（跨 App 共用模組）====================
