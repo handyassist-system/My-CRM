@@ -2126,7 +2126,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
         function isCrmAdminEmail(e){ return String(e||'').toLowerCase() === ADMIN_EMAIL.toLowerCase(); }
         // 只用於「這個信箱用過試用沒」的比對，不可當資料路徑
         function crmTrialEmailKey(e){ return normEmail(e).replace(/[.#$\[\]]/g,'_'); }
-        const CRM_APP_VER = 'v1.0', CRM_BUILD_ID = '1009-65';
+        const CRM_APP_VER = 'v1.0', CRM_BUILD_ID = '1009-67';
         const CRM_EMAIL_FOR_SIGNIN = 'crmEmailForSignIn';
         const LINE_SUPPORT_URL = 'https://line.me/R/ti/p/@373pfdee';
         var crmUserEmail = null;
@@ -2323,9 +2323,15 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
         function crmAllowed(email){
             return true;   // 改成查方案，不再用白名單
         }
+        // 管理員專用的畫面（管理選項、版本編號）：預覽使用者畫面期間要隱藏，才是客人真正看到的樣子
+        function crmAdminUiOn(){
+            return isCrmAdminEmail(crmUserEmail)
+                && !(typeof PREVIEW !== 'undefined' && PREVIEW)
+                && !(window.previewMode && previewMode.active());
+        }
         function renderCrmVerTag(){
             var el = document.getElementById('crmVerTag');
-            if (el) el.textContent = CRM_APP_VER + (isCrmAdminEmail(crmUserEmail) ? ' · ' + CRM_BUILD_ID : '');
+            if (el) el.textContent = CRM_APP_VER + (crmAdminUiOn() ? ' · ' + CRM_BUILD_ID : '');
             var em = document.getElementById('crm-account-email');
             if (em) em.textContent = crmUserEmail || '—';
             var pl = document.getElementById('crm-account-plan');
@@ -2339,7 +2345,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                 }
             }
             var vf = document.getElementById('crmVerTagFoot');
-            if (vf) vf.textContent = CRM_APP_VER + (isCrmAdminEmail(crmUserEmail) ? ' · ' + CRM_BUILD_ID : '');
+            if (vf) vf.textContent = CRM_APP_VER + (crmAdminUiOn() ? ' · ' + CRM_BUILD_ID : '');
         }
         function showCrmLogin(msg){
             var lg = document.getElementById('crmLogin');
@@ -3126,20 +3132,13 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
             put('sv-service', types.length === 0 ? '尚未設定'
                 : types.length === 1 ? types[0].typeName
                 : types.length + ' 種服務');
-            const c = SVC();
-            const cur = store.getServiceType(store.data.selectedServiceType);
-            const bits = [];
-            if (types.length > 1 && cur) bits.push(cur.typeName);
-            if (c.defaultHourlyRate > 0) bits.push(c.defaultHourlyRate + ' 元/h');
-            bits.push(c.contractYears + ' 年');
-            if (c.companyDispatch) bits.push('有公司派');
-            put('sv-svcset', bits.join(' · '));
+            put('sv-svcset', '');   // 內容多、顯示不完整，點進去再看
             put('sv-account', crmUserEmail || '');
             put('sv-backup', '');
             put('sv-app', '');
             put('sv-support', '');
 
-            const isAdmin = (isCrmAdminEmail(crmUserEmail)) && !PREVIEW;
+            const isAdmin = crmAdminUiOn();
             const ar = document.getElementById('set-admin-preview');
             const ag = document.getElementById('set-admin-gap');
             var _em=document.getElementById('acc-em');
@@ -6822,6 +6821,7 @@ previewMode.init({
   apply: function(mode){
     crmPlan = mode; crmIsAdmin = false;
     document.body.style.paddingTop = '44px';
+    if(typeof renderCrmVerTag==='function') renderCrmVerTag();
     if(mode === 'trial'){
       // 新客戶＝試用方案＋空白資料＋首次設定流程，這三件事本來就是同時發生的
       startPreview();
