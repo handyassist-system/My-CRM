@@ -1,6 +1,6 @@
 // 客戶管理 Service Worker（智在生活 Standard：與其他 App 同一套）
 // 每次改這支 sw.js 本身時，把版本號 +1，舊快取才會被清掉
-const CACHE_NAME = 'crm-cache-v1';
+const CACHE_NAME = 'crm-cache-v2';
 const CORE = [
   './',
   './index.html',
@@ -20,7 +20,8 @@ self.addEventListener('install', function(e){
 self.addEventListener('activate', function(e){
   e.waitUntil(
     caches.keys().then(function(keys){
-      return Promise.all(keys.filter(function(k){ return k!==CACHE_NAME; }).map(function(k){ return caches.delete(k); }));
+      // 只清自己這個 App 的舊快取（同網站的其他 App 也有快取，不能一起刪）
+      return Promise.all(keys.filter(function(k){ return k.indexOf('crm-cache-')===0 && k!==CACHE_NAME; }).map(function(k){ return caches.delete(k); }));
     }).then(function(){ return self.clients.claim(); })
   );
 });
