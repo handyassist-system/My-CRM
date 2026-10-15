@@ -426,6 +426,11 @@
             overflow-y: auto;
         }
 
+        /* 表單小字說明統一：12px、灰色、緊貼欄位下方 */
+        .modal-content .form-group small { display: block; font-size: 12px; line-height: 1.5; margin-top: 4px; color: #7f8c8d; }
+        /* 表單分區塊框（比照旅遊「新增花費」） */
+        .form-sec { background:#fff; border:1px solid #dfe6ea; border-radius:12px; padding:14px 14px 2px; margin:0 0 14px; }
+        .form-sec .sec-h { font-size:14px; font-weight:700; color:#4A7A9B; margin:0 0 12px; }
         .modal-header {
             margin-bottom: 15px;
             padding-bottom: 10px;
@@ -1100,6 +1105,8 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                 <h3 id="client-modal-title">新增客戶</h3>
             </div>
             <form id="client-form" autocomplete="off">
+                <div class="form-sec">
+                    <div class="sec-h">👤 基本資料</div>
                 <div class="form-group">
                     <label for="client-name">客戶姓名 *</label>
                     <input type="text" id="client-name" name="crm_f_cn7q" required autocomplete="nope" autocapitalize="off" spellcheck="false" data-lpignore="true" data-form-type="other">
@@ -1131,16 +1138,19 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                     <input type="text" id="client-address" name="crm_f_ca9w" autocomplete="nope" data-lpignore="true" data-form-type="other">
                 </div>
 
+                </div>
+
+                <!-- 動態欄位容器 -->
+                <div id="client-dynamic-fields"></div>
+
+
+                <div class="form-sec">
+                    <div class="sec-h">📝 其他</div>
                 <div class="form-group">
                     <div class="checkbox-group">
                         <input type="checkbox" id="client-line" value="true">
                         <label for="client-line">是否加入官方LINE</label>
                     </div>
-                </div>
-
-                <div class="form-group">
-                    <label for="client-notes">備註</label>
-                    <textarea id="client-notes"></textarea>
                 </div>
 
                 <div class="form-group">
@@ -1151,8 +1161,12 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                     </div>
                 </div>
 
-                <!-- 動態欄位容器 -->
-                <div id="client-dynamic-fields"></div>
+                <div class="form-group">
+                    <label for="client-notes">備註</label>
+                    <textarea id="client-notes"></textarea>
+                </div>
+
+                </div>
 
                 <button type="submit" class="btn btn-success">確認建立</button>
                 <button type="button" class="btn btn-secondary" onclick="closeClientModal()">取消</button>
@@ -1167,6 +1181,8 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                 <h3 id="contract-modal-title">新增合約</h3>
             </div>
             <form id="contract-form">
+                <div class="form-sec">
+                    <div class="sec-h">👤 客戶</div>
                 <div class="form-group" id="contract-client-search-group">
                     <label>選擇客戶 *</label>
                     <input type="text" id="contract-client-search-input" placeholder="輸入客戶姓名或電話..." style="width:100%;padding:8px 10px;border:1px solid #bdc3c7;border-radius:4px;margin-bottom:4px;" autocomplete="off">
@@ -1180,27 +1196,29 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                     <p>地址: <span id="contract-client-address"></span></p>
                 </div>
 
+                </div>
+
+                <div class="form-sec">
+                    <div class="sec-h">⏱ 時數</div>
                 <div class="form-group">
                     <label for="contract-total-hours">合約總時數 *</label>
                     <input type="number" id="contract-total-hours" required min="1" step="0.5">
                 </div>
 
-                <button type="button" id="contract-adv-toggle"
-                    style="background:none;border:none;color:#4A7A9B;font-size:13.5px;padding:4px 0;margin-bottom:10px;cursor:pointer;">＋ 進階選項</button>
-
-                <div id="contract-adv-box" style="display:none;padding:12px;background:#f8f9fa;border-radius:8px;margin-bottom:15px;">
-                    <div class="form-group" style="margin-bottom:12px;">
-                        <label for="contract-bonus-hours">贈送時數</label>
-                        <input type="number" id="contract-bonus-hours" min="0" step="0.5" value="0">
-                        <small style="color: #7f8c8d;">可以用，但金額計算不計入</small>
-                    </div>
-                    <div class="form-group" style="margin-bottom:0;">
-                        <label for="contract-pre-used-hours">他人已服務時數</label>
-                        <input type="number" id="contract-pre-used-hours" min="0" step="0.5" value="0">
-                        <small style="color: #7f8c8d;">接手別人的合約時才需要填</small>
-                    </div>
+                <div class="form-group">
+                    <label for="contract-bonus-hours">贈送時數</label>
+                    <input type="number" id="contract-bonus-hours" min="0" step="0.5" value="0">
+                    <small style="color: #7f8c8d;">可以用，但金額計算不計入</small>
+                </div>
+                <div class="form-group">
+                    <label for="contract-pre-used-hours">他人已服務時數</label>
+                    <input type="number" id="contract-pre-used-hours" min="0" step="0.5" value="0">
+                    <small style="color: #7f8c8d;">接手別人的合約時才需要填</small>
+                </div>
                 </div>
 
+                <div class="form-sec">
+                    <div class="sec-h">💰 費用</div>
                 <div class="form-group" id="contract-cooperation-group">
                     <label>合作方式 *</label>
                     <div class="radio-group">
@@ -1210,7 +1228,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                 </div>
 
                 <p id="contract-rate-note" style="display:none;font-size:12px;color:#e67e22;background:#fef5e7;border-radius:6px;padding:8px 10px;margin-bottom:10px;">
-                    改單價只影響之後新產生的收款，已經產生的收款單金額不會變。
+                    改單價只影響之後新產生的收款，<br>已經產生的收款單金額不會變。
                 </p>
 
                 <div id="contract-rate-group" style="display:none;" class="form-group">
@@ -1227,9 +1245,18 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                 <div id="contract-payment-rate-group" style="display:none;" class="form-group">
                     <label for="contract-payment-rate">我方收款費率（元/小時）</label>
                     <input type="number" id="contract-payment-rate" min="0" step="1" placeholder="例如：600">
-                    <small style="color: #7f8c8d;">計算收款時使用，預設值可在 ⚙️ 設定 調整</small>
+                    <small style="color: #7f8c8d;">計算收款時使用，<br>預設值可在 ⚙️ 設定 調整</small>
                 </div>
 
+                <div class="info-box" style="margin-top:0;">
+                    <p><strong>合約總價計算：</strong></p>
+                    <p id="contract-total-price-calc">時數 × 單價 = ?</p>
+                </div>
+
+                </div>
+
+                <div class="form-sec">
+                    <div class="sec-h">📄 合約資料</div>
                 <div class="form-group">
                     <label>合約類型 *</label>
                     <div class="radio-group">
@@ -1257,14 +1284,15 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                     <small style="color: #7f8c8d;" id="contract-expire-hint">預設為簽約日 + 2 年，可手動修改</small>
                 </div>
 
+                </div>
+
+                <div class="form-sec">
+                    <div class="sec-h">📝 備註</div>
                 <div class="form-group">
                     <label for="contract-notes">合約備註</label>
                     <textarea id="contract-notes"></textarea>
                 </div>
 
-                <div class="info-box" style="margin-top: 15px;">
-                    <p><strong>合約總價計算：</strong></p>
-                    <p id="contract-total-price-calc">時數 × 單價 = ?</p>
                 </div>
 
                 <button type="submit" class="btn btn-success">確認建立</button>
@@ -1280,6 +1308,8 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                 <h3 id="booking-modal-title">新增預約</h3>
             </div>
             <form id="booking-form" autocomplete="off">
+                <div class="form-sec">
+                    <div class="sec-h">👤 客戶</div>
                 <div class="form-group" id="booking-client-search-group">
                     <label>選擇客戶 *</label>
                     <input type="text" id="booking-client-search-input" placeholder="輸入客戶姓名或電話..." style="width:100%;padding:8px 10px;border:1px solid #bdc3c7;border-radius:4px;margin-bottom:4px;" autocomplete="off">
@@ -1294,15 +1324,14 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                     <p id="booking-info-remaining-row">剩餘: <span id="booking-info-remaining"></span> 小時</p>
                 </div>
 
+                </div>
+
+                <div class="form-sec">
+                    <div class="sec-h">📅 預約內容</div>
                 <div class="form-group" id="booking-address-group" style="display:none;">
                     <label for="booking-address">服務地址 *</label>
                     <input type="text" id="booking-address" name="crm_f_ba5z" placeholder="服務地址" autocomplete="nope" data-lpignore="true" data-form-type="other">
-                    <p style="font-size:11px;color:#95a5a6;margin-top:4px;">預設帶入客戶的地址，這次要去別的地方就直接改，不會影響客戶資料</p>
-                </div>
-
-                <div class="form-group" id="booking-staff-group">
-                    <label for="booking-staff">服務人員（選填）</label>
-                    <input type="text" id="booking-staff" maxlength="20" placeholder="留空＝自己前往">
+                    <small style="color:#7f8c8d;">預設帶入客戶的地址，<br>這次要去別的地方就直接改，不會影響客戶資料</small>
                 </div>
 
                 <div class="form-group">
@@ -1366,9 +1395,20 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                     </div>
                 </div>
 
+                </div>
+
+                <div class="form-sec">
+                    <div class="sec-h">📝 人員與備註</div>
+                <div class="form-group" id="booking-staff-group">
+                    <label for="booking-staff">服務人員（選填）</label>
+                    <input type="text" id="booking-staff" maxlength="20" placeholder="留空＝自己前往">
+                </div>
+
                 <div class="form-group">
                     <label for="booking-notes">服務內容備註</label>
                     <textarea id="booking-notes"></textarea>
+                </div>
+
                 </div>
 
                 <button type="submit" class="btn btn-success">確認建立</button>
@@ -1931,6 +1971,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                 (function (d) {
                     var ps = d.partners || [];
                     d.bookings.forEach(function (b) {
+                        if (b && b.staffName === 'me') { b.staffName = ''; return; }   // 舊版新增預約時誤把 'me' 當成姓名存進去
                         if (!b || typeof b.staffName === 'string') return;
                         if (!b.staffId || b.staffId === 'me') { b.staffName = ''; return; }
                         var hit = ps.find(function (x) { return x.id === b.staffId; });
@@ -2137,7 +2178,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
         function isCrmAdminEmail(e){ return String(e||'').toLowerCase() === ADMIN_EMAIL.toLowerCase(); }
         // 只用於「這個信箱用過試用沒」的比對，不可當資料路徑
         function crmTrialEmailKey(e){ return normEmail(e).replace(/[.#$\[\]]/g,'_'); }
-        const CRM_APP_VER = 'v1.0', CRM_BUILD_ID = '1009-75';
+        const CRM_APP_VER = 'v1.0', CRM_BUILD_ID = '1009-79';
         const CRM_EMAIL_FOR_SIGNIN = 'crmEmailForSignIn';
         const LINE_SUPPORT_URL = 'https://line.me/R/ti/p/@373pfdee';
         var crmUserEmail = null;
@@ -3585,7 +3626,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
 
             let html = '';
             if (home) html += `
-                    <h3 style="margin-top:20px;margin-bottom:15px;">居家資訊</h3>
+                    <div class="form-sec"><div class="sec-h">🏠 居家資訊</div>
                     <div class="form-group">
                         <label for="client-rooms">房間數</label>
                         <input type="number" id="client-rooms" min="1" step="1">
@@ -3601,9 +3642,9 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                             <input type="checkbox" id="client-has-pets">
                             <label for="client-has-pets">是否有寵物</label>
                         </div>
-                    </div>`;
+                    </div></div>`;
             if (repair) html += `
-                    <h3 style="margin-top:20px;margin-bottom:15px;">維修資訊</h3>
+                    <div class="form-sec"><div class="sec-h">🔧 維修資訊</div>
                     <div class="form-group">
                         <label for="client-appliance-name">電器名稱</label>
                         <input type="text" id="client-appliance-name">
@@ -3614,7 +3655,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                             <label><input type="radio" name="client-warranty-status" value="保固內"> 保固內</label>
                             <label><input type="radio" name="client-warranty-status" value="保固外"> 保固外</label>
                         </div>
-                    </div>`;
+                    </div></div>`;
             container.innerHTML = html;
 
             // 服務地址：必填與否由服務決定
@@ -3797,7 +3838,8 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                             <div style="display: flex; justify-content: space-between; align-items: center;">
                                 <div style="flex: 1;">
                                     <h4>${escHtml(client.clientName)}${alertIcon}${statusBadge}</h4>
-                                    <p>時數: ${contract.totalHours}h + 贈送 ${bonusHours}h | 單價: ${contract.hourlyRate} 元/h${contract.cooperationMethod === '公司派' ? ` | 收款費率: ${paymentRate} 元/h` : ''}</p>
+                                    <p>時數: ${contract.totalHours}h + 贈送 ${bonusHours}h</p>
+                                    <p>單價: ${contract.hourlyRate} 元/h${contract.cooperationMethod === '公司派' ? ` | 收款費率: ${paymentRate} 元/h` : ''}</p>
                                     ${contract.signDate ? `<p>簽約 ${contract.signDate}${contract.expireDate ? ` ｜ 到期 ${contract.expireDate}` : ''}</p>` : ''}
                                 </div>
                                 <button class="btn btn-sm btn-secondary" style="margin-left: 10px;" onclick="toggleExpand('${expandId}', this)">展開</button>
@@ -3856,8 +3898,6 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
             document.getElementById('contract-payment-rate').value = SVC().defaultPaymentRate;
             // 合約制每份價格都不一樣，所以不帶預設單價（2026-10-06 改）
             // defaultHourlyRate 現在只給「單次計費」的預約當預設金額用
-            document.getElementById('contract-adv-box').style.display = 'none';
-            document.getElementById('contract-adv-toggle').textContent = '＋ 進階選項';
             document.getElementById('contract-rate-note').style.display = 'none';
             applyCompanyDispatchUI();
             if (!SVC().companyDispatch) document.getElementById('contract-rate-group').style.display = 'block';
@@ -4265,7 +4305,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
             document.getElementById('booking-client-dropdown').style.display = 'none';
             const today = ymdLocal(new Date());
             document.getElementById('booking-date').value = today;
-            renderStaffOptions('me');
+            renderStaffOptions('');
             document.getElementById('booking-modal').dataset.conflictOk = '';
             document.getElementById('booking-modal').dataset.forceSingle = '';
             const _mg = document.getElementById('booking-mode-group');
@@ -5178,7 +5218,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                 return `
                     <div style="border-left:4px solid ${cfg.border};background:${cfg.bg};padding:12px 14px;border-radius:6px;margin-bottom:10px;">
                         <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
-                            <p style="font-weight:bold;color:#2c3e50;display:flex;align-items:center;flex-wrap:nowrap;min-width:0;"><span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${cfg.icon} ${escHtml(d.client.clientName)}</span>${clientLineChip(d.client)}<span style="flex:0 0 auto;margin-left:8px;font-size:12px;font-weight:700;white-space:nowrap;background:white;padding:2px 8px;border-radius:10px;color:${cfg.border};border:1px solid ${cfg.border};">${cfg.label}</span></p>
+                            <p style="font-weight:bold;color:#2c3e50;display:flex;align-items:center;flex-wrap:wrap;row-gap:4px;flex:1 1 auto;min-width:0;"><span style="flex:0 0 auto;white-space:nowrap;">${cfg.icon} ${escHtml(d.client.clientName)}</span>${clientLineChip(d.client)}<span style="flex:0 0 auto;margin-left:8px;font-size:12px;font-weight:700;white-space:nowrap;background:white;padding:2px 8px;border-radius:10px;color:${cfg.border};border:1px solid ${cfg.border};">${cfg.label}</span></p>
                             <div style="display:flex;gap:6px;flex:0 0 auto;">
                                     ${d.client.phone ? `<a class="btn btn-sm btn-secondary" style="text-decoration:none;display:inline-flex;align-items:center;justify-content:center;width:64px;min-width:64px;height:32px;min-height:32px;padding:0;box-sizing:border-box;font-size:13px;font-weight:600;border-radius:7px;line-height:1;margin:0;vertical-align:top;font-family:inherit;" href="tel:${String(d.client.phone).replace(/[^0-9+]/g,'')}">📞 撥號</a>` : ''}
                                     <button class="btn btn-sm btn-secondary" style="display:inline-flex;align-items:center;justify-content:center;width:64px;min-width:64px;height:32px;min-height:32px;padding:0;box-sizing:border-box;font-size:13px;font-weight:600;border-radius:7px;line-height:1;margin:0;vertical-align:top;font-family:inherit;" onclick="openClientDetailModal('${d.client.id}')">查看</button>
@@ -5312,7 +5352,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                 return `
                     <div style="border-left:4px solid ${cfg.border};background:${cfg.bg};padding:12px 14px;border-radius:6px;margin-bottom:10px;">
                         <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
-                            <p style="font-weight:bold;color:#2c3e50;display:flex;align-items:center;flex-wrap:nowrap;min-width:0;"><span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${cfg.icon} ${escHtml(d.client.clientName)}</span>${clientLineChip(d.client)}<span style="flex:0 0 auto;margin-left:8px;font-size:12px;font-weight:700;white-space:nowrap;background:white;padding:2px 8px;border-radius:10px;color:${cfg.border};border:1px solid ${cfg.border};">${cfg.label}</span></p>
+                            <p style="font-weight:bold;color:#2c3e50;display:flex;align-items:center;flex-wrap:wrap;row-gap:4px;flex:1 1 auto;min-width:0;"><span style="flex:0 0 auto;white-space:nowrap;">${cfg.icon} ${escHtml(d.client.clientName)}</span>${clientLineChip(d.client)}<span style="flex:0 0 auto;margin-left:8px;font-size:12px;font-weight:700;white-space:nowrap;background:white;padding:2px 8px;border-radius:10px;color:${cfg.border};border:1px solid ${cfg.border};">${cfg.label}</span></p>
                             <div style="display:flex;gap:6px;flex:0 0 auto;">
                                     ${d.client.phone ? `<a class="btn btn-sm btn-secondary" style="text-decoration:none;display:inline-flex;align-items:center;justify-content:center;width:64px;min-width:64px;height:32px;min-height:32px;padding:0;box-sizing:border-box;font-size:13px;font-weight:600;border-radius:7px;line-height:1;margin:0;vertical-align:top;font-family:inherit;" href="tel:${String(d.client.phone).replace(/[^0-9+]/g,'')}">📞 撥號</a>` : ''}
                                     <button class="btn btn-sm btn-secondary" style="display:inline-flex;align-items:center;justify-content:center;width:64px;min-width:64px;height:32px;min-height:32px;padding:0;box-sizing:border-box;font-size:13px;font-weight:600;border-radius:7px;line-height:1;margin:0;vertical-align:top;font-family:inherit;" onclick="openClientDetailModal('${d.client.id}')">查看</button>
@@ -5809,6 +5849,21 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
         // ===== 手機返回鍵（智在生活 Standard，五支 App 同一套）=====
         // crmToast 保留舊名字供既有呼叫使用，實際走同一個 showToast
         function crmToast(msg){ showToast(msg, 1800); }
+        // 彈窗一打開就回到最上面（不然會停在上次捲到的位置）
+        (function(){
+            var start = function(){
+                new MutationObserver(function(list){
+                    list.forEach(function(r){
+                        var m = r.target;
+                        if (m.classList && m.classList.contains('modal') && m.classList.contains('show') && !(r.oldValue || '').split(' ').includes('show')) {
+                            m.scrollTop = 0;
+                            var c = m.querySelector('.modal-content'); if (c) c.scrollTop = 0;
+                        }
+                    });
+                }).observe(document.body, { attributes: true, attributeFilter: ['class'], attributeOldValue: true, subtree: true });
+            };
+            if (document.body) start(); else document.addEventListener('DOMContentLoaded', start);
+        })();
         function appHandleBack(){
             if (window.closeTopSharedOverlay && closeTopSharedOverlay()) return true;   // 確認視窗／條款／升級／訂閱等共用彈窗
             var open = document.querySelectorAll('.modal.show');
