@@ -156,7 +156,8 @@
             color: #4A7A9B;
             font-family: inherit;
             font-size: 15px;
-            padding: 4px 6px 4px 0;
+            padding: 10px 12px 10px 0;
+            min-height: 40px;
             cursor: pointer;
         }
         .setpg-title { font-size: 17px; font-weight: bold; color: #2c3e50; }
@@ -246,6 +247,9 @@
         input[type="checkbox"] {
             margin-right: 8px;
         }
+        /* 手機上單選／勾選方塊要夠大、文字也能點 */
+        input[type="checkbox"], input[type="radio"] { width: 22px; height: 22px; vertical-align: middle; }
+        label:has(> input[type="checkbox"]), label:has(> input[type="radio"]) { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 6px 12px 6px 0; }
 
         .checkbox-group {
             display: flex;
@@ -1637,34 +1641,24 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
             }
             return null;
         }
-        // 舊名稱對應到新類別（只改對應，不改使用者看到的名字）
-        const SVC_RENAME = { '維修': '家電服務', '維修服務': '家電服務' };
-
-        /* 把一筆服務項目補成新格式。舊資料只有 fields 單一值，這裡轉成兩個開關。
-           已經是新格式的不動，所以重複呼叫是安全的。 */
+        /* 補齊一筆服務項目缺少的欄位（紀錄開關、計費方式、地址是否必填）。
+           已經有的不動，所以重複呼叫是安全的。 */
         function normalizeServiceType(st) {
             if (!st) return st;
-            if (SVC_RENAME[st.typeName]) st.typeName = SVC_RENAME[st.typeName];
             var cat = serviceCat(st.typeName);
 
             if (!st.rec || typeof st.rec !== 'object') {
-                if (st.fields === 'home')        st.rec = { home: true,  repair: false };
-                else if (st.fields === 'repair') st.rec = { home: false, repair: true  };
-                else if (st.fields === 'none')   st.rec = { home: false, repair: false };
-                else if (cat)                    st.rec = { home: cat.home, repair: cat.repair };
-                else                             st.rec = { home: false, repair: false };
+                if (cat) st.rec = { home: cat.home, repair: cat.repair };
+                else     st.rec = { home: false, repair: false };
             }
             st.rec.home   = !!st.rec.home;
             st.rec.repair = !!st.rec.repair;
-
-            // 舊版程式還在讀 fields，順手同步，萬一要退版也不會壞
-            st.fields = st.rec.repair ? (st.rec.home ? 'home' : 'repair') : (st.rec.home ? 'home' : 'none');
 
             if (st.billing !== 'contract' && st.billing !== 'single') {
                 st.billing = cat ? cat.billing : 'contract';
             }
             if (typeof st.addrRequired !== 'boolean') {
-                // 舊資料一律維持必填，行為才不會突然變
+                // 沒有類別可對時預設必填
                 st.addrRequired = cat ? cat.addr : true;
             }
             return st;
@@ -1674,20 +1668,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
 
         function ensureCrmSettings(d) {
             if (!d) return defaultCrmSettings();
-            if (!d.settings) {
-                d.settings = defaultCrmSettings();
-                // 舊帳號：已經在用公司派的，自動保留開啟，不會突然消失
-                var used = (d.contracts || []).some(function (c) { return c.cooperationMethod === '公司派'; }) ||
-                           (d.clients   || []).some(function (c) { return c.clientSource === '公司派'; });
-                if (used) d.settings.companyDispatch = true;
-                // 舊帳號：已經在用精油、或有居家類服務的，保留精油選項
-                var oiled = (d.bookings || []).some(function (b) { return b.useEssentialOil; }) ||
-                            (d.serviceTypes || []).some(function (t) { return t.fields === 'home'; });
-                if (oiled) d.settings.useOil = true;
-                // 舊帳號：拿最近一張自接合約的單價當預設
-                var selfC = (d.contracts || []).filter(function (c) { return c.cooperationMethod !== '公司派' && c.hourlyRate; });
-                if (selfC.length) d.settings.defaultHourlyRate = selfC[selfC.length - 1].hourlyRate;
-            }
+            if (!d.settings) d.settings = defaultCrmSettings();
             var def = defaultCrmSettings();
             Object.keys(def).forEach(function (k) {
                 if (d.settings[k] === undefined || d.settings[k] === null || d.settings[k] === '') d.settings[k] = def[k];
@@ -1746,22 +1727,6 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
             return d.partners;
         }
 
-        // 舊帳號救援：服務類型不見了，但客戶身上還有 serviceTypeId，就把它補回來
-        function rescueServiceTypes(d) {
-            d.serviceTypes = d.serviceTypes || [];
-            if (d.serviceTypes.length) return;
-            var ids = {};
-            (d.clients || []).forEach(function (c) { if (c.serviceTypeId) ids[c.serviceTypeId] = true; });
-            var known = { st_clean: '除塵蟎', st_mite: '居家清潔', st_repair: '維修服務' };
-            Object.keys(ids).forEach(function (id, i) {
-                d.serviceTypes.push({
-                    id: id,
-                    typeName: known[id] || ('服務項目 ' + (i + 1)),
-                    fields: id === 'st_repair' ? 'repair' : 'home'
-                });
-            });
-        }
-
         // ==================== 資料管理 ====================
         class DataStore {
             constructor() {
@@ -1788,8 +1753,6 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                     this.data = JSON.parse(data);
                     if (!this.data.providerName) this.data.providerName = '';
                     if (!this.data.serviceTypes) this.data.serviceTypes = [];
-                    // 確保三種固定服務類型存在
-                    // 舊資料名稱統一
                     this.data.serviceTypes.forEach(st => normalizeServiceType(st));
                     // 去除重複（同名只保留第一筆）
                     const seen = {};
@@ -1799,7 +1762,6 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                         return true;
                     });
 
-                    rescueServiceTypes(this.data);
                     ensureCrmSettings(this.data);
                     (this.data.serviceTypes || []).forEach(st => ensureSvcCfg(st, this.data.settings));
                     // selectedServiceType 若已不存在就清除
@@ -1943,7 +1905,6 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                     seen[st.typeName] = true;
                     return true;
                 });
-                rescueServiceTypes(this.data);
                 ensureCrmSettings(this.data);
                 (this.data.serviceTypes || []).forEach(st => ensureSvcCfg(st, this.data.settings));
                 if (this.data.selectedServiceType) {
@@ -2154,7 +2115,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
         function isCrmAdminEmail(e){ return String(e||'').toLowerCase() === ADMIN_EMAIL.toLowerCase(); }
         // 只用於「這個信箱用過試用沒」的比對，不可當資料路徑
         function crmTrialEmailKey(e){ return normEmail(e).replace(/[.#$\[\]]/g,'_'); }
-        const CRM_APP_VER = 'v1.0', CRM_BUILD_ID = '1009-86';
+        const CRM_APP_VER = 'v1.0', CRM_BUILD_ID = '1009-89';
         const CRM_EMAIL_FOR_SIGNIN = 'crmEmailForSignIn';
         const LINE_SUPPORT_URL = 'https://line.me/R/ti/p/@373pfdee';
         var crmUserEmail = null;
@@ -2288,12 +2249,18 @@ document.addEventListener("visibilitychange", async function(){
             }
             if(sub.status === 'disabled') return { ok:false, msg:'此帳號已停用，請聯繫客服' };
             try{ db.ref(CRM_SUBS_PATH+key+'/lastSeen').set(now); }catch(e){}
-            var expMs = sub.expiry ? Date.parse(sub.expiry+'T23:59:59') : 0;
+            var subExpiry = sub.expiry || '';
+            if (sub.plan === 'trial') {
+                // 試用到期日以「開始試用的時間」為準，不信任自己寫的到期日，避免被改成很久以後
+                var st0 = Number(sub.trialStartedAt || sub.createdAt || 0);
+                if (st0 > 0) { var cap = _crmYmd(st0 + CRM_TRIAL_DAYS*86400000); if (!subExpiry || cap < subExpiry) subExpiry = cap; }
+            }
+            var expMs = subExpiry ? Date.parse(subExpiry+'T23:59:59') : 0;
             var expired = expMs && now > expMs;
             var effPlan = expired ? 'free' : (sub.plan||'free');
-            crmSavePlanCache(email, effPlan, sub.expiry||'');
+            crmSavePlanCache(email, effPlan, subExpiry);
             return { ok:true, plan: effPlan,
-                     expiry: sub.expiry||'', clientsCreated: Number(sub.clientsCreated||0), expired: !!expired };
+                     expiry: subExpiry, clientsCreated: Number(sub.clientsCreated||0), expired: !!expired };
         }
 
         /* 裝置數上限（試用 1 台、完整版 2 台；管理員不限）。
@@ -6048,6 +6015,7 @@ document.addEventListener("visibilitychange", async function(){
     SUBS_APPS.forEach(function(a){
       var d=S.data[a.id]; if(!d) return;
       Object.keys(d).forEach(function(k){
+        if(k===eKey('mp65p@hotmail.com')) return;   // 管理員自己不列入客戶名單
         if(!map[k]) map[k]={ key:k, email:'', apps:{} };
         var s=d[k]||{};
         if(!map[k].email) map[k].email = s.email || k;
