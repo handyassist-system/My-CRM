@@ -2115,7 +2115,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
         function isCrmAdminEmail(e){ return String(e||'').toLowerCase() === ADMIN_EMAIL.toLowerCase(); }
         // 只用於「這個信箱用過試用沒」的比對，不可當資料路徑
         function crmTrialEmailKey(e){ return normEmail(e).replace(/[.#$\[\]]/g,'_'); }
-        const CRM_APP_VER = 'v1.0', CRM_BUILD_ID = '1009-89';
+        const CRM_APP_VER = 'v1.0', CRM_BUILD_ID = '1009-90';
         const CRM_EMAIL_FOR_SIGNIN = 'crmEmailForSignIn';
         const LINE_SUPPORT_URL = 'https://line.me/R/ti/p/@373pfdee';
         var crmUserEmail = null;
@@ -6240,7 +6240,7 @@ document.addEventListener("visibilitychange", async function(){
       }, next==='disabled'?'停用':'恢復', next==='disabled');
     };
     document.getElementById('mDel').onclick=function(){
-      confirmBox('刪除「'+email+'」在'+app.name+'的帳號紀錄？\n\n只刪除訂閱紀錄，客戶自己的 App 資料會保留。', async function(){
+      confirmBox('刪除「'+email+'」在'+app.name+'的帳號紀錄？\n\n'+(active ? '⚠️ 這位客戶目前是付費中（到期 '+slash(st.expiry||'—')+'），刪除後完整版權限與到期日會消失，要重新開通。\n\n' : '')+'只刪除訂閱紀錄，客戶自己的 App 資料會保留。', async function(){
         try{ await firebase.database().ref(path).remove(); toast('已刪除帳號紀錄'); closeSheet(); await load(); }
         catch(e){ toast(fail('刪除', e)); }
       }, '刪除', true);
