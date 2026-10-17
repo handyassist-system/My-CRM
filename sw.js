@@ -1,4 +1,4 @@
-// build 1009-81（每次更新 app 都改這行，瀏覽器才會偵測到新版並顯示「有新版本可用」）
+// build 1009-86（每次更新 app 都改這行，瀏覽器才會偵測到新版並顯示「有新版本可用」）
 // 客戶管理 Service Worker（智在生活 Standard：與其他 App 同一套）
 // 每次改這支 sw.js 本身時，把版本號 +1，舊快取才會被清掉
 const CACHE_NAME = 'crm-cache-v2';

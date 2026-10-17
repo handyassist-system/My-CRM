@@ -2154,7 +2154,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
         function isCrmAdminEmail(e){ return String(e||'').toLowerCase() === ADMIN_EMAIL.toLowerCase(); }
         // 只用於「這個信箱用過試用沒」的比對，不可當資料路徑
         function crmTrialEmailKey(e){ return normEmail(e).replace(/[.#$\[\]]/g,'_'); }
-        const CRM_APP_VER = 'v1.0', CRM_BUILD_ID = '1009-81';
+        const CRM_APP_VER = 'v1.0', CRM_BUILD_ID = '1009-86';
         const CRM_EMAIL_FOR_SIGNIN = 'crmEmailForSignIn';
         const LINE_SUPPORT_URL = 'https://line.me/R/ti/p/@373pfdee';
         var crmUserEmail = null;
@@ -2230,6 +2230,30 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
             if(!crmUserEmail) return;
             try{ await db.ref(CRM_SUBS_PATH + crmEmailKey(crmUserEmail) + '/clientsCreated').set(crmClientsCreated); }catch(e){}
         }
+
+// 切回 app 時重新確認方案：客戶付款、後台開通後，不用手動關掉重開
+var _planChk = { at:0, busy:false };
+document.addEventListener("visibilitychange", async function(){
+  if(document.visibilityState!=="visible" || _planChk.busy) return;
+  var cur = (crmUserEmail ? {email:crmUserEmail, plan:crmPlan, expiry:crmExpiry} : null);
+  if(!cur || !cur.email || String(cur.email).toLowerCase()==="mp65p@hotmail.com") return;   // 管理員（含預覽方案）不處理
+  if(Date.now()-_planChk.at < 30000) return;
+  _planChk.at = Date.now(); _planChk.busy = true;
+  try{
+    var res = await crmVerify(cur.email);
+    if(res && res.ok && !res.offline && (res.plan!==cur.plan || (res.expiry||"")!==(cur.expiry||""))){
+      var last=0; try{ last=Number(sessionStorage.getItem("planReloadAt")||0); }catch(e){}
+      if(Date.now()-last > 60000){
+        try{ sessionStorage.setItem("planReloadAt", String(Date.now())); }catch(e){}
+        var tip=document.createElement("div");
+        tip.textContent="方案已更新，重新載入中…";
+        tip.style.cssText="position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:rgba(30,30,30,.9);color:#fff;padding:10px 18px;border-radius:999px;font-size:14px;z-index:2147483000;";
+        document.body.appendChild(tip);
+        setTimeout(function(){ location.reload(); }, 1200);
+      }
+    }
+  }catch(e){} finally{ _planChk.busy=false; }
+});
 
         async function crmVerify(email){
             crmIsAdmin = isCrmAdminEmail(email);
@@ -5975,9 +5999,14 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
     if(/permission|denied|auth/i.test(c)) return act+'失敗，請重新登入後再試';
     return act+'失敗，請稍後再試';
   }
-  function confirmBox(msg, onOk){
-    if(window.showConfirm) return window.showConfirm(msg, onOk);
-    if(window.askConfirm){ var r=window.askConfirm(msg); if(r&&r.then){ r.then(function(ok){ if(ok) onOk(); }); return; } }
+  // 確認視窗：第一行當標題，其餘當說明；用共用的自製視窗（手機一定跳得出來），沒有才退回系統的 confirm
+  function confirmBox(msg, onOk, okText, danger){
+    var parts=String(msg).split('\n'), title=parts.shift(), message=parts.join('\n').trim();
+    if(window.confirmDialog){
+      window.confirmDialog({ title:title, message:message, okText:okText||'確定', danger:!!danger, accent:'#2B93B8' })
+        .then(function(ok){ if(ok) onOk(); });
+      return;
+    }
     if(confirm(msg)) onOk();
   }
 
@@ -6075,7 +6104,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
     }
     var only = (S.tab==='all'||S.tab==='soon') ? null : S.tab;
     body.innerHTML = warn + arr.map(function(r){
-      var lines = SUBS_APPS.filter(function(a){ return !only || a.id===only; }).map(function(a){
+      var lines = SUBS_APPS.filter(function(a){ return (!only || a.id===only) && !!r.apps[a.id]; }).map(function(a){
         var st=stat(r.apps[a.id]);
         return '<div class="subs-line" data-k="'+esc(r.key)+'" data-a="'+a.id+'">'+
                '<span class="subs-ico">'+a.icon+'</span>'+
@@ -6148,6 +6177,10 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
     var v=(em&&em.value||'').trim().toLowerCase();
     if(!isMail(v)){ toast('Email 格式不正確'); if(em) em.focus(); return; }
     var app=SUBS_APPS.filter(function(a){ return a.id===S.addApp; })[0];
+    var exp=ymd(addMonths(Date.now(), S.addMonths));
+    confirmBox('開通「'+v+'」的'+app.name+'完整版？\n\n到期日：'+slash(exp), function(){ runAdd(v, app, btn); }, '開通');
+  }
+  async function runAdd(v, app, btn){
     var key=eKey(v), now=Date.now();
     var exp=ymd(addMonths(now, S.addMonths));
     btn.disabled=true; btn.textContent='處理中…';
@@ -6191,134 +6224,87 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
     }
     var used=Object.keys(sub.devices||{}).length;
     var isPaid = (st.rawPlan==='full'||st.rawPlan==='basic'||st.rawPlan==='family');
+    var active = isPaid && !st.expired;       // 開通中（付費且還沒到期）
+    var path=app.path+key;
+    var curMs = st.expiry ? Date.parse(st.expiry+'T23:59:59') : 0;
+    var renewTo = ymd(addMonths(Math.max(curMs||0, Date.now()), 12));
+    var openTo  = ymd(addMonths(Date.now(), 12));
+    var subLine = active ? ('完整版 · 到期 '+slash(st.expiry||'—'))
+                : (st.expired ? ('已到期（'+slash(st.expiry)+'）') : planText(app.id, st.rawPlan));
     sheet(
       '<div class="subs-sh-title">'+esc(email)+'</div>'+
-      '<div class="subs-sh-sub">'+app.icon+' '+app.name+'　'+
-        (st.expiry ? planText(app.id, st.rawPlan)+' · '+slash(st.expiry) : planText(app.id, st.rawPlan))+
-        '</div>'+
-      '<button type="button" class="subs-primary" id="mRenew">續約一年</button>'+
-      (isPaid && !NO_FREE_APPS[app.id] ? '<div class="subs-label">取消付費</div>'+
-        '<div class="subs-chips" id="mp">'+
-          '<button type="button" class="subs-chip" data-v="free">改為免費版</button>'+
-        '</div>' : '')+
-      '<div class="subs-label">延長</div>'+
-      '<div class="subs-chips" id="me">'+
-        '<button type="button" class="subs-chip" data-v="1">＋1 月</button>'+
-        '<button type="button" class="subs-chip" data-v="12">＋1 年</button>'+
-        '<button type="button" class="subs-chip" data-v="ask">自訂…</button>'+
-      '</div>'+
+      '<div class="subs-sh-sub">'+app.icon+' '+app.name+'　'+subLine+'</div>'+
+      (active
+        ? '<button type="button" class="subs-primary" id="mRenew">續約一年（到 '+slash(renewTo)+'）</button>'+
+          '<button type="button" class="subs-ghost" id="mSet">自訂到期日</button>'
+        : '<button type="button" class="subs-primary" id="mOpen">開通完整版一年</button>')+
+      '<div class="subs-label">管理</div>'+
       '<div class="subs-row2"><span>裝置</span><span class="v">'+used+' / '+(sub.deviceLimit||devLimit(st.rawPlan))+'</span>'+
         '<button type="button" class="subs-mini" id="mDev">清除</button></div>'+
       '<div class="subs-row2"><span>狀態</span><span class="v">'+(st.disabled?'已停用':'啟用中')+'</span>'+
         '<button type="button" class="subs-mini" id="mTog">'+(st.disabled?'恢復':'停用')+'</button></div>'+
       '<button type="button" class="subs-ghost" onclick="subsAdmin.closeSheet()">關閉</button>'+
-      '<button type="button" class="subs-danger" id="mDel">清除訂閱紀錄</button>'+
-      (WIPE_APPS[app.id] ? '<button type="button" class="subs-danger" id="mWipe" style="margin-top:8px;">刪除帳號與全部資料</button>' : '')
+      '<button type="button" class="subs-danger" id="mDel">刪除帳號</button>'
     );
 
-    var path=app.path+key;
-    document.getElementById('mRenew').onclick=function(){ extend(path, 12); };
-    document.getElementById('me').querySelectorAll('.subs-chip').forEach(function(b){
-      b.onclick=function(){
-        var v=b.getAttribute('data-v');
-        if(v==='ask'){ var m=prompt('延長幾個月？','12'); if(m===null) return;
-          m=parseInt(m,10); if(!m||m<1){ toast('請輸入 1 以上的數字'); return; } extend(path, m); }
-        else extend(path, Number(v));
-      };
-    });
-    var mpBox=document.getElementById('mp');
-    if(mpBox) mpBox.querySelectorAll('.subs-chip').forEach(function(b){
-      b.onclick=function(){
-        confirmBox('把這位客戶改回免費版？\n付費功能會立刻鎖住，資料保留。', function(){
-          changePlan(path, 'free');
-        });
-      };
-    });
+    var bOpen=document.getElementById('mOpen');
+    if(bOpen) bOpen.onclick=function(){
+      confirmBox('幫「'+email+'」開通'+app.name+'完整版一年？\n\n到期日：'+slash(openTo), function(){ activateFull(path); }, '開通');
+    };
+    var bRenew=document.getElementById('mRenew');
+    if(bRenew) bRenew.onclick=function(){
+      confirmBox('續約「'+email+'」的'+app.name+'？\n\n到期日：'+slash(st.expiry||'—')+' → '+slash(renewTo), function(){ extend(path, 12); }, '續約');
+    };
+    var bSet=document.getElementById('mSet');
+    if(bSet) bSet.onclick=function(){ setExpiry(path, st.expiry, email, app.name); };
     document.getElementById('mDev').onclick=function(){
-      confirmBox('清除這位客戶的裝置紀錄？\n他需要重新登入。', async function(){
+      confirmBox('清除「'+email+'」的裝置紀錄？\n他需要重新登入。', async function(){
         try{ await firebase.database().ref(path+'/devices').remove(); toast('已清除裝置'); closeSheet(); await load(); }
         catch(e){ toast(fail('清除', e)); }
-      });
+      }, '清除', true);
     };
-    document.getElementById('mTog').onclick=async function(){
+    document.getElementById('mTog').onclick=function(){
       var next = st.disabled ? 'active' : 'disabled';
-      try{ await firebase.database().ref(path+'/status').set(next);
-        toast(next==='disabled'?'已停用':'已恢復'); closeSheet(); await load(); }
-      catch(e){ toast(fail('更新', e)); }
+      confirmBox((next==='disabled' ? '停用「'+email+'」？\n他將無法使用'+app.name+'。' : '恢復「'+email+'」？\n他可以再次使用'+app.name+'。'), async function(){
+        try{ await firebase.database().ref(path+'/status').set(next);
+          toast(next==='disabled'?'已停用':'已恢復'); closeSheet(); await load(); }
+        catch(e){ toast(fail('更新', e)); }
+      }, next==='disabled'?'停用':'恢復', next==='disabled');
     };
     document.getElementById('mDel').onclick=function(){
-      confirmBox('清除「'+email+'」在'+app.name+'的訂閱紀錄？\n\n客戶的 App 資料（客戶名單、設定）會保留，之後重新開通即可接續使用。', async function(){
-        try{ await firebase.database().ref(path).remove(); toast('已清除訂閱紀錄'); closeSheet(); await load(); }
-        catch(e){ toast(fail('清除', e)); }
-      });
-    };
-    var wipeBtn=document.getElementById('mWipe');
-    if(wipeBtn) wipeBtn.onclick=function(){ openWipeSheet(email, key, path, app); };
-  }
-
-  /* 刪除帳號與全部資料。
-     主要用途是履行隱私權政策承諾的刪除請求（三十日內），其次才是測試。
-     要清的地方（少一個都會殘留）：
-       1 訂閱紀錄      <app>_subscribers/<key>
-       2 App 資料      各 App 自己的根路徑
-       3 試用紀錄      trial_devices/<app>/e_<key> 與各裝置 ID
-       4 重置訊號      <resetRoot><key>，客戶下次登入時據此清掉手機本機快取
-       5 操作紀錄      deletion_log/，只記 email／時間／執行者／原因，不含業務資料
-     第 4 項不做的話，客戶手機上的舊資料會在登入時被推回雲端。 */
-  function openWipeSheet(email, key, subPath, app){
-    var cfg = WIPE_APPS[app.id]; if(!cfg) return;
-    var opts = DEL_REASONS.map(function(r){ return '<option value="'+r.v+'">'+r.t+'</option>'; }).join('');
-    sheet(
-      '<div class="subs-sh-title">刪除帳號與全部資料</div>'+
-      '<div class="subs-sh-sub">'+esc(email)+'　'+app.icon+' '+app.name+'</div>'+
-      '<div class="subs-warn">將刪除此帳號的訂閱、'+(app.id==='crm'?'客戶名單、服務設定':'全部資料')+'與試用紀錄，無法復原。<br>'+
-        '依隱私權政策，使用者得請求刪除其資料。</div>'+
-      '<div class="subs-label">刪除原因</div>'+
-      '<select class="subs-input" id="wpReason">'+opts+'</select>'+
-      '<div class="subs-label">請輸入該 Email 以確認</div>'+
-      '<input type="email" class="subs-input" id="wpEmail" placeholder="'+esc(email)+'" autocomplete="off" autocapitalize="off" spellcheck="false">'+
-      '<button type="button" class="subs-ghost" onclick="subsAdmin.closeSheet()">取消</button>'+
-      '<button type="button" class="subs-danger" id="wpGo">確定刪除</button>'
-    );
-    document.getElementById('wpGo').onclick=function(){
-      var typed=(document.getElementById('wpEmail').value||'').trim().toLowerCase();
-      if(typed !== String(email).trim().toLowerCase()){ toast('Email 不符，已取消'); return; }
-      var reason=document.getElementById('wpReason').value;
-      this.disabled=true; this.textContent='刪除中…';
-      doWipe(email, key, subPath, app, cfg, reason);
+      confirmBox('刪除「'+email+'」在'+app.name+'的帳號紀錄？\n\n只刪除訂閱紀錄，客戶自己的 App 資料會保留。', async function(){
+        try{ await firebase.database().ref(path).remove(); toast('已刪除帳號紀錄'); closeSheet(); await load(); }
+        catch(e){ toast(fail('刪除', e)); }
+      }, '刪除', true);
     };
   }
 
-  async function doWipe(email, key, subPath, app, cfg, reason){
+  // 開通：方案改完整版、從今天起算一年（付款後用；試用或免費帳號才會出現這個按鈕）
+  async function activateFull(path){
     try{
-      var db2 = firebase.database();
-      var devIds = [];
-      try{
-        var ds = await db2.ref(subPath+'/devices').once('value');
-        devIds = Object.keys(ds.val() || {});
-      }catch(e){}
-      var tKey = (typeof crmTrialEmailKey === 'function')
-        ? crmTrialEmailKey(email)
-        : String(email).toLowerCase().replace(/[.#$\[\]]/g,'_');
-      await db2.ref(subPath).remove();                                   // 1
-      await db2.ref(cfg.dataRoot + key).remove();                        // 2
-      await db2.ref('trial_devices/'+cfg.trialApp+'/e_'+tKey).remove();  // 3
-      for(var i=0;i<devIds.length;i++){
-        try{ await db2.ref('trial_devices/'+cfg.trialApp+'/'+devIds[i]).remove(); }catch(e){}
-      }
-      var now = Date.now();
-      await db2.ref(cfg.resetRoot + key).set({ at: now });                // 4
-      await db2.ref(DEL_LOG_PATH).push({                                  // 5
-        email: email, app: app.id, appName: app.name,
-        at: now, by: (window.crmUserEmail || 'admin'), reason: reason
-      });
-      toast('已刪除帳號與全部資料');
+      var next = ymd(addMonths(Date.now(), 12));
+      await firebase.database().ref(path).update({ plan:'full', expiry:next, status:'active', deviceLimit:devLimit('full') });
+      toast('已開通完整版，到期 '+slash(next));
       closeSheet(); await load();
-    }catch(e){ toast(fail('刪除', e)); }
+    }catch(e){ toast(fail('開通', e)); }
   }
-
-
-
+  // 自訂到期日：填錯可以改回來，也能縮短；寫入前再確認一次
+  async function setExpiry(path, cur, email, appName){
+    var d=prompt('新的到期日（年-月-日，例如 2027-10-17）', cur||'');
+    if(d===null) return;
+    d=d.trim().replace(/\//g,'-');
+    var m=/^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(d);
+    var dt=m ? new Date(+m[1], +m[2]-1, +m[3]) : null;
+    if(!dt || dt.getMonth()!==+m[2]-1 || dt.getDate()!==+m[3] || +m[1]<2020 || +m[1]>2100){ toast('日期格式不對，請填 年-月-日'); return; }
+    var next=ymd(dt);
+    confirmBox('把「'+email+'」的'+appName+'到期日改為 '+slash(next)+'？', async function(){
+      try{
+        await firebase.database().ref(path).update({ expiry:next });
+        toast('到期日已改為 '+slash(next));
+        closeSheet(); await load();
+      }catch(e){ toast(fail('修改', e)); }
+    }, '修改');
+  }
   // 續約：從「原到期日」往後加，已過期才從今天算，剩餘天數不會被吃掉
   async function extend(path, months){
     try{
@@ -6330,15 +6316,6 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
       toast('已延長至 '+slash(next));
       closeSheet(); await load();
     }catch(e){ toast(fail('續約', e)); }
-  }
-  async function changePlan(path, plan){
-    try{
-      var up={ plan:plan, deviceLimit:devLimit(plan) };
-      if(plan==='free') up.expiry='';
-      await firebase.database().ref(path).update(up);
-      toast('已改成 '+(PLAN_TXT[plan]||plan));
-      closeSheet(); await load();
-    }catch(e){ toast(fail('修改', e)); }
   }
 
   /* ---------- 容器 ---------- */
