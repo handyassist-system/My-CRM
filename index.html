@@ -1573,7 +1573,6 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
         function crmEmailKey(e){ return String(e||"").toLowerCase().replace(/[.#$\[\]]/g,"_"); }
         function setCrmPath(email){
             FB_KEY = FB_ROOT + '/' + crmEmailKey(email);
-            try { localStorage.removeItem('servicecrm_data'); } catch(e){}   // 舊版單一快取無法判斷屬於誰，一律丟棄
         }
 
         /* 本機快取必須跟帳號綁在一起。
@@ -1787,10 +1786,6 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                     this.save();
                 } else {
                     this.data = JSON.parse(data);
-                    // 相容舊資料：如果有 providers 舊欄位但沒有 providerName
-                    if (!this.data.providerName && this.data.providers && this.data.providers[0]) {
-                        this.data.providerName = this.data.providers[0].name || '';
-                    }
                     if (!this.data.providerName) this.data.providerName = '';
                     if (!this.data.serviceTypes) this.data.serviceTypes = [];
                     // 確保三種固定服務類型存在
@@ -1939,9 +1934,6 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
             }
 
             applyCompatibility() {
-                if (!this.data.providerName && this.data.providers && this.data.providers[0]) {
-                    this.data.providerName = this.data.providers[0].name || '';
-                }
                 if (!this.data.providerName) this.data.providerName = '';
                 if (!this.data.serviceTypes) this.data.serviceTypes = [];
                 this.data.serviceTypes.forEach(st => normalizeServiceType(st));
@@ -1962,22 +1954,6 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                 if (!this.data.clients) this.data.clients = [];
                 if (!this.data.contracts) this.data.contracts = [];
                 if (!this.data.bookings) this.data.bookings = [];
-                // 舊資料搬遷：預約狀態取消「進行中」，併回未完成。
-                this.data.bookings.forEach(function (b) {
-                    if (b && b.status === '進行中') b.status = '未開始';
-                });
-                // 舊資料搬遷：服務人員從「代班人員 id」改成直接存名字。
-                // partners 清單不刪除，萬一要退版還原得回來。
-                (function (d) {
-                    var ps = d.partners || [];
-                    d.bookings.forEach(function (b) {
-                        if (b && b.staffName === 'me') { b.staffName = ''; return; }   // 舊版新增預約時誤把 'me' 當成姓名存進去
-                        if (!b || typeof b.staffName === 'string') return;
-                        if (!b.staffId || b.staffId === 'me') { b.staffName = ''; return; }
-                        var hit = ps.find(function (x) { return x.id === b.staffId; });
-                        b.staffName = hit ? hit.name : '';
-                    });
-                })(this.data);
                 if (!this.data.payments) this.data.payments = [];
             }
 
@@ -2178,7 +2154,7 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
         function isCrmAdminEmail(e){ return String(e||'').toLowerCase() === ADMIN_EMAIL.toLowerCase(); }
         // 只用於「這個信箱用過試用沒」的比對，不可當資料路徑
         function crmTrialEmailKey(e){ return normEmail(e).replace(/[.#$\[\]]/g,'_'); }
-        const CRM_APP_VER = 'v1.0', CRM_BUILD_ID = '1009-79';
+        const CRM_APP_VER = 'v1.0', CRM_BUILD_ID = '1009-81';
         const CRM_EMAIL_FOR_SIGNIN = 'crmEmailForSignIn';
         const LINE_SUPPORT_URL = 'https://line.me/R/ti/p/@373pfdee';
         var crmUserEmail = null;
@@ -2472,24 +2448,6 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                 });
             }catch(e){}
         }
-        // 舊資料搬到自己的帳號底下（只跑一次，你不用做任何事）
-        async function crmMigrateIfNeeded(){
-            if (!FB_KEY) return;
-            if (!crmIsAdmin) return;   // 根層舊資料是管理員的，其他人不該搬
-            try {
-                var mine = await db.ref(FB_KEY).get();
-                if (mine.exists()) return;                        // 已經搬過了
-                var legacy = await db.ref(FB_ROOT).get();
-                if (!legacy.exists()) return;
-                var v = legacy.val() || {};
-                var payload = {};
-                ['providerName','selectedServiceType','serviceTypes','partners','settings','clients','contracts','bookings','payments','providers']
-                    .forEach(function(k){ if (v[k] !== undefined) payload[k] = v[k]; });
-                if (Object.keys(payload).length === 0) return;    // 沒有舊資料
-                await db.ref(FB_KEY).set(payload);
-                console.log('舊資料已搬到帳號底下');
-            } catch(e){ console.warn('搬遷略過', e); }
-        }
         /* 完整重置的收尾：管理員在後台重置後，雲端會留一個時間戳記。
            客戶下次登入時比對本機記錄，較新就把本機快取清掉。
            不這樣做的話，loadFromFirebase() 發現雲端是空的會改讀本機快取，
@@ -2561,7 +2519,6 @@ body:has(#step1.tab-pane.active) .content{ padding-bottom:20px !important; }
                     isAdmin:crmIsAdmin, accent:'#4A7A9B', noFree:true,
                     onUpgrade:function(){ openCrmUpgrade(); } });
                 });
-                await crmMigrateIfNeeded();
                 await store.loadFromFirebase();
                 // 舊帳號沒有計數 → 用現有客戶數補上，避免既有使用者一登入就被鎖
                 if(!crmIsAdmin && !crmClientsCreated && store.data.clients && store.data.clients.length){
